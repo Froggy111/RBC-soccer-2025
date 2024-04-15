@@ -1,0 +1,35 @@
+{
+	"bot_radius": 0.1,
+	"bot_mass": 0.1,
+	"bot_front_insink_depth": 0.1,
+	"bot_front_insink_inner_width": 0.1,
+	"bot_front_insink_outer_width": 0.1,
+
+	"wheel_fric_s": 0.1,
+	"wheel_fric_k": 0.1,
+	"wheel_max_speed": 0.1,
+	"wheel_max_torque": 0.1,
+	"small_wheel_fric_s": 0.1,
+	"small_wheel_fric_k": 0.1,
+	"n_wheels": 4,
+
+	"have_dribbler": false,
+	"dribbler_edge_radius": 0.1,
+	"dribbler_middle_radius": 0.1,
+	"dribbler_centering_tendency": 0,
+	"dribbler_width": 0.1,
+	"dribbler_max_speed": 0.1,
+
+	"have_kicker": false,
+	"kicker_max_impulse": 0.1,
+	"kicker_min_impulse": 0.1,
+	"kicker_elasticity": 0.1,
+	"kicker_uncertainty": 0.1,
+
+	"ball_mass": 0.1,
+	"ball_radius": 0.1,
+	"ball_hitbox": 0.1,
+	"ball_elasticity": 0.1,
+	"ball_fric_s": 0.1,
+	"ball_fric_k": 0.1
+}
