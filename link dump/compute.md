@@ -12,7 +12,8 @@ Option for fully certified radio module:
 Bluetooth 5.0, BLE;
 On-board electronic switch to select either external or PCB trace antenna
 
-PCIe connection is POSSIBLE - can do key with TPU
+key TPU is not compatiable with RPi though... :..(
+have to use USB accelerator
 
 
 
