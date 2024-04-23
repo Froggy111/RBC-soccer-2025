@@ -16,3 +16,5 @@ super essential only current total:
 
 kicker: ~105g (solenoid) + 55g (capacitor setup) ~= 160g (might not be able to do)
 if kicker + 1 lipo big pcbs: 1270g (130g left) (!! definitely no mass for usb accelerator (sad))
+
+130g left is a little bit doable maybe?
