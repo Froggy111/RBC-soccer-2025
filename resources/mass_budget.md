@@ -1,21 +1,27 @@
-ESSENTIALS:
+PARTS:
+- ESSENTIALS
 motors: ~83g each - 332g total
-LiPo (12.6V, 1300mAh): ~115g each - use 1? enough power? - probably swap batts every 10min - 98W to work with but undervolting
+LiPo (12.6V, 1300mAh): ~115g each - use 1? enough power? - probably swap batts every 10min - 98W to work with but undervolting - investigate available power more
 PCBs: probably 60(18cm dia)-90(22cm dia)g each? use 2 plates?
-ultrasound: ~9.4g each - 40g total if 4 sides (probably shouldnt do 3 sides)
+ultrasound: ~9.4g each - 40g total if 4 sides (can even consider not having?)
+
+- if using CM4:
 CM4 + ioboard: ~30g (~6.4W)
-OpenMV cam: ~18.2g
+
+- if using RPi 5:
+RPi5: ~46g (~6.4W no OC)
+active cooler for RPi5: ~29g (~2W)
+
+- if using 3 cams:
+220deg wide cams: ~18g each, ~54g total
 wheels: ~20g each at very least maybe? 80g total
+
+- if using mirror:
+OpenMV cam: ~18.2g (for reference)
 mirror setup: ~50g
 
-super essential only current total:
-332g (motors) + 115g (LiPo) + 180g (PCBs) + 60g (ultrasound) + 30g (compute) + 30g (cam) + 80g (wheels) + 50g (mirror)
-= 867g total (533g left, reasonable)
-if use zachs motors, +58g per motor, 232g total, 1099g
-2 lipos: 1210g total (190g left BAD) (DEFINITELY CANNOT DO)
-1 lipo big pcbs: 1110g total (290g left, workable? probably need to do this anyways)
-
+- if using kicker:
 kicker: ~105g (solenoid) + 55g (capacitor setup) ~= 160g (might not be able to do)
-if kicker + 1 lipo big pcbs: 1270g (130g left) (!! definitely no mass for usb accelerator (sad))
 
-130g left is a little bit doable maybe?
+MASS:
+- RPi 5, 3 cams, 4 ultrasound (most likely setup): 332g (motor) + 115g (LiPo) + 180g (PCBs) + 40g (ultrasound) + 46g (RPi 5) + 29g (cooler) + 54g (cams) + 80g (wheels) = 876g, 524g left
