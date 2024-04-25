@@ -15,8 +15,6 @@ On-board electronic switch to select either external or PCB trace antenna
 key TPU is not compatiable with RPi though... :..(
 have to use USB accelerator
 
-
-
 Dual M.2 TPU ($39.99 USD(?) MSRP) (2.5g) (NO COOLING):
 https://coral.ai/products/m2-accelerator-dual-edgetpu/
 
