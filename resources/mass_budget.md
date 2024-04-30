@@ -1,3 +1,5 @@
+https://docs.google.com/spreadsheets/d/1nkJU1fMwBykuh6vTQhCEh5VCzHdAhULuCZyUjWnpDP0/edit#gid=0
+
 PARTS:
 - ESSENTIALS
 motors: ~83g each - 332g total
