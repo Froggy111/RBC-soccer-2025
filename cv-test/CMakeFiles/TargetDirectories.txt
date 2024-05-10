@@ -1,4 +1,0 @@
-/home/ljy/github/RBC-soccer-2025/cv-test/CMakeFiles/test_speed.dir
-/home/ljy/github/RBC-soccer-2025/cv-test/CMakeFiles/undistort.dir
-/home/ljy/github/RBC-soccer-2025/cv-test/CMakeFiles/edit_cache.dir
-/home/ljy/github/RBC-soccer-2025/cv-test/CMakeFiles/rebuild_cache.dir
