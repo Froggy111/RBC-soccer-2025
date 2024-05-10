@@ -3,3 +3,9 @@
 # Dependencides
 */Cargo.lock
 */target
+
+# cmake
+*/cv-test/CMakeFiles
+*/cv-test/cmake_install.cmake
+*/cv-test/CMakeCache.txt
+*/cv-test/Makefile
