@@ -4,6 +4,8 @@
 #include <string>
 
 using namespace cv;
+using namespace std;
+using namespace chrono;
 
 double load_img();
 Mat unfisheye(Mat input_frame);
@@ -12,16 +14,16 @@ void find_coords();
 
 int main(int argc, char *argv[]) {
 	char * args[argc];
-	std::cout << argc << "\n";
+	cout << argc << "\n";
 	for (int i = 0; i < argc; ++i) {
-        std::cout << argv[i] << "\n";
+        cout << argv[i] << "\n";
 		args[i - 1] = argv[i];
     }
-	std::cout << *args[0] << "\n";
+	cout << *args[0] << "\n";
 	// find_coords();
 	load_img();
 	// double t_taken = 0;
-	// int num_repeats = std::stoi(argv[1]);
+	// int num_repeats = stoi(argv[1]);
 	// setNumThreads(0);
 	// for (int i = 0; i < num_repeats; i++) {
 	// 	t_taken += load_img();
@@ -32,9 +34,9 @@ int main(int argc, char *argv[]) {
 
 double load_img() {
 
-	auto start_time = std::chrono::high_resolution_clock::now();
+	auto start_time = high_resolution_clock::now();
 	Mat img;
-	img = imread("image.png");
+	img = imread("image2.png");
 	namedWindow("Display image", WINDOW_NORMAL);
 	imshow("Display image", img);
 	// waitKey(0);
@@ -48,13 +50,13 @@ double load_img() {
 	// waitKey(0);
 	Mat chessboard_corners;
 	findChessboardCorners(grey, Size(9, 6), chessboard_corners);
-	std::cout << chessboard_corners << std::endl;
+	cout << chessboard_corners << endl;
 	// namedWindow("Display image", WINDOW_AUTOSIZE);
 	// imshow("Display image", chessboard_corners);
 	// waitKey(0);
 	// undistort(img, img, Mat(), Mat(), Mat());
-	auto end_time = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double, std::milli> time_taken = end_time - start_time;
+	auto end_time = high_resolution_clock::now();
+	duration<double, milli> time_taken = end_time - start_time;
 	printf("Time taken: %f\n", time_taken.count());
 
 	return time_taken.count();
@@ -63,7 +65,7 @@ double load_img() {
 void find_coords() {
 	Mat img;
 	img = imread("image.png");
-	std::cout << img.size() << std::endl;
+	cout << img.size() << endl;
 	namedWindow("Display image", WINDOW_NORMAL);
 	setMouseCallback("Display image", click_event, 0);
 	imshow("Display image", img);
@@ -74,12 +76,12 @@ void find_coords() {
 
 void click_event (int event, int x, int y, int, void*) {
 	if (event == EVENT_LBUTTONDOWN) {
-		std::cout << "Left button of the mouse is clicked - position (" << x << "," << y << ")" << std::endl;
+		cout << "Left button of the mouse is clicked - position (" << x << "," << y << ")" << endl;
 	}
 }
 
 Mat unfisheye (Mat input_frame) {
-	Mat img_coords = Mat(4, 3, CV_32FC3);
+	Mat img_coords = Mat(20, 2, CV_32FC3);
 	img_coords.at<double>(0, 0) = 74;
 	img_coords.at<double>(0, 1) = 53;
 	img_coords.at<double>(1, 0) = 94;
@@ -122,7 +124,7 @@ Mat unfisheye (Mat input_frame) {
 	img_coords.at<double>(19, 1) = 139;
 
 	// img size is 204x192
-	Mat target_img_coords = Mat(4, 3, CV_32FC2);
+	Mat target_img_coords = Mat(20, 2, CV_32FC2);
 	int coord_count = 0;
 	for (int i = 1; i < 6; i++) {
 		for (int k = 4; k < 8; k++) {
@@ -132,25 +134,28 @@ Mat unfisheye (Mat input_frame) {
 		}
 	}
 	
-	Mat rvecs, tvecs;
+	vector<Mat> rvecs_vec, tvecs_vec;
+	vector<Mat> objpoints, imgpoints;
+	objpoints.push_back(img_coords);
+	imgpoints.push_back(target_img_coords);
 	Matx33d K;
 	Vec4d D;
 
-	std::cout << img_coords << std::endl;
-	std::cout << img_coords.at<double>(10, 0) << std::endl;
-	std::cout << target_img_coords << std::endl;
-	std::cout << target_img_coords.at<double>(10, 0) << std::endl;
-	std::cout << img_coords.size() << std::endl;
-	std::cout << target_img_coords.size() << std::endl;
+	cout << img_coords << endl;
+	cout << img_coords.at<double>(10, 0) << endl;
+	cout << target_img_coords << endl;
+	cout << target_img_coords.at<double>(10, 0) << endl;
+	cout << img_coords.size() << endl;
+	cout << target_img_coords.size() << endl;
 	
-	std::cout << img_coords.total() << std::endl;
-	std::cout << target_img_coords.total() << std::endl;
-	fisheye::calibrate(img_coords, target_img_coords, Size(204, 192), K, D, rvecs, tvecs);
+	cout << img_coords.total() << endl;
+	cout << target_img_coords.total() << endl;
+	fisheye::calibrate(objpoints, imgpoints, Size(204, 192), K, D, rvecs_vec, tvecs_vec);
 	
-	std::cout << K << "\n";
-	std::cout << D << "\n";
-	std::cout << rvecs << "\n";
-	std::cout << tvecs << "\n";
+	cout << K << "\n";
+	cout << D << "\n";
+	// cout << rvecs_vec << "\n";
+	// cout << tvecs_vec << "\n";
 
 	Mat cameraMatrix = Mat(3,3, DataType<double>::type);
     Mat distortionCoeffs = Mat(4,1, DataType<double>::type);
