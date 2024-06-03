@@ -1,7 +1,37 @@
+Last updated: 3 June 2024
+
 The bottom plate is quite simple.
 
 **Controller:**
 - ESP32-WROOM (30PIN)
+  - Used for interfacing sensors
+  - Pinouts (ALL UP TO CHANGE BASED ON ROUTING NEEDS):
+    - sensor MOSI: GPIO13
+    - sensor MISO: GPIO12
+    - sensor SCLK: GPIO14
+    - ADC1 CS: GPIO27
+    - ADC2 CS: GPIO26
+    - ADC3 CS: GPIO25
+    - mouse 1 motion interrupt: GPIO33
+    - mouse 1 CS: GPIO32
+    - mouse 1 motion interrupt: GPIO35
+    - mouse 1 CS: GPIO34
+    - motor enable: GPIO36
+    - motor 1 LPWM: GPIO39
+    - motor 1 RPWM: GPIO22
+    - motor 2 LPWM: GPIO21
+    - motor 2 RPWM: GPIO17
+    - motor 3 LPWM: GPIO16
+    - motor 3 RPWM: GPIO4
+    - motor 4 LPWM: GPIO2
+    - motor 4 RPWM: GPIO15
+    - TX to Pi: GPIO1 (TX0)
+    - RX to Pi: GPIO3 (RX0)
+    - MOSI to Pi: GPIO23 (VSPI)
+    - MISO to Pi: GPIO19 (VSPI)
+    - SCLK to Pi: GPIO18 (VSPI)
+    - CS by Pi: GPIO5 (VSPI)
+    - EN passed up to Pi to turn off
 
 **Sensors:**
 - Line sensor ring
@@ -18,3 +48,18 @@ The bottom plate is quite simple.
 **Motors:**
 JST from PWM outputs to motor drivers, as there is no place to put motor drivers flush (as mouse sensors take up the space).
 Level shifting from 3.3V logic of ESP32 to 5V logic of motor drivers.
+
+**Power:**
+This is the same as the top plate, minus the 1V8 supply.
+**Traces expected to carry large current should be thick!**
+12V and GND from the LiPOs. The LiPOs should be connected together in parallel before connecting to the board.
+That goes through decoupling capacitors, right next to the input port. 4 decoupling capacitors are placed to allow easy adjustment of decoupling capacity.
+The filtered 12V is passed to a 5V buck and a 3V3 buck (Mini560). It is a high current breakout regulator, used mainly for the price.
+It then goes through the same 4 decoupling capacitors, for the same reasoning.
+All have a probe at the unfiltered/noisy end and the filtered end to allow easier debugging.
+They then pass through a protection circuit. A crowbar made of a zener diode and triac is made to protect the circuit from sustained extremely high voltage (such as from the buck failing), by exceeding the zener voltage and activating the triac, shorting the circuit and blowing the unressetable fuse.
+An unressetable fuse is used here to prevent possible oscillatory behavior with the circuit (fuse blows, current below triac holding current, traic shuts, resetting the crowbar and fuse resets, repeating)
+The unressetable fuse blowing also means something really went wrong. (perhaps not enough decoupling capacity?)
+There is then a resettable fuse after this crowbar, which protects the circuit from overcurrent. Small overcurrents will not require a replacement of the unressetable fuse.
+This provides cleaned, protected power supply which will hopefully not fry any components.
+Everything on the bottom board uses 3V3 other than level shifting to 5V for motor drivers.
