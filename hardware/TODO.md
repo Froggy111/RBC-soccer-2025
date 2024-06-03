@@ -22,11 +22,16 @@ Thread 2:
 - Test and iterate designs (horn, enclosure and mesh).
 
 Thread 3:
+- Order mouse sensors and breakout boards.
+- Print the baseplate for mouse sensors.
+- Test.
+
+Thread 4:
 - Make wheel friction testing holder.
 - Test wheel friction both not under and under heavy weight.
 
-(TBC) Thread 4:
+(TBC) Thread 5:
 - Kicker prototyping
 
-(TBC) Thread 5:
+(TBC) Thread 6:
 - Dribbler prototyping
