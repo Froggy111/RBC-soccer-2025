@@ -21,8 +21,12 @@ Thread 2:
 - Order ultrasounds, PCB, and stainless steel mesh.
 - Test and iterate designs (horn, enclosure and mesh).
 
-(TBC) Thread 3:
-- Kicker prototyping
+Thread 3:
+- Make wheel friction testing holder.
+- Test wheel friction both not under and under heavy weight.
 
 (TBC) Thread 4:
+- Kicker prototyping
+
+(TBC) Thread 5:
 - Dribbler prototyping
