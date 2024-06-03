@@ -1,8 +1,0 @@
-cmake_minimum_required(VERSION 2.8)
-project( test_speed )
-find_package( OpenCV REQUIRED )
-include_directories( ${OpenCV_INCLUDE_DIRS} )
-add_executable( test_speed test_speed.cpp )
-add_executable( undistort undistort.cpp )
-target_link_libraries( test_speed ${OpenCV_LIBS} )
-target_link_libraries( undistort ${OpenCV_LIBS} )
