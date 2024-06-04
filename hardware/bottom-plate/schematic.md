@@ -1,6 +1,11 @@
-Last updated: 3 June 2024
+Last updated: 4 June 2024
 
-The bottom plate is quite simple.
+Bottom plate is below the motors, and provides the base structure for the bot. There is a ring of line sensors and 2 mouse sensors, interfaced with an ESP32. The ESP32 also outputs PWM to the motor drivers.
+
+**SOFTWARE NOTES:**
+- Refer to below pinouts.
+- UART RX from Pi (middle plate) will recieve both data for bottom and top plate. Bottom plate recieves motor commands, and both plates recieve software switch commands, and various commands to reset sensors, etc.
+- There are many simultaneous tasks for the ESP32. To increase performance, async with interrupts could be used.
 
 **Controller:**
 - ESP32-WROOM (30PIN)
@@ -25,7 +30,7 @@ The bottom plate is quite simple.
     - motor 3 RPWM: GPIO4
     - motor 4 LPWM: GPIO2
     - motor 4 RPWM: GPIO15
-    - TX to Pi: GPIO1 (TX0)
+    - TX/GPIO to Pi: GPIO1 (TX0)
     - RX to Pi: GPIO3 (RX0)
     - MOSI to Pi: GPIO23 (VSPI)
     - MISO to Pi: GPIO19 (VSPI)
@@ -46,11 +51,11 @@ The bottom plate is quite simple.
     - Breakout is used also to reduce how much the mouse sensor + base plate sticks out, to allow the line sensor ring to be closer to the field.
 
 **Motors:**
-JST from PWM outputs to motor drivers, as there is no place to put motor drivers flush (as mouse sensors take up the space).
+JST from PWM outputs to motor drivers, as there is no place to put motor drivers flush with bottom board (as mouse sensors take up the space).
 Level shifting from 3.3V logic of ESP32 to 5V logic of motor drivers.
 
 **Power:**
-This is the same as the top plate, minus the 1V8 supply.
+This is the same as the top plate.
 **Traces expected to carry large current should be thick!**
 12V and GND from the LiPOs. The LiPOs should be connected together in parallel before connecting to the board.
 That goes through decoupling capacitors, right next to the input port. 4 decoupling capacitors are placed to allow easy adjustment of decoupling capacity.
