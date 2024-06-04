@@ -6,5 +6,5 @@ _Welcome! It's a dangerous world out there. **Take this with you.**_
 
 Refer to various READMEs, TODOs and PRINCIPLESs.
 
-links for (organisation? never heard of her):
+Other Links:
 - Component spreadsheet: https://docs.google.com/spreadsheets/d/1nkJU1fMwBykuh6vTQhCEh5VCzHdAhULuCZyUjWnpDP0/edit#gid=0
