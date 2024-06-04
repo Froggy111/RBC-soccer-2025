@@ -4,7 +4,7 @@ _Do I look like a man with a plan? **A limiting plan only limits you.**_
   - _THIS IS A REMINDER TO FILL UP IF YOU ARE LOOKING AT THIS, IF YOU CAN_
 
 ## Mostly Completed
-- Bottom and top PCB schematics.
+- Bottom, middle and top PCB schematics.
 
 ## Incomplete
 
