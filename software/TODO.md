@@ -1,4 +1,4 @@
-_When you check something off, you would have added 10 more._
+_When you check something off, you would have added 10 more. **It fills you with determination.**_
 
 TBC = have not thought about enough yet to have a solid plan. Fill up in the future.
 <ins>**_THIS IS A REMINDER TO FILL UP IF YOU ARE LOOKING AT THIS, IF YOU CAN_**</ins>

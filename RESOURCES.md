@@ -1,4 +1,4 @@
-_Where did your failures bring you? Right back to me._
+_When you copy from one person, it is plagarism. When you copy from many, it is research. Sprinkle in something of your own, and **it becomes innovation.**_
 
 Collection of useful resources to ~~plagarise~~ take inspiration from.
 
