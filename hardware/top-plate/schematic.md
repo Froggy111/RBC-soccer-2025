@@ -19,20 +19,21 @@ Top plate is above the mirror. Contains the IMU, Ultrasound ring and an ESP32 fo
     - IMU CS: GPIO27
     - IMU RST: GPIO26
     - IMU INT: GPIO25
-    - CH201 INT multiplexer CS: GPIO32
-    - CH201 INT multiplexer INT: GPIO36
-    - CH201 PROG multiplexer CS: GPIO33
-    - CH201 PROG multiplexer INT: GPIO17
-    - GPIO multiplexer reset: GPIO35
-    - CH201 PROG level shifter DIR: GPIO39
-    - I2C SCL: GPIO22
+    - GPIO multiplexer CS: GPIO39
+    - GPIO multiplexer reset: GPIO36
+    - GPIO multiplexer 1 INT: GPIO4
+    - GPIO multiplexer 2 INT: GPIO15
+    - GPIO multiplexer 3 INT: GPIO35
+    - GPIO multiplexer 4 INT: GPIO33
+    - Level shifter 1 DIR: GPIO3
+    - Level shifter 2 DIR: GPIO2
+    - Level shifter 3 DIR: GPIO34
+    - Level shifter 4 DIR: GPIO32
     - I2C SDA: GPIO21
+    - I2C SCL: GPIO22
     - CH201 RESET: GPIO1
-    - I2C multiplexer RESET: GPIO3
-    - RX to Pi: GPIO16
-    - shifter 1 DIR: GPIO15
-    - shifter 2 DIR: GPIO2 (TX0)
-    - shifter 3 DIR: GPIO4 (RX0)
+    - RX to Pi: GPIO16 (RX2)
+    - TX to Pi: GPIO17 (TX2)
     - MOSI to Pi: VSPI, GPIO23
     - MISO to Pi: VSPI, GPIO19
     - SCLK to Pi: VSPI, GPIO18
