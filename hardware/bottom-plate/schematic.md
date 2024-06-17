@@ -17,21 +17,21 @@ Bottom plate is below the motors, and provides the base structure for the bot. T
     - ADC1 CS: GPIO27
     - ADC2 CS: GPIO26
     - ADC3 CS: GPIO25
-    - mouse 1 motion interrupt: GPIO33
-    - mouse 1 CS: GPIO32
-    - mouse 1 motion interrupt: GPIO35
-    - mouse 1 CS: GPIO34
-    - motor enable: GPIO36
-    - motor 1 LPWM: GPIO39
-    - motor 1 RPWM: GPIO22
-    - motor 2 LPWM: GPIO21
-    - motor 2 RPWM: GPIO17
-    - motor 3 LPWM: GPIO16
-    - motor 3 RPWM: GPIO4
-    - motor 4 LPWM: GPIO2
-    - motor 4 RPWM: GPIO15
-    - TX/GPIO to Pi: GPIO1 (TX0)
-    - RX to Pi: GPIO3 (RX0)
+    - mouse 1 motion interrupt: GPIO39
+    - mouse 1 CS: GPIO36
+    - mouse 1 motion interrupt: GPIO15
+    - mouse 1 CS: GPIO2
+    - motor enable: GPIO34
+    - motor 1 LPWM: GPIO35
+    - motor 1 RPWM: GPIO32
+    - motor 2 LPWM: GPIO33
+    - motor 2 RPWM: GPIO22
+    - motor 3 LPWM: GPIO1
+    - motor 3 RPWM: GPIO3
+    - motor 4 LPWM: GPIO21
+    - motor 4 RPWM: GPIO4
+    - TX/GPIO to Pi: GPIO17 (TX2)
+    - RX to Pi: GPIO16 (RX2)
     - MOSI to Pi: GPIO23 (VSPI)
     - MISO to Pi: GPIO19 (VSPI)
     - SCLK to Pi: GPIO18 (VSPI)
