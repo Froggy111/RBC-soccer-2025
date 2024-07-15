@@ -8,10 +8,12 @@
 #include <cmath>
 
 void make_mirror_slice(int argc, char* argv[]);
+void generate_mirror_STL(int argc, char* argv[]);
+
 double distribution_fn(double x, float one_over_grad);
 
 int main(int argc, char* argv[]) {
-  make_mirror_slice(argc, argv);
+  generate_mirror_STL(argc, argv);
   return 0;
 }
 
@@ -75,6 +77,51 @@ void make_mirror_slice(int argc, char* argv[]) {
       }
     }
   }
+}
+
+void generate_mirror_STL(int argc, char* argv[]) {
+  /*
+  ARGS:
+  1. camera focus point height (float)
+  2. mirror highest point height (float)
+  3. x distance from camera focus point to edge of field (float)
+  4. camera FOV, in degrees (float)
+  5. pixels per unit (int)
+  6. steps per pixel (int)
+  7. distribution grad (float)
+  8. number of slices (int)
+  9. output file name (char[])
+  10. file header (char[])
+  */
+  using namespace std;
+
+  if (argc != 11) {
+    result::panic("Invalid args.", __PRETTY_FUNCTION__);
+  }
+  
+  float cam_y = stof(argv[1]);
+  float mirror_y = stof(argv[2]);
+  float max_x = stof(argv[3]);
+  float fov = stof(argv[4]);
+  int pixels_per_unit = stoi(argv[5]);
+  int steps_per_pixel = stoi(argv[6]);
+  float distribution_grad = stof(argv[7]);
+  int n_slices = stoi(argv[8]);
+  string file_name = argv[9];
+  string file_header = argv[10];
+
+  fov = (fov / 180.0f) * M_PI; // convert to radians
+
+  vector<array<double, 2>> mirror_plotted_points = mirror::map_points_2D(
+    cam_y, fov, pixels_per_unit, steps_per_pixel, distribution_fn, mirror_y, max_x, distribution_grad
+  );
+
+
+  STL::STLFile STL_file(file_name);
+  STL_file.write_header(file_header);
+  mirror::generate_STL(mirror_plotted_points, STL_file, n_slices);
+
+  return;
 }
 
 double distribution_fn(double x, float one_over_grad) {
