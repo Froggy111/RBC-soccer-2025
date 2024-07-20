@@ -8,7 +8,6 @@
 #include "lib/display.hpp"
 
 namespace display {
-  using namespace fmt;
   using namespace std;
 
   Display::Display(int width, int height, std::string window_name, bool use_renderer, int renderer_idx, uint32_t renderer_flags) {
