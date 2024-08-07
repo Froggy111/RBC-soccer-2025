@@ -6,3 +6,7 @@ _Software can be well structured without slowing it down by 3 orders of magnitud
 - **Ensure software is modular and easily adaptable**
 - Ensure software is well documented (comments) and easy to understand
 - Extract constants that could be adjusted in the future
+
+## **Naming Conventions**
+1. *Functions/Variables:* snake_case
+2. *Classes/Structs:* PascalCase
