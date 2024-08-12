@@ -9,17 +9,31 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 # Include directories
-include_directories("${CMAKE_SOURCE_DIR}/lib" "${CMAKE_SOURCE_DIR}/src/main" "${CMAKE_SOURCE_DIR}/src/input" "${CMAKE_SOURCE_DIR}/src/output" "${CMAKE_SOURCE_DIR}/src/strategy" "${CMAKE_SOURCE_DIR}/src/utils")
+include_directories("src" "lib" "utils")
 
 # Collect all source files
-file(GLOB_RECURSE LIB_SOURCES lib/*.cpp lib/*.hpp)
-file(GLOB_RECURSE SRC_SOURCES src/*.cpp src/*.hpp)
-file(GLOB_RECURSE UTILS_SOURCES utils/*.cpp utils/*.hpp)
+file(GLOB_RECURSE SRC_SOURCES "src/*.cpp")
+file(GLOB_RECURSE SRC_SOURCES "src/*.cpp")
+file(GLOB_RECURSE SRC_MAIN_SOURCES "src/main/*.cpp")
+file(GLOB_RECURSE SRC_MAIN_HEADERS "src/main/*.hpp")
+add_library(lib ${SRC_SOURCES} ${SRC_HEADERS} ${SRC_MAIN_SOURCES} ${SRC_MAIN_HEADERS})
 
-# Add executable target
-add_executable(RBC-2025
-  ${LIB_SOURCES}
-  ${SRC_SOURCES}
-  ${UTILS_SOURCES}
-  src/main/main.cpp
-)
+file(GLOB_RECURSE LIB_SORUCES "lib/*.cpp")
+file(GLOB_RECURSE LIB_HEADERS "lib/*.hpp")
+foreach(libsourcefile ${LIB_SOURCES})
+  get_filename_component(libname ${libsourcefile} NAME_WE)
+  add_library(${libname}.o ${libsourcefile})
+  get_filename_component(libdir ${libsourcefile} DIRECTORY)
+  set_target_properties(${libname}.o PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${libdir})
+  target_link_libraries(${libname}.o lib)
+endforeach(libsourcefile ${LIB_SOURCES})
+
+file(GLOB_RECURSE UTILS_SOURCES "utils/*.cpp")
+file(GLOB_RECURSE UTILS_HEADERS "utils/*.hpp")
+foreach(utilsourcefile ${UTILS_SOURCES})
+  get_filename_component(utilname ${utilsourcefile} NAME_WE)
+  add_library(${utilname}.o ${utilsourcefile})
+  get_filename_component(utildir ${utilsourcefile} DIRECTORY)
+  set_target_properties(${utilname}.o PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${utildir})
+  target_link_libraries(${utilname}.o lib)
+endforeach(utilsourcefile ${UTILS_SOURCES})
