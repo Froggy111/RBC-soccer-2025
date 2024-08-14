@@ -1,7 +1,7 @@
-#include "src/main/loop.hpp"
-#include "src/strategy/main.hpp"
-#include "src/input/main.hpp"
-#include "src/output/main.hpp"
+#include "loop.hpp"
+#include "strategy/main.hpp"
+#include "input/main.hpp"
+#include "output/main.hpp"
 
 void start_loops() {
 	std::future<void> input_promise = std::async(InputLoop);

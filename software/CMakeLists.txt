@@ -7,33 +7,16 @@ project(
 )
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
+set(SOURCE_FILES "src/main/main.cpp")
 
-# Include directories
-include_directories("src" "lib" "utils")
+# Set the output directory
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build)
 
-# Collect all source files
-file(GLOB_RECURSE SRC_SOURCES "src/*.cpp")
-file(GLOB_RECURSE SRC_SOURCES "src/*.cpp")
-file(GLOB_RECURSE SRC_MAIN_SOURCES "src/main/*.cpp")
-file(GLOB_RECURSE SRC_MAIN_HEADERS "src/main/*.hpp")
-add_library(lib ${SRC_SOURCES} ${SRC_HEADERS} ${SRC_MAIN_SOURCES} ${SRC_MAIN_HEADERS})
+# Source
+file(GLOB_RECURSE SRC_FILES "src/*.cpp")
 
-file(GLOB_RECURSE LIB_SORUCES "lib/*.cpp")
-file(GLOB_RECURSE LIB_HEADERS "lib/*.hpp")
-foreach(libsourcefile ${LIB_SOURCES})
-  get_filename_component(libname ${libsourcefile} NAME_WE)
-  add_library(${libname}.o ${libsourcefile})
-  get_filename_component(libdir ${libsourcefile} DIRECTORY)
-  set_target_properties(${libname}.o PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${libdir})
-  target_link_libraries(${libname}.o lib)
-endforeach(libsourcefile ${LIB_SOURCES})
+# Include relevant directories
+include_directories("src")
 
-file(GLOB_RECURSE UTILS_SOURCES "utils/*.cpp")
-file(GLOB_RECURSE UTILS_HEADERS "utils/*.hpp")
-foreach(utilsourcefile ${UTILS_SOURCES})
-  get_filename_component(utilname ${utilsourcefile} NAME_WE)
-  add_library(${utilname}.o ${utilsourcefile})
-  get_filename_component(utildir ${utilsourcefile} DIRECTORY)
-  set_target_properties(${utilname}.o PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${utildir})
-  target_link_libraries(${utilname}.o lib)
-endforeach(utilsourcefile ${UTILS_SOURCES})
+# Add them as an executable
+add_executable(${PROJECT_NAME} ${SRC_FILES})

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lib/typedef.hpp"
+#include "types/numbers.hpp"
 
 struct Vector {
 	types::f64 x;
