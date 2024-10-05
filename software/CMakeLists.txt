@@ -18,5 +18,11 @@ file(GLOB_RECURSE SRC_FILES "src/*.cpp")
 # Include relevant directories
 include_directories("src")
 
+# Find spdlog package
+find_package(spdlog REQUIRED)
+
 # Add them as an executable
 add_executable(${PROJECT_NAME} ${SRC_FILES})
+
+# Link spdlog library
+target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)

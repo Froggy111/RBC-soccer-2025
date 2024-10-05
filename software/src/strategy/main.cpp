@@ -1,9 +1,7 @@
 #include <iostream>
 #include <unistd.h>
+#include "spdlog/spdlog.h"
 
 void StrategyLoop() {
-	for (int i = 0; i < 1000; i++){
-		sleep(1);
-		std::printf("InputLoop: %d\n", i);
-	}
+	spdlog::info("Strategy Loop started!");
 }
