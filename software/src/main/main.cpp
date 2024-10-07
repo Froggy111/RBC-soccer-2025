@@ -3,7 +3,9 @@
 #include "input/main.hpp"
 #include "output/main.hpp"
 #include "spdlog/spdlog.h"
+#include "main/input_state.hpp"
 
+// Start the input, strategy, and output loops
 void start_loops() {
 	spdlog::info("Creating Loops");
 	std::future<void> input_promise = std::async(InputLoop);
@@ -31,6 +33,7 @@ int main() {
 | | \\ \\| |_) | |____  | |___\\  /\\  /     | |     / /_| |_| / /_ ___) |\n\
 |_|  \\_\\____/ \\_____| |______\\/  \\/      |_|    |____|\\___/____|____/ \n\
 ");
+
 
 	start_loops();
 }
