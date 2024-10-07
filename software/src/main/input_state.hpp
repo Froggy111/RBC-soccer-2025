@@ -1,21 +1,21 @@
 #include <mutex>
 
-extern std::mutex m;
+extern std::mutex m_in;
 
 struct InputState
 {
-    int counter;
+	int counter;
 };
 
 class InputStateManager
 {
 private:
-    InputState *state;
+	InputState *state;
 
 public:
-    InputStateManager();
-    InputState read_state();
-    void update_state();
+	InputStateManager();
+	InputState read_state();
+	void update_state();
 };
 
 extern InputStateManager input_state_manager;
