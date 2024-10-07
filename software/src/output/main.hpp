@@ -1,3 +1,4 @@
 #pragma once
+#include "main/output_state.hpp"
 
-void OutputLoop();
+void OutputLoop(OutputStateManager output_state_manager);

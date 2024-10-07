@@ -1,3 +1,4 @@
+#pragma once
 #include <mutex>
 
 extern std::mutex m_in;
@@ -17,5 +18,3 @@ public:
 	InputState read_state();
 	void update_state();
 };
-
-extern InputStateManager input_state_manager;

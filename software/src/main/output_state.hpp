@@ -1,3 +1,4 @@
+#pragma once
 #include <mutex>
 
 extern std::mutex m_out;
@@ -17,5 +18,3 @@ public:
     OutputState read_state();
     void update_state();
 };
-
-extern OutputStateManager output_state_manager;
