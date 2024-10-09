@@ -3,8 +3,8 @@
 #include "input/input.hpp"
 #include "output/output.hpp"
 #include "spdlog/spdlog.h"
-#include "main/input_state.hpp"
-#include "main/output_state.hpp"
+#include "main/state_input.hpp"
+#include "main/state_output.hpp"
 
 // Start the input, strategy, and output loops
 void start_loops(InputStateManager input_state_manager, OutputStateManager output_state_manager) {

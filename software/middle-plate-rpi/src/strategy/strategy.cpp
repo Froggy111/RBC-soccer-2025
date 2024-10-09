@@ -1,8 +1,8 @@
 #include <iostream>
 #include <unistd.h>
 #include "spdlog/spdlog.h"
-#include "main/input_state.hpp"
-#include "main/output_state.hpp"
+#include "main/state_input.hpp"
+#include "main/state_output.hpp"
 
 void StrategyLoop(InputStateManager input_state_manager, OutputStateManager output_state_manager) {
 	spdlog::info("Strategy Loop started!");

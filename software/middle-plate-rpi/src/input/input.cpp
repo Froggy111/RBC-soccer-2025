@@ -1,7 +1,7 @@
 #include <iostream>
 #include <unistd.h>
 #include "spdlog/spdlog.h"
-#include "main/input_state.hpp"
+#include "main/state_input.hpp"
 
 void InputLoop(InputStateManager input_state_manager) {
 	spdlog::info("Input Loop started!");
