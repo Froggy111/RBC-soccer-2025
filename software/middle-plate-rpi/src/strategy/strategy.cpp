@@ -6,9 +6,11 @@
 
 void StrategyLoop(InputStateManager input_state_manager, OutputStateManager output_state_manager) {
 	spdlog::info("Strategy Loop started!");
+	input_state_manager.add_function([&](InputState state) {
+		spdlog::info("Strategy Loop Output: Counter = {}", state.counter);
+	});
+
 	while (true) {
-		input_state_manager.update_state();
 		usleep(10000);
-		spdlog::info("Strategy Loop: Counter = {}", input_state_manager.read_state().counter);
 	}
 }

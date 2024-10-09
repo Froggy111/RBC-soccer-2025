@@ -5,9 +5,12 @@
 #include "spdlog/spdlog.h"
 #include "main/state_input.hpp"
 #include "main/state_output.hpp"
+#include <mutex>
+
+std::mutex mutex;
 
 // Start the input, strategy, and output loops
-void start_loops(InputStateManager input_state_manager, OutputStateManager output_state_manager) {
+void start_loops(InputStateManager& input_state_manager, OutputStateManager& output_state_manager) {
 	spdlog::info("Creating Loops");
     std::future<void> input_promise = std::async([&]() { InputLoop(input_state_manager); });
     std::future<void> strategy_promise = std::async([&]() { StrategyLoop(input_state_manager, output_state_manager); });
