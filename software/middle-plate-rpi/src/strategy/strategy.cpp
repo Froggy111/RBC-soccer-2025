@@ -4,4 +4,5 @@
 
 void StrategyLoop() {
 	spdlog::info("Strategy Loop started!");
+	int strategy_id = getpid(), input_id = strategy_id - 1, output_id = strategy_id + 1;
 }
