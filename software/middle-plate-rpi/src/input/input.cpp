@@ -1,20 +1,13 @@
 #include <iostream>
 #include <unistd.h>
 #include "spdlog/spdlog.h"
-#include <signal.h>
+#include "main/state_input.hpp"
 
-void HandleSignalInput(int signal) {
-	spdlog::info("[INPUT] Signal received: {0}", signal);
-}
-
-void InputLoop() {
+void InputLoop(InputStateManager input_state_manager) {
 	spdlog::info("Input Loop started!");
-	int input_id = getpid(), strategy_id = input_id + 1, output_id = input_id + 2;
-
-	while (true)
-	{
-		kill(output_id, SIGUSR1);
-		spdlog::warn("Signal sent to Output {0}", output_id);
-		sleep(1);
+	while (true) {
+		input_state_manager.update_state();
+		usleep(10000);
+		spdlog::info("Input Loop: Counter = {}", input_state_manager.read_state().counter);
 	}
 }

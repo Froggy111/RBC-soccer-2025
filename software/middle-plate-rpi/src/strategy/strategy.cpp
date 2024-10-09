@@ -1,12 +1,14 @@
 #include <iostream>
 #include <unistd.h>
 #include "spdlog/spdlog.h"
+#include "main/state_input.hpp"
+#include "main/state_output.hpp"
 
-void HandleSignalStrategy(int signal) {
-	spdlog::info("[STRATEGY] Signal received: {0}", signal);
-}
-
-void StrategyLoop() {
+void StrategyLoop(InputStateManager input_state_manager, OutputStateManager output_state_manager) {
 	spdlog::info("Strategy Loop started!");
-	int strategy_id = getpid(), input_id = strategy_id - 1, output_id = strategy_id + 1;
+	while (true) {
+		input_state_manager.update_state();
+		usleep(10000);
+		spdlog::info("Strategy Loop: Counter = {}", input_state_manager.read_state().counter);
+	}
 }
