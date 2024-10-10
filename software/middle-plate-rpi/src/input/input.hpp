@@ -1,4 +1,4 @@
 #pragma once
-#include "main/input_state.hpp"
+#include "main/state_input.hpp"
 
-void InputLoop(InputStateManager input_state_manager);
+void InputLoop(InputStateManager& input_state_manager);
