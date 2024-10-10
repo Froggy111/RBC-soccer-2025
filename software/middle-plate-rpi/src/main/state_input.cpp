@@ -21,15 +21,28 @@ void InputStateManager::update_state()
 	InputState copy = *state;
 	m_in.unlock();
 
-	for (std::function<void(InputState)> func : functions)
+	for (std::pair<std::function<void(InputState)>, int> funcInfo : functions)
 	{
+		if (!funcInfo.second) continue;
+		std::function<void(InputState)> func = funcInfo.first;
 		func(copy);
 	}
 }
 
-void InputStateManager::add_function(std::function<void(InputState)> func)
+int InputStateManager::add_function(std::function<void(InputState)> func)
 {
-	functions.push_back(func);
+	int pos = functions.size();
+	functions.push_back({
+		func, true
+	});
+
+	// returns function position
+	return pos;
+}
+
+void InputStateManager::deactivate_fuction(int pos)
+{
+	functions[pos].second = false;
 }
 
 InputStateManager input_state_manager = InputStateManager();

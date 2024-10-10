@@ -13,13 +13,16 @@ struct InputState
 
 class InputStateManager
 {
-private:
-	InputState *state;
-	std::vector<std::function<void(InputState)>> functions;
+	private:
+		InputState *state;
+		std::vector<std::pair<std::function<void(InputState)>, int>> functions;
 
-public:
-	InputStateManager();
-	InputState read_state();
-	void update_state();
-	void add_function(std::function<void(InputState)> func);
+	public:
+		InputStateManager();
+		InputState read_state();
+		void update_state();
+
+		int add_function(std::function<void(InputState)> func);
+		void deactivate_fuction(int pos);
+		
 };
