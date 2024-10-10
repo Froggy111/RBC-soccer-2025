@@ -37,78 +37,34 @@ Module   Arduino
                                raw data values within normal operating ranges.
  */
 
-const int pmw3360_scs = 5;
-const float inch_to_meters = 0.0254;
+#define SS  10   // Slave Select pin. Connect this to SS on the module.
 
 PMW3360 sensor;
 
-int saneify_values(int raw_counts) {
-  if (raw_counts > 65535 / 2) {return raw_counts - 65535;};
-  return raw_counts;
-}
-
-float count_to_meters(int count, int CPI) {
-  return ((float) count / (float) CPI) * inch_to_meters;
-}
-
 void setup() {
-  Serial.begin(115200);  
+  Serial.begin(9600);  
   while(!Serial);
   
   //sensor.begin(10, 1600); // to set CPI (Count per Inch), pass it as the second parameter
-  if(sensor.begin(pmw3360_scs))  // 10 is the pin connected to SS of the module.
+  if(sensor.begin(SS))  // 10 is the pin connected to SS of the module.
     Serial.println("Sensor initialization successed");
   else
     Serial.println("Sensor initialization failed");
   
-  sensor.setCPI(5000);    // or, you can set CPI later by calling setCPI();
+  //sensor.setCPI(1600);    // or, you can set CPI later by calling setCPI();
 }
 
-int count_sum_x = 0;
-int count_sum_y = 0;
-String input;
-bool running = false;
-
 void loop() {
-  if (Serial.available() > 0) {
-    input = Serial.readString();
-    input[input.length() - 2] = '\0'; // slice off the last characters (/r/n)
-    if (input == "reset") {
-      Serial.println("RESETTING");
-      count_sum_x = 0;
-      count_sum_y = 0;
-    }
-    else if (input == "start") {
-      Serial.println("STARTING");
-      running = true;
-    }
-    else if (input == "stop") {
-      Serial.println("STOPPING");
-      running = false;
-    }
-  }
-
-  if (running) {
-    PMW3360_DATA data = sensor.readBurst();
-    
-    if(data.isOnSurface && data.isMotion)
-    {
-      uint CPI = sensor.getCPI();
-      int count_x = saneify_values(data.dx);
-      int count_y = - saneify_values(data.dy);
-      count_sum_x += count_x;
-      count_sum_y += count_y;
-      Serial.print(count_sum_x);
-      Serial.print("\t\t\t\t");
-      Serial.print(count_sum_y);
-      Serial.print("\t\t\t\t");
-      Serial.print(count_to_meters(count_sum_x, CPI), 10);
-      Serial.print("\t\t\t\t");
-      Serial.print(count_to_meters(count_sum_y, CPI), 10);
-      Serial.print("\t\t\t\t");
-      Serial.println(CPI);
-    }
+  PMW3360_DATA data = sensor.readBurst();
+  
+  if(data.isOnSurface && data.isMotion)
+  {
+    Serial.print(data.dx);
+    Serial.print("\t");
+    Serial.print(data.dy);
+    Serial.println();
   }
   
   delay(10);
 }
+
