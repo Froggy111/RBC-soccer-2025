@@ -1,6 +1,11 @@
-Last updated: 4 June 2024
+Last updated: 11 October 2024
 
 Bottom plate is below the motors, and provides the base structure for the bot. There is a ring of line sensors and 2 mouse sensors, interfaced with an ESP32. The ESP32 also outputs PWM to the motor drivers.
+
+**PROGRESS:**
+- Mouse sensor breakout works. Drift or accuracy has not been tested yet, but it should work decently.
+- Motor drivers have arrived. Have not managed to get it working yet. Will get it working soon.
+- Bottom plate has been designed but is very outdated. A redesign is probably needed.
 
 **SOFTWARE NOTES:**
 - Refer to below pinouts.
@@ -8,6 +13,7 @@ Bottom plate is below the motors, and provides the base structure for the bot. T
 - There are many simultaneous tasks for the ESP32. To increase performance, async with interrupts could be used.
 
 **Controller:**
+NOTE: These pinouts are outdated. The plate designs have not been finalised.
 - ESP32-WROOM (30PIN)
   - Used for interfacing sensors
   - Pinouts (ALL UP TO CHANGE BASED ON ROUTING NEEDS):

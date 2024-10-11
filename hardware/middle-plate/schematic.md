@@ -1,6 +1,11 @@
-Last updated: 4 June 2024
+Last updated: 11 October 2024
+
+**PROGRESS**
+- IR recievers have arrived. We should do some testing.
+- Mirror shape has been numerically calculated. Preferably, we want to analytically solve the mirror equations to see what it ends up with.
 
 **Controllers:**
+NOTE: We might consider using a RPi 3B from Y14 instead (as they have a lot of them).
 - RPi Zero 2 W
   - Used for computation, and interfacing camera and IMU. Also used for interfacing kicker and dribbler.
   - Pinouts (ALL UP TO CHANGE BASED ON ROUTING NEEDS):

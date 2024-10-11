@@ -2,6 +2,10 @@ Last updated: 4 June 2024
 
 Top plate is above the mirror. Contains the IMU, Ultrasound ring and an ESP32 for interfacing.
 
+**PROGRESS:**
+- CH201 boards have been ordered, and will be here soon. Testing needs to be done and potentially overwriting the firmware of the CH201 sensors to make it have a smaller effective cone. Horn needs to be designed and printed.
+
+
 **SOFTWARE NOTES:**
 - Refer to below pinouts.
 - CH201 has arduino library for interfacing. Edit as necessary to make it work with multiplexing.
