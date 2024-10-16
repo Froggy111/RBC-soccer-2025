@@ -1,43 +1,11 @@
 #include <Arduino.h>
+#include "main.hpp"
 
 const int output_pin = 22;
-
 const float sample_duration = 0.1; // in seconds
 const int samples_per_second = 40;
 const int n_samples = sample_duration * samples_per_second;
 const float delay_time = 1000 / samples_per_second;
-
-class Samples {
-public:
-  Samples(void) {return;};
-  Samples(int n_samples);
-  void add(bool state);
-  float average(void);
-private:
-  bool* samples;
-  int n_samples;
-  int current_idx;
-  int current_n_samples;
-};
-
-Samples samples;
-
-void setup() {
-  Serial.begin(115200);
-  pinMode(output_pin, INPUT);
-  samples = Samples(n_samples);
-  delay(1000);
-  Serial.println("Setup completed");
-}
-
-void loop() {
-  bool state = digitalRead(output_pin);
-  // samples.add(state);
-  // Serial.println(samples.average());
-  Serial.println("Looping");
-  Serial.println(samples.average());
-  delay(delay_time);
-}
 
 Samples::Samples(int n_samples) {
   this->n_samples = n_samples;
@@ -65,3 +33,30 @@ float Samples::average(void) {
   float average = (float) total / (float) n_samples;
   return average;
 }
+
+Samples samples;
+
+void setup() {
+  Serial.println("\n\
+ _____  ____   _____   _ __          _________   ___   ___ ___  _____ \n\
+|  __ \\|  _ \\ / ____| | |\\ \\        / /__   __| |__ \\ / _ \\__ \\| ____|\n\
+| |__) | |_) | |      | | \\ \\  /\\  / /   | |       ) | | | | ) | |__  \n\
+|  _  /|  _ <| |      | |  \\ \\/  \\/ /    | |      / /| | | |/ /|___ \\ \n\
+| | \\ \\| |_) | |____  | |___\\  /\\  /     | |     / /_| |_| / /_ ___) |\n\
+|_|  \\_\\____/ \\_____| |______\\/  \\/      |_|    |____|\\___/____|____/ \n\
+");
+  Serial.begin(115200);
+  pinMode(output_pin, INPUT);
+  samples = Samples(n_samples);
+  delay(1000);
+
+}
+
+void loop() {
+  bool state = digitalRead(output_pin);
+  Serial.println(state);
+  samples.add(state);
+  Serial.println(samples.average());
+  delay(delay_time);
+}
+
