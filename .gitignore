@@ -1,16 +1,22 @@
 .vscode
+*/.vscode
 build
 
 # Dependencides
 */Cargo.lock
 */target
 
-# cmake
+# CMake
 */CMakeFiles
 */cmake_install.cmake
 */CMakeCache.txt
 */Makefile
 
+# PlatformIO
+.pio
+*/.pio
+
+# Compiled binaries
 *.o
 */*.o
 *.a
