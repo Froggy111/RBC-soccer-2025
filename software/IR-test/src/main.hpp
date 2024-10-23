@@ -8,5 +8,4 @@ private:
   bool* samples;
   int n_samples;
   int current_idx;
-  int current_n_samples;
 };

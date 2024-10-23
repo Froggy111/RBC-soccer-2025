@@ -1,11 +1,9 @@
 #include <Arduino.h>
 #include "main.hpp"
 
-const int output_pin = 22;
-const float sample_duration = 0.1; // in seconds
-const int samples_per_second = 40;
-const int n_samples = sample_duration * samples_per_second;
-const float delay_time = 1000 / samples_per_second;
+const int output_pin = 18;
+const float sample_frame_duration = 0.833; // number of miliseconds
+const float samples_per_frame = 5;
 
 Samples::Samples(int n_samples) {
   this->n_samples = n_samples;
@@ -18,10 +16,6 @@ Samples::Samples(int n_samples) {
 void Samples::add(bool state) {
   this->samples[this->current_idx] = state;
   this->current_idx = (this->current_idx + 1) % n_samples;
-  this->current_n_samples += 1;
-  if (this->current_n_samples > n_samples) {
-    this->current_n_samples = n_samples;
-  }
   return;
 }
 
@@ -47,16 +41,15 @@ void setup() {
 ");
   Serial.begin(115200);
   pinMode(output_pin, INPUT);
-  samples = Samples(n_samples);
-  delay(1000);
-
+  samples = Samples(samples_per_frame);
+  delay(2000);
 }
 
 void loop() {
   bool state = digitalRead(output_pin);
-  Serial.println(state);
   samples.add(state);
+  Serial.println(state);
   Serial.println(samples.average());
-  delay(delay_time);
+  delay(sample_frame_duration / samples_per_frame);
 }
 
