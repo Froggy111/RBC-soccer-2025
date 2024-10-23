@@ -6,8 +6,6 @@
 void InputLoop(InputStateManager& input_state_manager) {
 	spdlog::info("Input Loop started!");
 	while (true) {
-		input_state_manager.update_state();
 		usleep(10000);
-		spdlog::info("Input Loop: Counter = {}", input_state_manager.read_state().counter);
 	}
 }
