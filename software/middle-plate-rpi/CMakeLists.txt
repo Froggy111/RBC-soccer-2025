@@ -17,6 +17,7 @@ file(GLOB_RECURSE SRC_FILES "src/*.cpp")
 
 # Include relevant directories
 include_directories("src")
+include_directories("utils")
 
 # Find spdlog package
 find_package(spdlog REQUIRED)
