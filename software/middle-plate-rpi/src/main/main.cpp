@@ -24,6 +24,9 @@ void start_loops(InputStateManager& input_state_manager, OutputStateManager& out
 	};
 
 	spdlog::info("Loops successfully started!");
+	while (true) {
+		fps_manager.display_fps();
+	}
 	promises.input->wait();
 	promises.strategy->get();
 	promises.output->get();
