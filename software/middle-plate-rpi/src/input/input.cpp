@@ -2,12 +2,13 @@
 #include <unistd.h>
 #include "spdlog/spdlog.h"
 #include "main/state_input.hpp"
+#include "utils/fps.hpp"
+#include "types/loop_types.hpp"
 
-void InputLoop(InputStateManager& input_state_manager) {
+void InputLoop(InputStateManager& input_state_manager, FPS& fps_manager) {
 	spdlog::info("Input Loop started!");
 	while (true) {
-		input_state_manager.update_state();
+		fps_manager.update_fps(INPUT);
 		usleep(10000);
-		spdlog::info("Input Loop: Counter = {}", input_state_manager.read_state().counter);
 	}
 }

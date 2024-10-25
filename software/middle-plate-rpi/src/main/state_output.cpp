@@ -44,5 +44,3 @@ void OutputStateManager::deactivate_fuction(int pos)
 {
 	functions[pos].second = false;
 }
-
-OutputStateManager input_state_manager = OutputStateManager();

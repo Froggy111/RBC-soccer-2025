@@ -20,6 +20,7 @@ void InputStateManager::update_state()
 	state->counter++;
 	InputState copy = *state;
 	m_in.unlock();
+	spdlog::info("UPDATED");
 
 	for (std::pair<std::function<void(InputState)>, int> funcInfo : functions)
 	{
@@ -44,5 +45,3 @@ void InputStateManager::deactivate_fuction(int pos)
 {
 	functions[pos].second = false;
 }
-
-InputStateManager input_state_manager = InputStateManager();

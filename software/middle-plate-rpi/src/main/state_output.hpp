@@ -3,7 +3,6 @@
 #include <vector>
 #include <functional>
 
-
 extern std::mutex m_out;
 
 struct OutputState

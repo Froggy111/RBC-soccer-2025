@@ -5,16 +5,17 @@
 #include "spdlog/spdlog.h"
 #include "main/state_input.hpp"
 #include "main/state_output.hpp"
+#include "utils/fps.hpp"
 #include <mutex>
 
 std::mutex mutex;
 
 // Start the input, strategy, and output loops
-void start_loops(InputStateManager& input_state_manager, OutputStateManager& output_state_manager) {
+void start_loops(InputStateManager& input_state_manager, OutputStateManager& output_state_manager, FPS& fps_manager) {
 	spdlog::info("Creating Loops");
-    std::future<void> input_promise = std::async([&]() { InputLoop(input_state_manager); });
-    std::future<void> strategy_promise = std::async([&]() { StrategyLoop(input_state_manager, output_state_manager); });
-    std::future<void> output_promise = std::async([&]() { OutputLoop(output_state_manager); });
+    std::future<void> input_promise = std::async([&]() { InputLoop(input_state_manager, fps_manager); });
+    std::future<void> strategy_promise = std::async([&]() { StrategyLoop(input_state_manager, output_state_manager, fps_manager); });
+    std::future<void> output_promise = std::async([&]() { OutputLoop(output_state_manager, fps_manager); });
 
 	LoopPromises promises = {
 		&input_promise,
@@ -23,6 +24,9 @@ void start_loops(InputStateManager& input_state_manager, OutputStateManager& out
 	};
 
 	spdlog::info("Loops successfully started!");
+	while (true) {
+		fps_manager.display_fps();
+	}
 	promises.input->wait();
 	promises.strategy->get();
 	promises.output->get();
@@ -41,6 +45,7 @@ int main() {
 	// create state variables
 	InputStateManager input_state_manager = InputStateManager();
 	OutputStateManager output_state_manager = OutputStateManager();
+	FPS fps_manager = FPS();
 
-	start_loops(input_state_manager, output_state_manager);
+	start_loops(input_state_manager, output_state_manager, fps_manager);
 }

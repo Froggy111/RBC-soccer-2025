@@ -3,17 +3,14 @@
 #include "spdlog/spdlog.h"
 #include "main/state_input.hpp"
 #include "main/state_output.hpp"
+#include "utils/fps.hpp"
+#include "types/loop_types.hpp"
 
-void StrategyLoop(InputStateManager& input_state_manager, OutputStateManager& output_state_manager) {
+void StrategyLoop(InputStateManager& input_state_manager, OutputStateManager& output_state_manager, FPS& fps_manager) {
 	spdlog::info("Strategy Loop started!");
-	int id = input_state_manager.add_function([&](InputState state) {
-		spdlog::info("Strategy Loop Output: Counter = {}", state.counter);
-	});
-
-	usleep(40000);
-	input_state_manager.deactivate_fuction(id);
 
 	while (true) {
+		fps_manager.update_fps(STRATEGY);
 		usleep(10000);
 	}
 }
