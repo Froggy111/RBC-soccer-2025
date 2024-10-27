@@ -217,25 +217,32 @@ void setup()
 
 void loop()
 {
+  float current, average;
   // Accelerate
   for (int i = 0; i < 255; i++)
   {
     analogWrite(IN2_PIN, i);
     delay(2);
-    float current = read_current();
-    float average = motor_current.add(current);
-    Serial.printf("Instantaneous current: %f, Average current: %f\n", current, average);
+    current = read_current();
+    average = motor_current.add(current);
+    // Serial.printf("Instantaneous current: %f, Average current: %f\n", current, average);
   }
+  display.setCursor(0, 0);
+  display.clearDisplay();
+  display.printf("Instantaneous current: %f, Average current: %f\n", current, average);
+  display.display();
 
   // Decelerate
   for (int i = 255; i > 0; i--)
   {
     analogWrite(IN2_PIN, i);
     delay(2);
-    float current = read_current();
-    float average = motor_current.add(current);
-    Serial.printf("Instantaneous current: %f, Average current: %f\n", current, average);
+    current = read_current();
+    average = motor_current.add(current);
+    // Serial.printf("Instantaneous current: %f, Average current: %f\n", current, average);
   }
+  display.printf("Instantaneous current: %f, Average current: %f\n", current, average);
+  display.display();
 }
 
 float read_current()
