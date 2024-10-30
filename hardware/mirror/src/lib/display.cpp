@@ -16,25 +16,25 @@ namespace display {
     renderer = NULL;
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-      result::panic(fmt::format("SDL could not initialize. SDL_Error: {}", SDL_GetError()), __PRETTY_FUNCTION__);
+      result::panic(std::format("SDL could not initialize. SDL_Error: {}", SDL_GetError()), __PRETTY_FUNCTION__);
       return;
     }
     window = SDL_CreateWindow(window_name.data(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, false);
     if (window == NULL) {
-      result::panic(fmt::format("SDL window could not be created. SDL_Error: {}", SDL_GetError()), __PRETTY_FUNCTION__);
+      result::panic(std::format("SDL window could not be created. SDL_Error: {}", SDL_GetError()), __PRETTY_FUNCTION__);
       return;
     }
     if (use_renderer) {
       renderer = SDL_CreateRenderer(window, renderer_idx, renderer_flags);
       if (renderer == NULL) {
-        result::panic(fmt::format("SDL renderer could not be created. SDL_Error: {}", SDL_GetError()), __PRETTY_FUNCTION__);
+        result::panic(std::format("SDL renderer could not be created. SDL_Error: {}", SDL_GetError()), __PRETTY_FUNCTION__);
         return;
       }
     }
     else {
       surface = SDL_GetWindowSurface(window);
       if (surface == NULL) {
-        result::panic(fmt::format("SDL screen surface could not be created. SDL_Error: {}", SDL_GetError()), __PRETTY_FUNCTION__);
+        result::panic(std::format("SDL screen surface could not be created. SDL_Error: {}", SDL_GetError()), __PRETTY_FUNCTION__);
         return;
       }
     }

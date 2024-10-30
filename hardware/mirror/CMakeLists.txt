@@ -9,9 +9,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 include_directories("src")
 
-find_package(fmt REQUIRED)
-link_libraries(fmt::fmt)
-
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
 link_libraries(SDL2::SDL2)

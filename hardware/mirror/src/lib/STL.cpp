@@ -76,7 +76,7 @@ namespace STL {
 
   void STLFile::modify_triangle(TriangleBuffer const &triangle, int idx) {
     if (idx > n_triangles - 1) {
-      result::panic(fmt::format("Tried modifying triangle {} when only {} triangles exist", idx, n_triangles), __PRETTY_FUNCTION__);
+      result::panic(std::format("Tried modifying triangle {} when only {} triangles exist", idx, n_triangles), __PRETTY_FUNCTION__);
     }
     file.seekp(fstream::beg + HEADER_SIZE + sizeof(uint32_t) + TRIANGLE_SIZE * idx);
     file.write((char*) triangle.data(), sizeof(TriangleBuffer));
@@ -85,7 +85,7 @@ namespace STL {
 
   TriangleBuffer STLFile::get_triangle(int idx) {
     if (idx > n_triangles - 1) {
-      result::panic(fmt::format("Tried reading triangle {} when only {} triangles exist", idx, n_triangles), __PRETTY_FUNCTION__);
+      result::panic(std::format("Tried reading triangle {} when only {} triangles exist", idx, n_triangles), __PRETTY_FUNCTION__);
     }
     TriangleBuffer triangle;
     file.seekg(fstream::beg + HEADER_SIZE + sizeof(uint32_t) + TRIANGLE_SIZE * idx);

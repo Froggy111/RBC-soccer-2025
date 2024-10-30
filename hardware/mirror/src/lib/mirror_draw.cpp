@@ -39,7 +39,7 @@ namespace mirror {
       x = plotted_mirror[i][0] * scale + x_offset;
       y = (y_offset - plotted_mirror[i][1]) * scale;
       offset_points[i] = {x, y};
-      // cout << fmt::format("Scaled point {}: x = {}, y = {}", i, offset_points[i].x, offset_points[i].y) << endl;
+      // cout << std::format("Scaled point {}: x = {}, y = {}", i, offset_points[i].x, offset_points[i].y) << endl;
     }
 
     int success = SDL_RenderDrawLinesF(disp.renderer, offset_points, plotted_mirror.size());

@@ -4,7 +4,6 @@
 #include "lib/result.hpp"
 #include <iostream>
 #include <string>
-#include <fmt/core.h>
 #include <cmath>
 
 void make_mirror_slice(int argc, char* argv[]);
@@ -53,7 +52,7 @@ void make_mirror_slice(int argc, char* argv[]) {
   );
 
   // for (int i = 0; i < mirror_plotted_points.size(); i++) {
-  //   cout << fmt::format("Mirror point {}: x = {}, y = {}", i, mirror_plotted_points[i][0], mirror_plotted_points[i][1]) << endl;
+  //   cout << std::format("Mirror point {}: x = {}, y = {}", i, mirror_plotted_points[i][0], mirror_plotted_points[i][1]) << endl;
   // }
 
   display::Display disp(disp_w, disp_h, "mirror 2D", true);
