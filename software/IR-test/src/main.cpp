@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "main.hpp"
+#include "Teleplot.h"
 
 const int output_pin = 18;
 const float sample_frame_duration = 0.833; // number of miliseconds
@@ -29,6 +30,7 @@ float Samples::average(void) {
 }
 
 Samples samples;
+Teleplot teleplot("127.0.0.1", 47269);
 
 void setup() {
   Serial.println("\n\
@@ -50,6 +52,11 @@ void loop() {
   samples.add(state);
   Serial.println(state);
   Serial.println(samples.average());
+
+  unsigned long currentTime = micros();
+  teleplot.update("state", state);
+  teleplot.update("time", currentTime);
+
   delay(sample_frame_duration / samples_per_frame);
 }
 
