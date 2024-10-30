@@ -53,7 +53,9 @@ void loop() {
   Serial.println(state);
   Serial.println(samples.average());
 
+  unsigned long currentTime = micros();
   teleplot.update("state", state);
+  teleplot.update("time", currentTime);
 
   delay(sample_frame_duration / samples_per_frame);
 }
