@@ -1,10 +1,12 @@
 #include <Arduino.h>
 #include "main.hpp"
-#include "Teleplot.h"
 
 const int output_pin = 18;
-const float sample_frame_duration = 0.833; // number of miliseconds
-const float samples_per_frame = 5;
+const int freq = 40000;
+const int period = 1000000 / freq;
+const int waveform_freq = 1200;
+
+const float samples_per_window = freq / waveform_freq;
 
 Samples::Samples(int n_samples) {
   this->n_samples = n_samples;
@@ -30,7 +32,6 @@ float Samples::average(void) {
 }
 
 Samples samples;
-Teleplot teleplot("127.0.0.1", 47269);
 
 void setup() {
   Serial.println("\n\
@@ -41,22 +42,22 @@ void setup() {
 | | \\ \\| |_) | |____  | |___\\  /\\  /     | |     / /_| |_| / /_ ___) |\n\
 |_|  \\_\\____/ \\_____| |______\\/  \\/      |_|    |____|\\___/____|____/ \n\
 ");
-  Serial.begin(115200);
+  Serial.begin(922190);
   pinMode(output_pin, INPUT);
-  samples = Samples(samples_per_frame);
+  samples = Samples(samples_per_window);
   delay(2000);
 }
 
 void loop() {
+  u_int64_t start_time = micros();
   bool state = digitalRead(output_pin);
   samples.add(state);
+  Serial.print(">s:");
   Serial.println(state);
-  Serial.println(samples.average());
+  // Serial.print(">a:");
+  // Serial.println(samples.average());
 
-  unsigned long currentTime = micros();
-  teleplot.update("state", state);
-  teleplot.update("time", currentTime);
-
-  delay(sample_frame_duration / samples_per_frame);
+  while (micros() - start_time < period) {
+    continue;
+  }
 }
-
