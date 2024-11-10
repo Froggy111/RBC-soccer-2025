@@ -1,6 +1,10 @@
 .vscode
 */.vscode
 build
+*/.build
+
+.cache
+*/.cache
 
 # Dependencides
 */Cargo.lock
