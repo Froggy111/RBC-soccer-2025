@@ -44,14 +44,18 @@ namespace DRV8244
     this->_display_active = display_active;
     this->_driver_state = driver_state;
     this->_driver_mode = driver_mode;
+
+    if (_display_active){
+      _display_controller = Display();
+    }
   }
 
-  /**
+  /*
    * This SPI function is used to write the set device configurations and operating
    * parameters of the device.
-   * Register format |R/W|A5|A4|A3|A2|A1|A0|*|D7|D6|D5|D4|D3|D2|D1|D0|
-   * Ax is address bit, Dx is data bits and R/W is read write bit.
-   * For write R/W bit should 0.
+   Register format |R/W|A5|A4|A3|A2|A1|A0|*|D7|D6|D5|D4|D3|D2|D1|D0|
+   Ax is address bit, Dx is data bits and R/W is read write bit.
+   For write R/W bit should 0.
    */
   void DRV8244::write8(uint8_t reg, uint8_t value)
   {
@@ -63,15 +67,28 @@ namespace DRV8244
 
     SPI.transfer((uint8_t)((reg_value >> 8) & 0xFF));
     uint16_t recieved = SPI.transfer((uint8_t)(reg_value & 0xFF));
-    // display_controller.print_screen_hex((uint8_t)(recieved), false);
-    // display_controller.print_screen_hex((uint8_t)(recieved >> 8), false);
+    print_screen("WRITE8 RECEIVED: " + std::to_string(recieved), false);
 
     digitalWrite(CS_PIN, HIGH);
+  }
+
+  void DRV8244::print_screen(std::string text, bool flush)
+  {
+    if (_display_active)
+    {
+      _display_controller.print_screen(text, flush);
+    }
+    else
+    {
+      Serial.println(text.c_str());
+    }
   }
 
   // * Configuring the driver
   bool DRV8244::set_pin_modes()
   {
+    print_screen("PIN MODES: Setting");
+
     // Set pin modes
     pinMode(NSLEEP_PIN, OUTPUT);
     digitalWrite(NSLEEP_PIN, 1);
@@ -85,19 +102,30 @@ namespace DRV8244
     digitalWrite(NFAULT_PIN, 0);
     pinMode(DRVOFF_PIN, OUTPUT);
     digitalWrite(DRVOFF_PIN, 0);
+
+    print_screen("PIN MODES: Set");
     return true;
   }
 
   bool DRV8244::set_spi()
   {
+    print_screen("SPI: Setting");
+
+    // Set SPI
     SPI.begin(); // initialize the SPI library
     SPI.setDataMode(SPI_MODE1);
+
+    print_screen("SPI: Set");
     return true;
   }
 
   bool DRV8244::clear_fault()
   {
+    print_screen("CLEAR FAULT: Sending");
+
     write8(0x08, 0b10000000); // Send CLR_FLT command
+
+    print_screen("CLEAR FAULT: Sent");
     return true;
   }
 
@@ -105,8 +133,10 @@ namespace DRV8244
   {
     if (mode == DriverMode::pwm)
     {
+      print_screen("CHANGE MODE: Changing to PWM");
       write8(0x0C, 0b01000011);
       digitalWrite(DRVOFF_PIN, 0);
+      print_screen("CHANGE MODE: Changed to PWM");
       return true;
     }
     else
@@ -126,6 +156,8 @@ namespace DRV8244
 
   void DRV8244::set_speed(uint8_t speed)
   {
+    print_screen("SET SPEED: Setting speed to " + std::to_string(speed));
     analogWrite(IN2_PIN, speed);
+    print_screen("SET SPEED: Set speed to " + std::to_string(speed));
   }
 }

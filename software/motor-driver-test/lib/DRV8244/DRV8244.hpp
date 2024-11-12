@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include "typedefs.hpp"
+#include "display.hpp"
 
 namespace DRV8244 {
 
@@ -30,7 +31,10 @@ namespace DRV8244 {
   public:
     DRV8244(void);
     bool start(GenericSPIClass SPI, DriverMode driver_mode, DriverState driver_state, bool display_active);
+
+    // * Other utility functions
     void write8(uint8_t reg, uint8_t value);
+    void print_screen(std::string text, bool flush = true);
 
     // * For configuring driver
     bool set_pin_modes();
@@ -46,7 +50,11 @@ namespace DRV8244 {
     GenericSPIClass _SPI;
     DriverMode _driver_mode;
     DriverState _driver_state;
+
+    // "true" if we should print to display, false if we should print to serial
     bool _display_active;
-    bool send_command(byte command_byte, byte data_byte);
+
+    // Optional display controller
+    Display _display_controller;
   };
 }
