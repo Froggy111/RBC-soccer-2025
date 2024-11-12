@@ -29,18 +29,24 @@ namespace DRV8244 {
   class DRV8244 {
   public:
     DRV8244(void);
-    bool begin(GenericSPIClass SPI, DriverMode driver_mode, DriverState driver_state);
-    bool set_spi(GenericSPIClass SPI);
-    bool set_driver_mode(DriverMode driver_mode);
-    bool set_driver_state(DriverState driver_state);
-    float read_current();
-    void set_speed(uint8_t speed);
+    bool start(GenericSPIClass SPI, DriverMode driver_mode, DriverState driver_state, bool display_active);
     void write8(uint8_t reg, uint8_t value);
+
+    // * For configuring driver
+    bool set_pin_modes();
+    bool set_spi();
+    bool clear_fault();
+    bool change_mode(DriverMode mode);
+
+    // * For use in PWM mode
+    float read_current();
+    void set_speed(uint8_t speed); 
 
   private:
     GenericSPIClass _SPI;
     DriverMode _driver_mode;
     DriverState _driver_state;
+    bool _display_active;
     bool send_command(byte command_byte, byte data_byte);
   };
 }

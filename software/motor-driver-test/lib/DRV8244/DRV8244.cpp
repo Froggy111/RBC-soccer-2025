@@ -11,11 +11,22 @@
 #define SPI_RW_BIT_MASK 0x4000  // Mask for SPI register read write indication bit
 #define CS_PIN 5
 
+/** PINS
+ * Arduino CLK = PIN 13
+ * Arduino SDI (MISO) = PIN 12
+ * Arduino SDO (MOSI) = PIN 11
+ */
+#define CS_PIN 5
+#define NSLEEP_PIN 15
+#define NFAULT_PIN 4
+#define IN1_PIN 16
+#define DRVOFF_PIN 17
 #define IN2_PIN 13
+#define IPROPI_pin 0
+
+// Constants for IPROPI current calculation
 const uint16_t A_IPROPI = 4750; // VQFN-HR package
 const uint32_t IPROPI_resistance = 680;
-const uint32_t ipropi_moving_average_size = 16384; // change this if uw, if its too big it wont fit
-const uint8_t IPROPI_pin = 0;                      // @jx put the IPROPI pin number here, also make sure its a pin that can read analog
 
 namespace DRV8244
 {
@@ -26,26 +37,13 @@ namespace DRV8244
     return;
   };
 
-  bool DRV8244::begin(GenericSPIClass SPI, DriverMode driver_mode, DriverState driver_state)
-  {
-    if (!this->set_spi(SPI))
-    {
-      return false;
-    }
-    if (this->set_driver_mode(driver_mode))
-    {
-      return false;
-    }
-    if (this->set_driver_state(driver_state))
-    {
-      return false;
-    }
-  }
-
-  bool DRV8244::set_spi(GenericSPIClass SPI)
+  // * For initializing the DRV8244 driver
+  bool DRV8244::start(GenericSPIClass SPI, DriverMode driver_mode, DriverState driver_state, bool display_active)
   {
     this->_SPI = SPI;
-    return true;
+    this->_display_active = display_active;
+    this->_driver_state = driver_state;
+    this->_driver_mode = driver_mode;
   }
 
   /**
@@ -71,16 +69,53 @@ namespace DRV8244
     digitalWrite(CS_PIN, HIGH);
   }
 
-  bool DRV8244::set_driver_mode(DriverMode driver_mode)
+  // * Configuring the driver
+  bool DRV8244::set_pin_modes()
   {
-    /**
-     * Set the S_MODE register.
-     * PH/EN mode: 2'b00
-     * Independent mode: 2'b01
-     * PWM mode: 2'b10 / 2'b11
-     */
+    // Set pin modes
+    pinMode(NSLEEP_PIN, OUTPUT);
+    digitalWrite(NSLEEP_PIN, 1);
+    pinMode(CS_PIN, OUTPUT);
+    digitalWrite(CS_PIN, 1);
+    pinMode(IN2_PIN, OUTPUT);
+    digitalWrite(IN2_PIN, 0);
+    pinMode(IN1_PIN, OUTPUT);
+    digitalWrite(IN1_PIN, 0);
+    pinMode(NFAULT_PIN, OUTPUT);
+    digitalWrite(NFAULT_PIN, 0);
+    pinMode(DRVOFF_PIN, OUTPUT);
+    digitalWrite(DRVOFF_PIN, 0);
+    return true;
   }
 
+  bool DRV8244::set_spi()
+  {
+    SPI.begin(); // initialize the SPI library
+    SPI.setDataMode(SPI_MODE1);
+    return true;
+  }
+
+  bool DRV8244::clear_fault()
+  {
+    write8(0x08, 0b10000000); // Send CLR_FLT command
+    return true;
+  }
+
+  bool DRV8244::change_mode(DriverMode mode)
+  {
+    if (mode == DriverMode::pwm)
+    {
+      write8(0x0C, 0b01000011);
+      digitalWrite(DRVOFF_PIN, 0);
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  // * Functions when the driver is in PWM mode
   float DRV8244::read_current()
   {
     float voltage = ((float)analogReadMilliVolts(IPROPI_pin)) / 1000;

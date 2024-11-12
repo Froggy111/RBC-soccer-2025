@@ -13,7 +13,6 @@ public:
   void print_screen_hex(uint8_t data, bool flush = true);
   void print_screen_hex(uint16_t data, bool flush = true);
   void stall_mcu(void);
-  void initialize_display();
 
 private:
   Adafruit_SSD1306 display;

@@ -12,6 +12,24 @@ class Display
 {
 public:
   Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1, 400000UL, 100000UL);
+  void initialize_display()
+  {
+    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
+    {
+      Serial.println("SSD1306 allocation failed");
+      stall_mcu();
+    }
+    Serial.println("SSD1306 allocation successful");
+
+    // Initialize Display
+        display.display();
+    display.setTextSize(TEXT_SIZE);
+    display.setTextColor(TEXT_COLOUR);
+    display.setCursor(0, 0);
+    display.println("Hello World!");
+    display.display();
+  }
+
   void print_screen(std::string text, bool flush = true)
   {
     if (flush)
@@ -53,16 +71,8 @@ public:
 
   void stall_mcu(void)
   {
-    while (true) {};
-  }
-
-  void initialize_display()
-  {
-    display.display();
-    display.setTextSize(TEXT_SIZE);
-    display.setTextColor(TEXT_COLOUR);
-    display.setCursor(0, 0);
-    display.println("Hello World!");
-    display.display();
+    while (true)
+    {
+    };
   }
 };
