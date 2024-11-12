@@ -4,6 +4,8 @@
 #include "types.hpp"
 #include "debug.hpp"
 
+using namespace types;
+
 namespace debug {
 
 HardwareSerial* console_serial = &Serial;
@@ -14,7 +16,7 @@ void printf(const char* format, ...) {
   va_start(args0, format);
   va_list args1;
   va_copy(args1, args0);
-  types::u32 buff_size = (vsnprintf(nullptr, 0, format, args0) + 1) * sizeof(char);
+  u32 buff_size = (vsnprintf(nullptr, 0, format, args0) + 1) * sizeof(char);
   va_end(args0);
   char* buffer = (char*) malloc(buff_size);
   vsprintf(buffer, format, args1);
@@ -56,7 +58,7 @@ std::string format(const char* format, ...) {
   va_start(args0, format);
   va_list args1;
   va_copy(args1, args0);
-  types::u32 buff_size = (vsnprintf(nullptr, 0, format, args0) + 1) * sizeof(char);
+  u32 buff_size = (vsnprintf(nullptr, 0, format, args0) + 1) * sizeof(char);
   va_end(args0);
   char* buffer = (char*) malloc(buff_size);
   vsprintf(buffer, format, args1);
@@ -73,14 +75,14 @@ std::string get_input(const std::string &msg) {
   return input;
 }
 
-std::string read_input(void) {
+Result<std::string, Status> read_input(void) {
   if (console_serial->available()) {
     std::string input = console_serial->readString().c_str();
     input.erase(input.find_last_not_of("\r\n") + 1);
-    return input;
+    return {input, Status::ok};
   }
   else {
-    return std::string();
+    return {std::string(), Status::error};
   }
 }
 

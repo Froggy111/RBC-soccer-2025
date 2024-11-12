@@ -1,4 +1,5 @@
 #pragma once
+#include "types.hpp"
 #include <string>
 #include <Arduino.h>
 
@@ -20,5 +21,5 @@ void crash(const std::string &error_msg);
 void assert_msg(bool condition, const std::string &error_msg);
 std::string format(const char* format, ...);
 std::string get_input(const std::string &msg);
-std::string read_input(void);
+types::Result<std::string, types::Status> read_input(void);
 }
