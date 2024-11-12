@@ -262,28 +262,28 @@
 				)
 			)
 		)
-		(symbol "EasyEDA:F0502-B-08-15T-R"
+		(symbol "EasyEDA:FC10-S08FCT-00"
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
 			(property "Reference" "FPC"
-				(at 0 19.05 0)
+				(at 0 21.59 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
 				)
 			)
-			(property "Value" "F0502-B-08-15T-R"
+			(property "Value" "FC10-S08FCT-00"
+				(at 0 -16.51 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "EasyEDA:FPC-SMD_8P-P1.00_DEALON_FC10-S08FCT-00"
 				(at 0 -19.05 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" "EasyEDA:FPC-SMD_8P-P0.50_F0502-B-08-15T-R"
-				(at 0 -21.59 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -309,8 +309,8 @@
 					(hide yes)
 				)
 			)
-			(property "LCSC Part" "C2895840"
-				(at 0 -24.13 0)
+			(property "LCSC Part" "C2998898"
+				(at 0 -21.59 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -318,10 +318,10 @@
 					(hide yes)
 				)
 			)
-			(symbol "F0502-B-08-15T-R_0_1"
+			(symbol "FC10-S08FCT-00_0_1"
 				(rectangle
-					(start -2.54 11.43)
-					(end 2.54 -11.43)
+					(start -2.54 13.97)
+					(end 3.81 -8.89)
 					(stroke
 						(width 0)
 						(type default)
@@ -331,7 +331,7 @@
 					)
 				)
 				(circle
-					(center -1.27 10.16)
+					(center -1.27 12.7)
 					(radius 0.38)
 					(stroke
 						(width 0)
@@ -342,7 +342,7 @@
 					)
 				)
 				(pin unspecified line
-					(at -5.08 8.89 0)
+					(at -5.08 11.43 0)
 					(length 2.54)
 					(name "1"
 						(effects
@@ -360,7 +360,7 @@
 					)
 				)
 				(pin unspecified line
-					(at 1.27 13.97 270)
+					(at 2.54 16.51 270)
 					(length 2.54)
 					(name "10"
 						(effects
@@ -378,7 +378,7 @@
 					)
 				)
 				(pin unspecified line
-					(at -5.08 6.35 0)
+					(at -5.08 8.89 0)
 					(length 2.54)
 					(name "2"
 						(effects
@@ -396,7 +396,7 @@
 					)
 				)
 				(pin unspecified line
-					(at -5.08 3.81 0)
+					(at -5.08 6.35 0)
 					(length 2.54)
 					(name "3"
 						(effects
@@ -414,7 +414,7 @@
 					)
 				)
 				(pin unspecified line
-					(at -5.08 1.27 0)
+					(at -5.08 3.81 0)
 					(length 2.54)
 					(name "4"
 						(effects
@@ -432,7 +432,7 @@
 					)
 				)
 				(pin unspecified line
-					(at -5.08 -1.27 0)
+					(at -5.08 1.27 0)
 					(length 2.54)
 					(name "5"
 						(effects
@@ -450,7 +450,7 @@
 					)
 				)
 				(pin unspecified line
-					(at -5.08 -3.81 0)
+					(at -5.08 -1.27 0)
 					(length 2.54)
 					(name "6"
 						(effects
@@ -468,7 +468,7 @@
 					)
 				)
 				(pin unspecified line
-					(at -5.08 -6.35 0)
+					(at -5.08 -3.81 0)
 					(length 2.54)
 					(name "7"
 						(effects
@@ -486,7 +486,7 @@
 					)
 				)
 				(pin unspecified line
-					(at -5.08 -8.89 0)
+					(at -5.08 -6.35 0)
 					(length 2.54)
 					(name "8"
 						(effects
@@ -504,7 +504,7 @@
 					)
 				)
 				(pin unspecified line
-					(at 1.27 -13.97 90)
+					(at 2.54 -11.43 90)
 					(length 2.54)
 					(name "9"
 						(effects
@@ -1490,16 +1490,16 @@
 		(uuid "095b70d1-c506-4c16-9997-fc9f2cd60ad0")
 	)
 	(no_connect
+		(at 204.47 33.02)
+		(uuid "12455a5f-d564-493e-8cb2-f5202eb4fd23")
+	)
+	(no_connect
 		(at 204.47 52.07)
 		(uuid "2420f6f2-9ca7-456a-bf5d-2218943b7f80")
 	)
 	(no_connect
 		(at 142.24 92.71)
 		(uuid "34660d8d-d390-4367-a37e-2db312eb5dd0")
-	)
-	(no_connect
-		(at 204.47 33.02)
-		(uuid "34e846f9-f05f-4aa6-9c99-ff9c8ce7ba6f")
 	)
 	(no_connect
 		(at 142.24 82.55)
@@ -1543,16 +1543,6 @@
 	)
 	(wire
 		(pts
-			(xy 203.2 88.9) (xy 212.09 88.9)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "116485e0-b122-4cdf-a617-9db1f839b2aa")
-	)
-	(wire
-		(pts
 			(xy 170.18 95.25) (xy 177.8 95.25)
 		)
 		(stroke
@@ -1560,6 +1550,16 @@
 			(type default)
 		)
 		(uuid "11c5c2d1-79d5-49dd-bee6-0326f4f21703")
+	)
+	(wire
+		(pts
+			(xy 203.2 93.98) (xy 212.09 93.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1c298caf-e2aa-44da-819c-2888e53bbd1f")
 	)
 	(wire
 		(pts
@@ -1583,13 +1583,13 @@
 	)
 	(wire
 		(pts
-			(xy 203.2 91.44) (xy 212.09 91.44)
+			(xy 203.2 83.82) (xy 212.09 83.82)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "3476390d-6ee4-4a44-ac4c-ba7f14924f44")
+		(uuid "2da081b2-7df5-4003-910b-ad7037b46287")
 	)
 	(wire
 		(pts
@@ -1610,16 +1610,6 @@
 			(type default)
 		)
 		(uuid "3eb077c9-1154-489e-ae5b-23ccb4fabc42")
-	)
-	(wire
-		(pts
-			(xy 203.2 86.36) (xy 212.09 86.36)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "4721b9ff-1ef3-491f-9dfc-7af061113d34")
 	)
 	(wire
 		(pts
@@ -1663,23 +1653,13 @@
 	)
 	(wire
 		(pts
-			(xy 203.2 93.98) (xy 212.09 93.98)
+			(xy 203.2 86.36) (xy 212.09 86.36)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "71952d63-228c-420b-98a7-f4420f832ffa")
-	)
-	(wire
-		(pts
-			(xy 203.2 83.82) (xy 212.09 83.82)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "87370ea6-362a-49e8-bb6d-88e62e31a890")
+		(uuid "63a0f9dc-6067-401e-ae7e-f57678768b83")
 	)
 	(wire
 		(pts
@@ -1689,7 +1669,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "b81df9bc-56d0-4098-8816-d62979dcd02f")
+		(uuid "b225abb4-f904-43ed-915b-c4c3657104ba")
 	)
 	(wire
 		(pts
@@ -1743,6 +1723,26 @@
 	)
 	(wire
 		(pts
+			(xy 203.2 88.9) (xy 212.09 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d85dfe75-17ba-4031-a56d-c117c148b373")
+	)
+	(wire
+		(pts
+			(xy 203.2 91.44) (xy 212.09 91.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e824ac50-bd56-44f6-8a82-8f98f5397613")
+	)
+	(wire
+		(pts
 			(xy 170.18 97.79) (xy 177.8 97.79)
 		)
 		(stroke
@@ -1762,7 +1762,7 @@
 		)
 		(uuid "19eda3e8-b72d-48c5-8c4c-d54e241bb892")
 	)
-	(label "RST"
+	(label "MOSI"
 		(at 203.2 81.28 0)
 		(fields_autoplaced yes)
 		(effects
@@ -1771,51 +1771,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "1cd4db73-4a16-48a3-8d54-a17f5682f691")
-	)
-	(label "MOSI"
-		(at 203.2 88.9 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "277873c0-8ba9-442e-a46a-c68245a300c0")
-	)
-	(label "MOT"
-		(at 203.2 83.82 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "2d79ec23-927e-43ca-a229-a7167fad3ec2")
-	)
-	(label "SCS"
-		(at 203.2 93.98 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "305fc8c1-7708-4284-8c95-7ab01266ba8b")
-	)
-	(label "MISO"
-		(at 203.2 91.44 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "5e7d800c-e8a7-4989-9123-0f2f72edfc60")
+		(uuid "478bee28-dc69-45ab-812a-50e12f184f2b")
 	)
 	(label "SCLK"
 		(at 177.8 95.25 180)
@@ -1828,6 +1784,17 @@
 		)
 		(uuid "78604a76-0b96-4fb4-b7ef-2dac2cb205ac")
 	)
+	(label "SCLK"
+		(at 203.2 88.9 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "7d45b717-f8e6-40bd-8e9f-4477887927d1")
+	)
 	(label "SCS"
 		(at 177.8 87.63 180)
 		(fields_autoplaced yes)
@@ -1838,6 +1805,17 @@
 			(justify right bottom)
 		)
 		(uuid "854a92cd-82bf-4e77-84b6-28ade49230e5")
+	)
+	(label "MISO"
+		(at 203.2 83.82 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "85e84ede-e66d-46e0-b336-a79f983d9a32")
 	)
 	(label "RST"
 		(at 134.62 95.25 0)
@@ -1861,8 +1839,8 @@
 		)
 		(uuid "8e2c6b6b-8a1e-48a8-a0f7-e9a6b71d1496")
 	)
-	(label "SCLK"
-		(at 203.2 86.36 0)
+	(label "MOT"
+		(at 203.2 91.44 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1870,7 +1848,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "d77cac73-8bcf-454c-8aa9-0b42a8ca0473")
+		(uuid "e04fe14b-ce54-4e82-b39c-5a8f9b31ca78")
 	)
 	(label "MOT"
 		(at 177.8 97.79 180)
@@ -1893,6 +1871,28 @@
 			(justify right bottom)
 		)
 		(uuid "f25ab5b7-66bb-46b9-a510-7f28d1804433")
+	)
+	(label "SCS"
+		(at 203.2 86.36 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f692533b-0d77-4935-9c69-77876bef7891")
+	)
+	(label "RST"
+		(at 203.2 93.98 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "fd08ec03-6aab-4742-8f8b-ceebf157b156")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -1922,7 +1922,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
 			(at 126.6952 52.07 0)
 			(effects
 				(font
@@ -1990,16 +1990,15 @@
 				)
 			)
 		)
-		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-3"
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23_Handsoldering"
 			(at 153.67 64.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2410122027_MSKSEMI-XC6206P182MR-MS_C5252894.pdf"
 			(at 153.67 49.53 0)
 			(effects
 				(font
@@ -2138,7 +2137,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
 			(at 108.9152 92.71 0)
 			(effects
 				(font
@@ -2208,7 +2207,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "PCM_Resistor_SMD_AKL:R_0603_1608Metric"
+		(property "Footprint" "PCM_Resistor_SMD_AKL:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder"
 			(at 173.482 78.74 90)
 			(effects
 				(font
@@ -2285,7 +2284,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://d3s5r33r268y59.cloudfront.net/datasheets/9604/2017-05-07-18-19-11/PMS0058-PMW3360DM-T2QU-DS-R1.50-26092016._20161202173741.pdf"
 			(at 156.21 88.9 0)
 			(effects
 				(font
@@ -2388,7 +2387,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "M1"
+		(property "Value" "M2"
 			(at 210.82 53.3399 90)
 			(effects
 				(font
@@ -2397,7 +2396,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "CustomMountingHole:MountingHole_1.2mm_M1_Pad"
+		(property "Footprint" "MountingHole:MountingHole_2.2mm_M2_Pad_Via"
 			(at 207.01 52.07 0)
 			(effects
 				(font
@@ -2571,7 +2570,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 218.44 76.2 180)
+		(at 219.71 76.2 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2580,7 +2579,7 @@
 		(fields_autoplaced yes)
 		(uuid "81463b8d-e8fe-42ee-942c-2d6026b0f6d3")
 		(property "Reference" "#PWR014"
-			(at 218.44 69.85 0)
+			(at 219.71 69.85 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2589,7 +2588,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 218.44 71.12 0)
+			(at 219.71 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2597,7 +2596,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 218.44 76.2 0)
+			(at 219.71 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2606,7 +2605,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 218.44 76.2 0)
+			(at 219.71 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2615,7 +2614,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 218.44 76.2 0)
+			(at 219.71 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2630,6 +2629,109 @@
 			(project ""
 				(path "/59ef9c8c-2dc0-43ef-9d7c-d78f04b983ef"
 					(reference "#PWR014")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "EasyEDA:FC10-S08FCT-00")
+		(at 217.17 92.71 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "8fdf87db-c842-4815-8c28-a4dd085243db")
+		(property "Reference" "FPC1"
+			(at 222.25 88.8999 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "FC10-S08FCT-00"
+			(at 222.25 91.4399 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "EasyEDA:FPC-SMD_8P-P1.00_DEALON_FC10-S08FCT-00"
+			(at 217.17 111.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 217.17 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 217.17 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC Part" "C2998898"
+			(at 217.17 114.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "4"
+			(uuid "c54de584-ab30-48bd-8a40-c9418460dfa6")
+		)
+		(pin "6"
+			(uuid "6d0af948-402f-46f4-a344-92a6231ba068")
+		)
+		(pin "8"
+			(uuid "927afdfa-c3a9-4597-b543-90d8eaa5105f")
+		)
+		(pin "1"
+			(uuid "07950132-fb39-4162-8652-0119c1b360fd")
+		)
+		(pin "3"
+			(uuid "3308e3a4-0bee-4b73-807b-20f704f85b5a")
+		)
+		(pin "2"
+			(uuid "ad41e79e-edb4-48ad-9181-83656e5fb769")
+		)
+		(pin "7"
+			(uuid "51167f9c-fb8b-4835-8683-141c2e08e92d")
+		)
+		(pin "10"
+			(uuid "90a88670-cca8-42ed-8c01-db95fbbf9baa")
+		)
+		(pin "9"
+			(uuid "ad134a8d-03e2-4cb2-bfd8-7cd8d74a935c")
+		)
+		(pin "5"
+			(uuid "ae7e2f36-c886-4701-a0f2-e9b2d2316c05")
+		)
+		(instances
+			(project ""
+				(path "/59ef9c8c-2dc0-43ef-9d7c-d78f04b983ef"
+					(reference "FPC1")
 					(unit 1)
 				)
 			)
@@ -2662,7 +2764,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
 			(at 182.5752 52.07 0)
 			(effects
 				(font
@@ -2732,7 +2834,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "PCM_Resistor_SMD_AKL:R_0603_1608Metric"
+		(property "Footprint" "PCM_Resistor_SMD_AKL:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder"
 			(at 185.928 86.36 90)
 			(effects
 				(font
@@ -3040,109 +3142,6 @@
 		)
 	)
 	(symbol
-		(lib_id "EasyEDA:F0502-B-08-15T-R")
-		(at 217.17 90.17 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "aed105d5-3047-43f9-9349-10119e4bc6c4")
-		(property "Reference" "FPC1"
-			(at 220.98 88.8999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "F0502-B-08-15T-R"
-			(at 220.98 91.4399 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "EasyEDA:FPC-SMD_8P-P0.50_F0502-B-08-15T-R"
-			(at 217.17 111.76 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 217.17 90.17 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 217.17 90.17 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "LCSC Part" "C2895840"
-			(at 217.17 114.3 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "10"
-			(uuid "61194402-b9a0-433b-9ecb-8d48c4a5b5b0")
-		)
-		(pin "7"
-			(uuid "d5af1c75-8e4a-4938-a533-2c10c084991a")
-		)
-		(pin "6"
-			(uuid "bbcf6ee8-8bb7-48a4-baa7-6365ed1d8428")
-		)
-		(pin "5"
-			(uuid "1444c5b7-a5ce-4c71-9e44-6676ea3dada0")
-		)
-		(pin "2"
-			(uuid "a4671ee1-8a41-4bc9-821c-5ab7734c7393")
-		)
-		(pin "1"
-			(uuid "3542c874-c4b5-49e4-ac0c-55dc422adc30")
-		)
-		(pin "8"
-			(uuid "d31ba40b-5aa0-4e7d-a6a4-d3dd070b674a")
-		)
-		(pin "4"
-			(uuid "4e4d07f0-f35f-4c2f-8c70-0c7d4a1621a9")
-		)
-		(pin "3"
-			(uuid "07c771d7-274d-41f6-aea1-3513340821ca")
-		)
-		(pin "9"
-			(uuid "b56471a7-a551-4567-957c-4d5b64a35c08")
-		)
-		(instances
-			(project ""
-				(path "/59ef9c8c-2dc0-43ef-9d7c-d78f04b983ef"
-					(reference "FPC1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:+1V8")
 		(at 184.15 82.55 0)
 		(unit 1)
@@ -3236,7 +3235,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
 			(at 122.8852 92.71 0)
 			(effects
 				(font
@@ -3297,7 +3296,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "M1"
+		(property "Value" "M2"
 			(at 210.82 46.9899 90)
 			(effects
 				(font
@@ -3306,7 +3305,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "CustomMountingHole:MountingHole_1.2mm_M1_Pad"
+		(property "Footprint" "MountingHole:MountingHole_2.2mm_M2_Pad_Via"
 			(at 207.01 45.72 0)
 			(effects
 				(font
@@ -3496,7 +3495,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "M1"
+		(property "Value" "M2"
 			(at 210.82 40.6399 90)
 			(effects
 				(font
@@ -3505,7 +3504,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "CustomMountingHole:MountingHole_1.2mm_M1_Pad"
+		(property "Footprint" "MountingHole:MountingHole_2.2mm_M2_Pad_Via"
 			(at 207.01 39.37 0)
 			(effects
 				(font
@@ -3546,7 +3545,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 218.44 104.14 0)
+		(at 219.71 104.14 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3555,7 +3554,7 @@
 		(fields_autoplaced yes)
 		(uuid "d95dffb2-886a-4061-a892-41eb1fea1185")
 		(property "Reference" "#PWR015"
-			(at 218.44 110.49 0)
+			(at 219.71 110.49 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3564,7 +3563,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 218.44 109.22 0)
+			(at 219.71 109.22 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3572,7 +3571,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 218.44 104.14 0)
+			(at 219.71 104.14 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3581,7 +3580,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 218.44 104.14 0)
+			(at 219.71 104.14 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3590,7 +3589,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 218.44 104.14 0)
+			(at 219.71 104.14 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3828,7 +3827,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "M1"
+		(property "Value" "M2"
 			(at 210.82 34.2899 90)
 			(effects
 				(font
@@ -3837,7 +3836,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "CustomMountingHole:MountingHole_1.2mm_M1_Pad"
+		(property "Footprint" "MountingHole:MountingHole_2.2mm_M2_Pad_Via"
 			(at 207.01 33.02 0)
 			(effects
 				(font
