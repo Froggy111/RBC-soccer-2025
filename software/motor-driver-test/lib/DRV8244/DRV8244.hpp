@@ -33,6 +33,10 @@ namespace DRV8244 {
     bool set_spi(GenericSPIClass SPI);
     bool set_driver_mode(DriverMode driver_mode);
     bool set_driver_state(DriverState driver_state);
+    float read_current();
+    void set_speed(uint8_t speed);
+    void write8(uint8_t reg, uint8_t value);
+
   private:
     GenericSPIClass _SPI;
     DriverMode _driver_mode;
