@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "main.hpp"
 
-const int output_pin = 18;
+const int output_pin = 20;
 const int freq = 40000;
 const int period = 1000000 / freq;
 const int waveform_freq = 1200;
