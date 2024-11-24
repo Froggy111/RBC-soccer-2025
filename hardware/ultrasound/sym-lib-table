@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 0)
+  (lib (name "ch201-brea-easyedapro")(type "KiCad")(uri "${KIPRJMOD}/ch201-brea-easyedapro.kicad_sym")(options "")(descr ""))
+)
