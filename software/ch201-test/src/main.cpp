@@ -15,6 +15,8 @@
  *
  */
 
+#define CH_LOG_MODULE_LEVEL 0
+
 #include <CH201.h>
 namespace pins {
 uint8_t INT = 16;
@@ -23,7 +25,7 @@ uint8_t PROG = 18;
 }
 
 // CH201_dev CHx01_dev(Wire, 0x29, 16, 5, 18);
-CH201 CHx01(Wire, pins::INT, 5, pins::RST, pins::PROG, false);
+CH201 CH201(Wire, pins::INT, 5, pins::RST, pins::PROG, true);
 
 void setup() {
   int ret;
@@ -32,15 +34,15 @@ void setup() {
   Serial.println("CH201 Raw Data print");
 
   // read pins
-  pinMode(pins::INT, INPUT);
-  pinMode(pins::RST, INPUT);
-  pinMode(pins::PROG, INPUT);
-  while (true) {
-    Serial.printf("%hhu, %hhu, %hhu\n", digitalRead(pins::INT), digitalRead(pins::RST), digitalRead(pins::PROG));
-  }
+  // pinMode(pins::INT, INPUT);
+  // pinMode(pins::RST, INPUT);
+  // pinMode(pins::PROG, INPUT);
+  // while (true) {
+  //   Serial.printf("%hhu, %hhu, %hhu\n", digitalRead(pins::INT), digitalRead(pins::RST), digitalRead(pins::PROG));
+  // }
 
   // Initializing the CHx01 device
-  ret = CHx01.begin();
+  ret = CH201.begin();
   Serial.println("CH201 initialisation call done");
   if (ret != 0) {
     Serial.print("CH201 initialization failed: ");
@@ -49,12 +51,12 @@ void setup() {
       ;
   } else {
     Serial.println("Printing informations");
-    CHx01.print_informations();
+    CH201.print_informations();
     Serial.println("Printed informations");
   }
-  // Start CHx01 in free run mode (max range 2.4m, interval 200ms)
+  // Start CH201 in free run mode (max range 2.4m, interval 200ms)
   Serial.println("Starting CH201 in free run");
-  ret = CHx01.free_run(2400,200);
+  ret = CH201.free_run(2400,200);
   if (ret != 0) {
     Serial.print("CH201 free run failed: ");
     Serial.println(ret);
@@ -62,7 +64,7 @@ void setup() {
       ;
   } else {
     Serial.println("Printing configuration");
-    CHx01.print_configuration();
+    CH201.print_configuration();
     Serial.println("Printed configuration");
   }
 }
@@ -72,9 +74,9 @@ void loop() {
   uint16_t nb_samples;
 
   /* Wait for new measure done */
-  if (CHx01.data_ready()) {
+  if (CH201.data_ready()) {
     /* Get raw data from the sensor */
-    CHx01.get_iq_data(raw_data, nb_samples);
+    CH201.get_iq_data(raw_data, nb_samples);
     Serial.println("CH201 Raw Data (clear)");
     for (int count = 0; count < nb_samples; count++) {
       /* output one I/Q pair per line */
