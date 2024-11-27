@@ -15,7 +15,6 @@
  *
  */
 
-#include "esp32-hal-gpio.h"
 #include <CH201.h>
 namespace pins {
 uint8_t INT = 16;
