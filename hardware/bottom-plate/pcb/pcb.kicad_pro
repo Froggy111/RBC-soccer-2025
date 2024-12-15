@@ -582,6 +582,14 @@
     [
       "8e7ff108-03cd-4ca5-8da7-ac905b14624c",
       "line sensors"
+    ],
+    [
+      "1bedd62e-fca9-4c03-aeeb-1f89b1b954bd",
+      "power"
+    ],
+    [
+      "00388dc6-863a-4190-9bcf-906c6804110c",
+      "LEDs"
     ]
   ],
   "text_variables": {}

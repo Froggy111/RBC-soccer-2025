@@ -1,5 +1,3 @@
-_You have completed a milestone. **It fills you with determination.**_
-
 **THIS IS QUITE USELESS. JUST HERE TO PRESERVE STRUCTURE OF THIS REPO**
 
 TBC = have not thought about enough yet to have a solid plan. Fill up in the future.

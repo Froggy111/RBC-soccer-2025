@@ -1,5 +1,3 @@
-_Do I look like a man with a plan? **A limiting plan only limits you.**_
-
 - TBC = have not thought about enough yet to have a solid plan. Fill up in the future.
   - _THIS IS A REMINDER TO FILL UP IF YOU ARE LOOKING AT THIS, IF YOU CAN_
 
