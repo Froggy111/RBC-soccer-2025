@@ -4343,17 +4343,6 @@
 				)
 			)
 		)
-		(model "${KIPRJMOD}/EASYEDA_MODELS/CONN-TH_XT30PW-F-1.step"
-			(offset
-				(xyz 0 -3.95 -2)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz -0 -0 360)
-			)
-		)
 		(model "${KICAD_3RD_PARTY}/EasyEDA.3dshapes/CONN-TH_XT30PW-F-1.step"
 			(offset
 				(xyz 0 -6.5 0)
