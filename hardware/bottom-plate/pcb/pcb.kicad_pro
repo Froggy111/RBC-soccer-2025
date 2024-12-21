@@ -598,16 +598,208 @@
       "Root"
     ],
     [
-      "8e7ff108-03cd-4ca5-8da7-ac905b14624c",
-      "line sensors"
+      "dd019f33-6d81-4ff9-8ccf-108909809042",
+      "line sensor array 1"
     ],
     [
-      "1bedd62e-fca9-4c03-aeeb-1f89b1b954bd",
-      "power"
+      "52ebcd66-48ac-4f3e-83f6-98a12f1873e7",
+      "light sensor 2"
     ],
     [
-      "00388dc6-863a-4190-9bcf-906c6804110c",
-      "LEDs"
+      "0a7c6d02-1367-44a3-9bbd-94d4df0ac7c4",
+      "light sensor 1"
+    ],
+    [
+      "f5fbcaf6-8fd0-4f52-b878-e4487d811962",
+      "light sensor 8"
+    ],
+    [
+      "0fa5f423-ab41-4cb5-bcf8-d40870ee046e",
+      "light sensor 7"
+    ],
+    [
+      "9cca9a8d-5d47-4bf0-9b57-fc985dad29c9",
+      "light sensor 4"
+    ],
+    [
+      "959f2b5e-af3e-446f-bf25-319bae4dfd55",
+      "light sensor 3"
+    ],
+    [
+      "61dce1df-d16e-4222-8622-4da8eb8235cf",
+      "light sensor 5"
+    ],
+    [
+      "6332d890-f17d-4ed9-a8c2-81152ddad5ea",
+      "light sensor 6"
+    ],
+    [
+      "f9f8b352-66e8-4c9e-a6af-b5f196ac9e38",
+      "light sensor 9"
+    ],
+    [
+      "5603dcd1-d26f-42f0-a613-73a1c5a1a2f7",
+      "light sensor 10"
+    ],
+    [
+      "151dffdb-522b-4c66-ab15-3703096778e1",
+      "light sensor 15"
+    ],
+    [
+      "8dce240f-6d23-42fe-98a8-c6128e1210e1",
+      "light sensor 16"
+    ],
+    [
+      "a83f6c57-4e9d-49ea-b898-1b1402ef6bce",
+      "light sensor 11"
+    ],
+    [
+      "ee503854-786b-4d67-a591-adb8d98655cc",
+      "light sensor 12"
+    ],
+    [
+      "a3c2d776-4b30-4078-b0eb-43ab3ccd4979",
+      "light sensor 13"
+    ],
+    [
+      "f2826304-3fef-44f6-a6e0-806703c52c9f",
+      "light sensor 14"
+    ],
+    [
+      "17b33f68-5335-4674-a874-ca92afadbf45",
+      "line sensor array 2"
+    ],
+    [
+      "52ebcd66-48ac-4f3e-83f6-98a12f1873e7",
+      "light sensor 2"
+    ],
+    [
+      "0a7c6d02-1367-44a3-9bbd-94d4df0ac7c4",
+      "light sensor 1"
+    ],
+    [
+      "f5fbcaf6-8fd0-4f52-b878-e4487d811962",
+      "light sensor 8"
+    ],
+    [
+      "0fa5f423-ab41-4cb5-bcf8-d40870ee046e",
+      "light sensor 7"
+    ],
+    [
+      "9cca9a8d-5d47-4bf0-9b57-fc985dad29c9",
+      "light sensor 4"
+    ],
+    [
+      "959f2b5e-af3e-446f-bf25-319bae4dfd55",
+      "light sensor 3"
+    ],
+    [
+      "61dce1df-d16e-4222-8622-4da8eb8235cf",
+      "light sensor 5"
+    ],
+    [
+      "6332d890-f17d-4ed9-a8c2-81152ddad5ea",
+      "light sensor 6"
+    ],
+    [
+      "f9f8b352-66e8-4c9e-a6af-b5f196ac9e38",
+      "light sensor 9"
+    ],
+    [
+      "5603dcd1-d26f-42f0-a613-73a1c5a1a2f7",
+      "light sensor 10"
+    ],
+    [
+      "151dffdb-522b-4c66-ab15-3703096778e1",
+      "light sensor 15"
+    ],
+    [
+      "8dce240f-6d23-42fe-98a8-c6128e1210e1",
+      "light sensor 16"
+    ],
+    [
+      "a83f6c57-4e9d-49ea-b898-1b1402ef6bce",
+      "light sensor 11"
+    ],
+    [
+      "ee503854-786b-4d67-a591-adb8d98655cc",
+      "light sensor 12"
+    ],
+    [
+      "a3c2d776-4b30-4078-b0eb-43ab3ccd4979",
+      "light sensor 13"
+    ],
+    [
+      "f2826304-3fef-44f6-a6e0-806703c52c9f",
+      "light sensor 14"
+    ],
+    [
+      "82ba2c36-ebc4-430f-b7f3-23735c7a2083",
+      "line sensor array 3"
+    ],
+    [
+      "52ebcd66-48ac-4f3e-83f6-98a12f1873e7",
+      "light sensor 2"
+    ],
+    [
+      "0a7c6d02-1367-44a3-9bbd-94d4df0ac7c4",
+      "light sensor 1"
+    ],
+    [
+      "f5fbcaf6-8fd0-4f52-b878-e4487d811962",
+      "light sensor 8"
+    ],
+    [
+      "0fa5f423-ab41-4cb5-bcf8-d40870ee046e",
+      "light sensor 7"
+    ],
+    [
+      "9cca9a8d-5d47-4bf0-9b57-fc985dad29c9",
+      "light sensor 4"
+    ],
+    [
+      "959f2b5e-af3e-446f-bf25-319bae4dfd55",
+      "light sensor 3"
+    ],
+    [
+      "61dce1df-d16e-4222-8622-4da8eb8235cf",
+      "light sensor 5"
+    ],
+    [
+      "6332d890-f17d-4ed9-a8c2-81152ddad5ea",
+      "light sensor 6"
+    ],
+    [
+      "f9f8b352-66e8-4c9e-a6af-b5f196ac9e38",
+      "light sensor 9"
+    ],
+    [
+      "5603dcd1-d26f-42f0-a613-73a1c5a1a2f7",
+      "light sensor 10"
+    ],
+    [
+      "151dffdb-522b-4c66-ab15-3703096778e1",
+      "light sensor 15"
+    ],
+    [
+      "8dce240f-6d23-42fe-98a8-c6128e1210e1",
+      "light sensor 16"
+    ],
+    [
+      "a83f6c57-4e9d-49ea-b898-1b1402ef6bce",
+      "light sensor 11"
+    ],
+    [
+      "ee503854-786b-4d67-a591-adb8d98655cc",
+      "light sensor 12"
+    ],
+    [
+      "a3c2d776-4b30-4078-b0eb-43ab3ccd4979",
+      "light sensor 13"
+    ],
+    [
+      "f2826304-3fef-44f6-a6e0-806703c52c9f",
+      "light sensor 14"
     ]
   ],
   "text_variables": {}

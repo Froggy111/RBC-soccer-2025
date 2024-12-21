@@ -2623,6 +2623,16 @@
 	)
 	(bus
 		(pts
+			(xy 62.23 86.36) (xy 62.23 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "16ff5cb7-d8e6-4eab-b492-2520eb754786")
+	)
+	(bus
+		(pts
 			(xy 62.23 109.22) (xy 62.23 111.76)
 		)
 		(stroke
@@ -2740,6 +2750,16 @@
 			(type default)
 		)
 		(uuid "2273866b-ad73-4f67-9319-844bb4efce9e")
+	)
+	(bus
+		(pts
+			(xy 62.23 146.05) (xy 62.23 148.59)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "23041736-0253-4329-9a7a-aa9f7ab5b584")
 	)
 	(bus
 		(pts
@@ -3830,6 +3850,16 @@
 			(type default)
 		)
 		(uuid "6633503a-c32a-41d0-9026-f55a3c6b1dee")
+	)
+	(bus
+		(pts
+			(xy 62.23 26.67) (xy 62.23 29.21)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "674258dd-2915-4af3-b046-e93229f7fb60")
 	)
 	(bus
 		(pts
@@ -6284,6 +6314,17 @@
 		)
 		(uuid "171cd305-a184-4ec7-939c-10039c65531c")
 	)
+	(label "PR[1..16]"
+		(at 62.23 26.67 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "176d9975-09ab-40db-848c-692ecd60c6fa")
+	)
 	(label "PR42"
 		(at 54.61 168.91 0)
 		(fields_autoplaced yes)
@@ -6427,6 +6468,17 @@
 		)
 		(uuid "2b0290c7-7e6c-455c-9671-6387ea1d8c13")
 	)
+	(label "PR[17..32]"
+		(at 62.23 86.36 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "2db7bf34-8e03-4c36-ad9c-d860cffc95d3")
+	)
 	(label "PR33"
 		(at 54.61 146.05 0)
 		(fields_autoplaced yes)
@@ -6437,6 +6489,17 @@
 			(justify left bottom)
 		)
 		(uuid "2e62eabf-dee0-46c1-b30d-24614ef549b9")
+	)
+	(label "PR[33..48]"
+		(at 62.23 146.05 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3195fdf3-a543-4729-828b-6dc6ef714958")
 	)
 	(label "PR46"
 		(at 54.61 179.07 0)
@@ -22090,6 +22153,177 @@
 			(project "pcb"
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/8e7ff108-03cd-4ca5-8da7-ac905b14624c"
 					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 149.86 133.35)
+		(size 12.7 5.08)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "0a7c6d02-1367-44a3-9bbd-94d4df0ac7c4")
+		(property "Sheetname" "light sensor 1"
+			(at 149.86 132.6384 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "light-sensor.kicad_sch"
+			(at 149.86 139.0146 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(property "Field2" ""
+			(at 149.86 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "LS1" input
+			(at 162.56 135.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "c94b6430-3313-4dd4-a71b-9109495542e1")
+		)
+		(instances
+			(project "pcb"
+				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/8e7ff108-03cd-4ca5-8da7-ac905b14624c"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 149.86 143.51)
+		(size 12.7 5.08)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "5728201b-55fe-4edc-b9ad-82d0fbc9ce91")
+		(property "Sheetname" "light sensor 2"
+			(at 149.86 142.7984 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "light-sensor.kicad_sch"
+			(at 149.86 149.1746 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(property "Field2" ""
+			(at 149.86 143.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "LS1" input
+			(at 162.56 146.05 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "63140a54-a33b-46ed-b16d-f02a0238e159")
+		)
+		(instances
+			(project "pcb"
+				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/8e7ff108-03cd-4ca5-8da7-ac905b14624c"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 149.86 153.67)
+		(size 12.7 5.08)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "fa9613c2-8bb8-4593-b156-2cde79498f7d")
+		(property "Sheetname" "light sensor 3"
+			(at 149.86 152.9584 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "light-sensor.kicad_sch"
+			(at 149.86 159.3346 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(property "Field2" ""
+			(at 149.86 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "LS1" input
+			(at 162.56 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "d764d349-b546-4f55-a76f-1ef7d3489227")
+		)
+		(instances
+			(project "pcb"
+				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/8e7ff108-03cd-4ca5-8da7-ac905b14624c"
+					(page "7")
 				)
 			)
 		)
