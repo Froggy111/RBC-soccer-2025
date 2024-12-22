@@ -1847,7 +1847,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1e2642ac-ac88-4454-bd43-b2f1807c6033")
-		(property "Reference" "#PWR073"
+		(property "Reference" "#PWR0211"
 			(at 81.28 63.5 0)
 			(effects
 				(font
@@ -1898,15 +1898,15 @@
 		(instances
 			(project "pcb"
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
-					(reference "#PWR0205")
+					(reference "#PWR0211")
 					(unit 1)
 				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(reference "#PWR0139")
+					(reference "#PWR0145")
 					(unit 1)
 				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(reference "#PWR073")
+					(reference "#PWR079")
 					(unit 1)
 				)
 			)
@@ -1922,7 +1922,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "58671bb4-3783-427c-9c47-332fa5dc5896")
-		(property "Reference" "AMUX1"
+		(property "Reference" "AMUX3"
 			(at 81.242 63.5 0)
 			(effects
 				(font
@@ -2067,7 +2067,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a8450f24-0bc8-43d1-a4f7-c648c2800976")
-		(property "Reference" "#PWR074"
+		(property "Reference" "#PWR0212"
 			(at 71.12 119.38 0)
 			(effects
 				(font
@@ -2118,15 +2118,15 @@
 		(instances
 			(project "pcb"
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
-					(reference "#PWR0206")
+					(reference "#PWR0212")
 					(unit 1)
 				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(reference "#PWR0140")
+					(reference "#PWR0146")
 					(unit 1)
 				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(reference "#PWR074")
+					(reference "#PWR080")
 					(unit 1)
 				)
 			)
