@@ -1847,7 +1847,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1e2642ac-ac88-4454-bd43-b2f1807c6033")
-		(property "Reference" "#PWR0145"
+		(property "Reference" "#PWR0211"
 			(at 81.28 63.5 0)
 			(effects
 				(font
@@ -1901,14 +1901,6 @@
 					(reference "#PWR0211")
 					(unit 1)
 				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(reference "#PWR0145")
-					(unit 1)
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(reference "#PWR079")
-					(unit 1)
-				)
 			)
 		)
 	)
@@ -1922,7 +1914,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "58671bb4-3783-427c-9c47-332fa5dc5896")
-		(property "Reference" "AMUX2"
+		(property "Reference" "AMUX3"
 			(at 81.242 63.5 0)
 			(effects
 				(font
@@ -2046,14 +2038,6 @@
 					(reference "AMUX3")
 					(unit 1)
 				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(reference "AMUX2")
-					(unit 1)
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(reference "AMUX1")
-					(unit 1)
-				)
 			)
 		)
 	)
@@ -2067,7 +2051,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a8450f24-0bc8-43d1-a4f7-c648c2800976")
-		(property "Reference" "#PWR0146"
+		(property "Reference" "#PWR0212"
 			(at 71.12 119.38 0)
 			(effects
 				(font
@@ -2119,14 +2103,6 @@
 			(project "pcb"
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(reference "#PWR0212")
-					(unit 1)
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(reference "#PWR0146")
-					(unit 1)
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(reference "#PWR080")
 					(unit 1)
 				)
 			)
@@ -2183,14 +2159,8 @@
 		)
 		(instances
 			(project "pcb"
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(page "3")
-				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(page "37")
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(page "20")
 				)
 			)
 		)
@@ -2246,14 +2216,8 @@
 		)
 		(instances
 			(project "pcb"
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(page "8")
-				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(page "42")
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(page "25")
 				)
 			)
 		)
@@ -2309,14 +2273,8 @@
 		)
 		(instances
 			(project "pcb"
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(page "18")
-				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(page "52")
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(page "35")
 				)
 			)
 		)
@@ -2372,14 +2330,8 @@
 		)
 		(instances
 			(project "pcb"
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(page "12")
-				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(page "46")
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(page "29")
 				)
 			)
 		)
@@ -2435,14 +2387,8 @@
 		)
 		(instances
 			(project "pcb"
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(page "10")
-				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(page "44")
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(page "27")
 				)
 			)
 		)
@@ -2498,14 +2444,8 @@
 		)
 		(instances
 			(project "pcb"
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(page "17")
-				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(page "51")
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(page "34")
 				)
 			)
 		)
@@ -2561,14 +2501,8 @@
 		)
 		(instances
 			(project "pcb"
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(page "15")
-				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(page "49")
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(page "32")
 				)
 			)
 		)
@@ -2624,14 +2558,8 @@
 		)
 		(instances
 			(project "pcb"
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(page "9")
-				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(page "43")
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(page "26")
 				)
 			)
 		)
@@ -2687,14 +2615,8 @@
 		)
 		(instances
 			(project "pcb"
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(page "5")
-				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(page "39")
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(page "22")
 				)
 			)
 		)
@@ -2750,14 +2672,8 @@
 		)
 		(instances
 			(project "pcb"
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(page "7")
-				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(page "41")
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(page "24")
 				)
 			)
 		)
@@ -2813,14 +2729,8 @@
 		)
 		(instances
 			(project "pcb"
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(page "11")
-				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(page "45")
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(page "28")
 				)
 			)
 		)
@@ -2876,14 +2786,8 @@
 		)
 		(instances
 			(project "pcb"
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(page "13")
-				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(page "47")
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(page "30")
 				)
 			)
 		)
@@ -2939,14 +2843,8 @@
 		)
 		(instances
 			(project "pcb"
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(page "6")
-				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(page "40")
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(page "23")
 				)
 			)
 		)
@@ -3002,14 +2900,8 @@
 		)
 		(instances
 			(project "pcb"
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(page "16")
-				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(page "50")
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(page "33")
 				)
 			)
 		)
@@ -3065,14 +2957,8 @@
 		)
 		(instances
 			(project "pcb"
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(page "14")
-				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(page "48")
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(page "31")
 				)
 			)
 		)
@@ -3128,14 +3014,8 @@
 		)
 		(instances
 			(project "pcb"
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/dd019f33-6d81-4ff9-8ccf-108909809042"
-					(page "4")
-				)
 				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/93e6d7bb-95f9-4cf2-95f4-5cf0dae1bc31"
 					(page "38")
-				)
-				(path "/7e6d4b79-c480-4b70-bccc-d28260cddf7c/c980f11d-c85b-4c7f-a7ac-bfc985564f96"
-					(page "21")
 				)
 			)
 		)
