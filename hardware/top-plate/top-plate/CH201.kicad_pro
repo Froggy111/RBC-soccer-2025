@@ -1,14 +1,6 @@
 {
   "board": {
     "3dviewports": [],
-    "design_settings": {
-      "defaults": {},
-      "diff_pair_dimensions": [],
-      "drc_exclusions": [],
-      "rules": {},
-      "track_widths": [],
-      "via_dimensions": []
-    },
     "ipc2581": {
       "dist": "",
       "distpn": "",
@@ -224,7 +216,7 @@
       "no_connect_dangling": "warning",
       "pin_not_connected": "error",
       "pin_not_driven": "error",
-      "pin_to_pin": "error",
+      "pin_to_pin": "warning",
       "power_pin_not_driven": "error",
       "similar_labels": "warning",
       "simulation_model_issue": "ignore",
@@ -239,7 +231,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "top-plate.kicad_pro",
+    "filename": "CH201.kicad_pro",
     "version": 1
   },
   "net_settings": {
@@ -384,12 +376,8 @@
   },
   "sheets": [
     [
-      "2543a06c-fafe-4237-8cf7-5b57da9ea55c",
-      "Root"
-    ],
-    [
-      "7e25ba71-3ee6-41bc-bb46-d490920b5271",
-      "CH201"
+      "4652318d-5dac-451a-846b-3c74237763f6",
+      ""
     ]
   ],
   "text_variables": {}
