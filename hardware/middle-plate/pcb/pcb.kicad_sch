@@ -12090,7 +12090,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "081a24d4-7d2c-45a1-a313-6ed586187399")
-		(property "Reference" "U2"
+		(property "Reference" "RPI1"
 			(at 185.42 168.91 0)
 			(effects
 				(font
@@ -12262,7 +12262,7 @@
 		(instances
 			(project ""
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
-					(reference "U2")
+					(reference "RPI1")
 					(unit 1)
 				)
 			)
@@ -13179,7 +13179,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "11570dee-1348-4a5c-a00f-870dcdb5c639")
-		(property "Reference" "U3"
+		(property "Reference" "LVL1"
 			(at 143.51 249.6055 0)
 			(effects
 				(font
@@ -13243,7 +13243,7 @@
 		(instances
 			(project "pcb"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
-					(reference "U3")
+					(reference "LVL1")
 					(unit 1)
 				)
 			)
@@ -15525,7 +15525,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "2da1a6af-0e1d-47a2-b722-420a61c64cd7")
-		(property "Reference" "U1"
+		(property "Reference" "MCU1"
 			(at 58.42 215.9 0)
 			(effects
 				(font
@@ -15700,7 +15700,7 @@
 		(instances
 			(project ""
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
-					(reference "U1")
+					(reference "MCU1")
 					(unit 1)
 				)
 			)
@@ -16277,7 +16277,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "3b0a3a23-a863-48c4-b409-b4721f00ab00")
-		(property "Reference" "SW12"
+		(property "Reference" "PI_SW5"
 			(at 388.62 96.52 0)
 			(effects
 				(font
@@ -16344,7 +16344,7 @@
 		(instances
 			(project "pcb"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
-					(reference "SW12")
+					(reference "PI_SW5")
 					(unit 1)
 				)
 			)
@@ -17597,7 +17597,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "4c74882e-ed1c-4a58-bdb7-9e3d122ecbab")
-		(property "Reference" "J6"
+		(property "Reference" "PWM_0&1"
 			(at 290.83 198.1199 0)
 			(effects
 				(font
@@ -17657,7 +17657,7 @@
 		(instances
 			(project "pcb"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
-					(reference "J6")
+					(reference "PWM_0&1")
 					(unit 1)
 				)
 			)
@@ -18275,7 +18275,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5a1f6c53-a361-4540-8c35-5f4c9c72cddc")
-		(property "Reference" "J3"
+		(property "Reference" "PCM_IN1"
 			(at 290.83 232.4099 0)
 			(effects
 				(font
@@ -18338,7 +18338,7 @@
 		(instances
 			(project ""
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
-					(reference "J3")
+					(reference "PCM_IN1")
 					(unit 1)
 				)
 			)
@@ -19035,7 +19035,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "66e5e9b2-2222-4875-b7da-4a759702967c")
-		(property "Reference" "J4"
+		(property "Reference" "I2C1"
 			(at 382.27 229.8699 0)
 			(effects
 				(font
@@ -19095,7 +19095,7 @@
 		(instances
 			(project ""
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
-					(reference "J4")
+					(reference "I2C1")
 					(unit 1)
 				)
 			)
@@ -19329,7 +19329,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "688d6bd7-e282-4cd9-a7fb-fdc46de8b99e")
-		(property "Reference" "SW11"
+		(property "Reference" "PI_SW4"
 			(at 388.62 78.74 0)
 			(effects
 				(font
@@ -19396,7 +19396,7 @@
 		(instances
 			(project "middle-plate"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
-					(reference "SW11")
+					(reference "PI_SW4")
 					(unit 1)
 				)
 			)
@@ -20209,7 +20209,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "73cca093-8f65-4fbf-99fe-e88f7664d847")
-		(property "Reference" "SW9"
+		(property "Reference" "PI_SW2"
 			(at 388.62 43.18 0)
 			(effects
 				(font
@@ -20276,7 +20276,7 @@
 		(instances
 			(project "middle-plate"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
-					(reference "SW9")
+					(reference "PI_SW2")
 					(unit 1)
 				)
 			)
@@ -21721,7 +21721,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8709cc47-ec97-40f8-934d-9a7b865bd19c")
-		(property "Reference" "J1"
+		(property "Reference" "SPI0_0"
 			(at 346.71 198.1199 0)
 			(effects
 				(font
@@ -21787,7 +21787,7 @@
 		(instances
 			(project ""
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
-					(reference "J1")
+					(reference "SPI0_0")
 					(unit 1)
 				)
 			)
@@ -22559,7 +22559,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "90902ba5-bfde-424d-9598-32475136ca86")
-		(property "Reference" "SW10"
+		(property "Reference" "PI_SW3"
 			(at 388.62 60.96 0)
 			(effects
 				(font
@@ -22626,7 +22626,7 @@
 		(instances
 			(project "middle-plate"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
-					(reference "SW10")
+					(reference "PI_SW3")
 					(unit 1)
 				)
 			)
@@ -23131,7 +23131,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "94e69525-0efa-4244-b1dc-ef3099165007")
-		(property "Reference" "J2"
+		(property "Reference" "SPI0_1"
 			(at 346.71 229.8699 0)
 			(effects
 				(font
@@ -23197,7 +23197,7 @@
 		(instances
 			(project "middle-plate"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
-					(reference "J2")
+					(reference "SPI0_1")
 					(unit 1)
 				)
 			)
@@ -25785,7 +25785,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b8f649b7-10da-4a79-80c0-b59ed2eabd67")
-		(property "Reference" "U4"
+		(property "Reference" "AMP1"
 			(at 388.62 198.1199 0)
 			(effects
 				(font
@@ -25854,7 +25854,7 @@
 		(instances
 			(project ""
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
-					(reference "U4")
+					(reference "AMP1")
 					(unit 1)
 				)
 			)
@@ -27385,7 +27385,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c6a3ba14-88a4-4f41-a5f0-e47fcf07007d")
-		(property "Reference" "SW8"
+		(property "Reference" "PI_SW1"
 			(at 388.62 25.4 0)
 			(effects
 				(font
@@ -27452,7 +27452,7 @@
 		(instances
 			(project "middle-plate"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
-					(reference "SW8")
+					(reference "PI_SW1")
 					(unit 1)
 				)
 			)
@@ -29080,7 +29080,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d902546f-e4c6-4c46-8b69-3045800da56a")
-		(property "Reference" "J5"
+		(property "Reference" "ADC_IN_1-3"
 			(at 381 157.4799 0)
 			(effects
 				(font
@@ -29143,7 +29143,7 @@
 		(instances
 			(project "pcb"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
-					(reference "J5")
+					(reference "ADC_IN_1-3")
 					(unit 1)
 				)
 			)
