@@ -8633,7 +8633,7 @@
 		)
 		(uuid "ba135836-e8f4-4173-979c-9098a30760d6")
 	)
-	(text "pullup resistors for I2C.\nInternal pullups of the RP2040 might be\ntoo weak to reliably drive 400kHz I2C.\nAdjust values accordingly, 2.7K is probably safe.\nlower values can be used if capacitance is too high.\nAnd of course, no running I2C on wires."
+	(text "pullup resistors for I2C.\nInternal pullups of the RP2040 might be\ntoo weak to reliably drive 400kHz I2C.\nAdjust values accordingly, 2.7K is probably safe.\nLower values can be used if capacitance is too high.\nAnd of course, avoid running I2C on wires."
 		(exclude_from_sim no)
 		(at 100.838 202.438 0)
 		(effects
