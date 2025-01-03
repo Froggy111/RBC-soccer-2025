@@ -26,7 +26,5 @@ build
 *.a
 */*.a
 
-# gemeral stuff
-#
-*.lck
+# general stuff
 */*.lck
