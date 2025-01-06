@@ -25,6 +25,3 @@ build
 */*.o
 *.a
 */*.a
-
-# general stuff
-*/*.lck
