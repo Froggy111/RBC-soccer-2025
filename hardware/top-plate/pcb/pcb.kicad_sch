@@ -5483,6 +5483,7 @@
 	)
 	(label "SPI0.MISO"
 		(at 118.11 113.03 0)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5548,6 +5549,7 @@
 	)
 	(label "I2C1.SCL"
 		(at 173.99 63.5 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5569,6 +5571,7 @@
 	)
 	(label "SPI0.SCLK"
 		(at 134.62 63.5 0)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5689,6 +5692,7 @@
 	)
 	(label "I2C1.SDA"
 		(at 173.99 60.96 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5886,6 +5890,7 @@
 	)
 	(label "SPI0.MISO"
 		(at 134.62 68.58 0)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5907,6 +5912,7 @@
 	)
 	(label "SPI0.MOSI"
 		(at 118.11 110.49 0)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6093,6 +6099,7 @@
 	)
 	(label "SPI0.MOSI"
 		(at 134.62 66.04 0)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6125,6 +6132,7 @@
 	)
 	(label "SPI0.SCLK"
 		(at 118.11 107.95 0)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
