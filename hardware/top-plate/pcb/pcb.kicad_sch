@@ -5470,7 +5470,7 @@
 		)
 		(uuid "0e0700e5-a3b4-492c-9cdf-004c5c625d39")
 	)
-	(label "DMUX1_RST"
+	(label "DMUX1_NRST"
 		(at 118.11 100.33 0)
 		(fields_autoplaced yes)
 		(effects
@@ -5503,7 +5503,7 @@
 		)
 		(uuid "1f59f76d-fee2-49d6-a12f-e8d394a8b7ee")
 	)
-	(label "DMUX2_RST"
+	(label "DMUX2_NRST"
 		(at 173.99 73.66 180)
 		(fields_autoplaced yes)
 		(effects
@@ -5514,7 +5514,7 @@
 		)
 		(uuid "20e1e889-5279-442a-ae71-0fc2876d19b5")
 	)
-	(label "DMUX1_RST"
+	(label "DMUX1_NRST"
 		(at 173.99 71.12 180)
 		(fields_autoplaced yes)
 		(effects
@@ -5701,7 +5701,7 @@
 		)
 		(uuid "55de3f0f-6ce1-4380-bf08-9ba402dc3255")
 	)
-	(label "DMUX2_RST"
+	(label "DMUX2_NRST"
 		(at 118.11 102.87 0)
 		(fields_autoplaced yes)
 		(effects
@@ -5767,7 +5767,7 @@
 		)
 		(uuid "6b25a27b-0e4a-416c-8649-cbb6c26cc411")
 	)
-	(label "US_RST"
+	(label "US_NRST"
 		(at 118.11 182.88 180)
 		(fields_autoplaced yes)
 		(effects
@@ -5789,7 +5789,7 @@
 		)
 		(uuid "7c151abc-0edc-4b71-9cad-cb452a997c81")
 	)
-	(label "US_RST"
+	(label "US_NRST"
 		(at 180.34 140.97 180)
 		(fields_autoplaced yes)
 		(effects
@@ -5877,7 +5877,7 @@
 		)
 		(uuid "a397800c-306f-44fb-9cbb-d50f06c0259e")
 	)
-	(label "DMUX1_RST"
+	(label "DMUX1_NRST"
 		(at 54.61 162.56 0)
 		(fields_autoplaced yes)
 		(effects
@@ -5921,7 +5921,7 @@
 		)
 		(uuid "afbe9f7a-2354-404f-9f94-87162b622b18")
 	)
-	(label "DMUX2_RST"
+	(label "DMUX2_NRST"
 		(at 54.61 165.1 0)
 		(fields_autoplaced yes)
 		(effects
@@ -6108,7 +6108,7 @@
 		)
 		(uuid "f97c1c4f-45c7-42c1-8bf0-89e6a90f5def")
 	)
-	(label "US_RST"
+	(label "US_NRST"
 		(at 173.99 66.04 180)
 		(fields_autoplaced yes)
 		(effects
@@ -14811,7 +14811,7 @@
 			)
 			(uuid "3da3999c-2d0a-4385-b5ed-b8a192513382")
 		)
-		(pin "US_RST" input
+		(pin "US_NRST" input
 			(at 160.02 66.04 0)
 			(effects
 				(font
@@ -14821,7 +14821,7 @@
 			)
 			(uuid "349869b4-6b10-4e14-a799-ccb5bc5c4b5c")
 		)
-		(pin "DMUX1_RST" input
+		(pin "DMUX1_NRST" input
 			(at 160.02 71.12 0)
 			(effects
 				(font
@@ -14831,7 +14831,7 @@
 			)
 			(uuid "be1e05f5-2d13-4632-87e2-5d8b5e686f32")
 		)
-		(pin "DMUX2_RST" input
+		(pin "DMUX2_NRST" input
 			(at 160.02 73.66 0)
 			(effects
 				(font

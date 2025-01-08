@@ -232,7 +232,7 @@
 		(uuid "7e50af4f-3fec-4e34-a139-0deeee8c7bd4")
 		(at 0 0)
 		(property "Reference" "US1"
-			(at 0 -2.6 180)
+			(at 0 -2.4 180)
 			(layer "F.SilkS")
 			(uuid "1ff59700-652f-42a0-a8f5-4814dccb34fd")
 			(effects
@@ -1286,7 +1286,7 @@
 		)
 		(model "${KICAD_3RD_PARTY}/EasyEDA.3dshapes/FPC-SMD_7P-P1.0_KINGHELM_KH-FG1.0-H2.0-7PIN.wrl"
 			(offset
-				(xyz 0 -1.1 1)
+				(xyz 0 -1.45 1)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -1573,8 +1573,8 @@
 		)
 	)
 	(gr_rect
-		(start -7 -3.5)
-		(end 7 10.5)
+		(start -7 -3.25)
+		(end 7 10.75)
 		(stroke
 			(width 0.2)
 			(type default)
