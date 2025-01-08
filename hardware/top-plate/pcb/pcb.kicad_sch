@@ -10,7 +10,7 @@
 			(in_bom yes)
 			(on_board yes)
 			(property "Reference" "U"
-				(at 0 -7.62 0)
+				(at 0 -10.16 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -55,7 +55,7 @@
 			(symbol "0.96-inch_OLED_7-pin_1_1"
 				(rectangle
 					(start -10 7.62)
-					(end 10 -5)
+					(end 10 -7.62)
 					(stroke
 						(width 0)
 						(type default)
@@ -83,9 +83,9 @@
 					)
 				)
 				(pin passive line
-					(at 12.7 0 180)
+					(at 12.7 -5.08 180)
 					(length 2.54)
-					(name "MNT3"
+					(name "M2_hole"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -101,9 +101,9 @@
 					)
 				)
 				(pin passive line
-					(at -12.7 0 0)
+					(at -12.7 -5.08 0)
 					(length 2.54)
-					(name "MNT4"
+					(name "M2_hole"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -227,9 +227,9 @@
 					)
 				)
 				(pin passive line
-					(at -12.7 2.54 0)
+					(at -12.7 -2.54 0)
 					(length 2.54)
-					(name "MNT1"
+					(name "M2_hole"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -245,9 +245,9 @@
 					)
 				)
 				(pin passive line
-					(at 12.7 2.54 180)
+					(at 12.7 -2.54 180)
 					(length 2.54)
-					(name "MNT2"
+					(name "M2_hole"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -950,7 +950,7 @@
 			(in_bom yes)
 			(on_board yes)
 			(property "Reference" "U"
-				(at -2.54 -10.16 0)
+				(at -1.27 -12.7 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -995,7 +995,7 @@
 			(symbol "GY-ICM20948V2_1_1"
 				(rectangle
 					(start -15.24 2.5)
-					(end 12.7 -7.62)
+					(end 12.7 -10.16)
 					(stroke
 						(width 0)
 						(type default)
@@ -1033,6 +1033,42 @@
 						)
 					)
 					(number "10"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -17.78 -7.62 0)
+					(length 2.54)
+					(name "M3_hole"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "11"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 -7.62 180)
+					(length 2.54)
+					(name "M3_hole"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "12"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -3983,16 +4019,16 @@
 		(uuid "13b80d21-d3d8-4140-96f5-d5e6ff218d7f")
 	)
 	(no_connect
-		(at 321.31 166.37)
-		(uuid "13f95f9e-4ba0-46bb-b5fe-3267338eeee5")
-	)
-	(no_connect
 		(at 134.62 203.2)
 		(uuid "19a30b48-e65d-4c60-b03e-ffd0af57aee4")
 	)
 	(no_connect
 		(at 153.67 193.04)
 		(uuid "21879748-b36b-4fc6-b5f9-da8d09f92580")
+	)
+	(no_connect
+		(at 200.66 34.29)
+		(uuid "33ba52a7-a4b1-4d59-9ed5-e009a68f9e25")
 	)
 	(no_connect
 		(at 233.68 115.57)
@@ -4015,6 +4051,10 @@
 		(uuid "49fc9002-5b3e-409d-a8a2-c32d9126097f")
 	)
 	(no_connect
+		(at 316.23 140.97)
+		(uuid "4a547d9b-9ac5-4e36-b0c6-0d07fea97fd1")
+	)
+	(no_connect
 		(at 96.52 203.2)
 		(uuid "4c0caa72-5ad9-41d9-94cc-6be560450e10")
 	)
@@ -4035,8 +4075,12 @@
 		(uuid "66a19afc-0213-4119-bdc3-594f124190cf")
 	)
 	(no_connect
-		(at 321.31 140.97)
-		(uuid "7521cadb-4212-49b9-952b-2259913c9515")
+		(at 313.69 140.97)
+		(uuid "7908903a-f0eb-4083-abb7-c8b5f6d0b062")
+	)
+	(no_connect
+		(at 250.19 34.29)
+		(uuid "8822731d-e91e-472a-a552-d0645ae328de")
 	)
 	(no_connect
 		(at 134.62 193.04)
@@ -4047,16 +4091,16 @@
 		(uuid "8be8486c-e9ad-4f83-9be2-ccfe67fcae28")
 	)
 	(no_connect
-		(at 318.77 166.37)
-		(uuid "8bfef325-e1bd-4e52-baae-a8927f8ae464")
-	)
-	(no_connect
 		(at 115.57 213.36)
 		(uuid "8c6a79c4-916b-4a3c-bdf3-ce10b89d2494")
 	)
 	(no_connect
 		(at 262.89 49.53)
 		(uuid "9a068f9d-a166-48d6-8a86-6b2f386d0d86")
+	)
+	(no_connect
+		(at 200.66 67.31)
+		(uuid "9cdf367a-5984-4803-a4fb-77871ac3e9ca")
 	)
 	(no_connect
 		(at 96.52 193.04)
@@ -4075,10 +4119,6 @@
 		(uuid "a949ba09-a2bf-4b9a-b064-d5c613481291")
 	)
 	(no_connect
-		(at 318.77 140.97)
-		(uuid "b38e430f-975b-428d-bd16-aa778782f1b2")
-	)
-	(no_connect
 		(at 134.62 223.52)
 		(uuid "c18121a6-413b-47b8-a61f-a112fa08d737")
 	)
@@ -4095,6 +4135,10 @@
 		(uuid "e5e3be9a-79ab-4386-8d29-66d1a83c8926")
 	)
 	(no_connect
+		(at 316.23 166.37)
+		(uuid "ed5dffc6-d90c-4e35-815f-9a9c7b876e23")
+	)
+	(no_connect
 		(at 262.89 52.07)
 		(uuid "ed67f505-2d92-44d0-9e37-067daea4968f")
 	)
@@ -4105,6 +4149,14 @@
 	(no_connect
 		(at 96.52 233.68)
 		(uuid "f50c8500-d853-4993-8fab-8322dbc3e53f")
+	)
+	(no_connect
+		(at 250.19 67.31)
+		(uuid "f8d2d0c3-3a95-441b-8b7e-820507646501")
+	)
+	(no_connect
+		(at 313.69 166.37)
+		(uuid "fe3962b3-e38f-458e-a81a-632ebb38770e")
 	)
 	(bus_entry
 		(at 341.63 148.59)
@@ -6418,7 +6470,7 @@
 	)
 	(text "Datasheet says to connect to GND if not using FSYNC."
 		(exclude_from_sim no)
-		(at 231.14 69.088 0)
+		(at 231.14 72.39 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -7884,6 +7936,12 @@
 		)
 		(pin "7"
 			(uuid "beb293d3-341c-44c5-8475-95c9591837bb")
+		)
+		(pin "12"
+			(uuid "b3e118cb-3f9a-4696-93d6-453646c89820")
+		)
+		(pin "11"
+			(uuid "2f389278-1102-4a6e-b820-95adcf283ef1")
 		)
 		(instances
 			(project "pcb"
@@ -14036,6 +14094,12 @@
 		)
 		(pin "7"
 			(uuid "907fc54f-f8bd-4b4d-a5a9-d2108e93a08b")
+		)
+		(pin "11"
+			(uuid "b854c855-6db6-496a-bde0-dba77526e689")
+		)
+		(pin "12"
+			(uuid "0281eb58-5056-4250-9a02-f57092156426")
 		)
 		(instances
 			(project ""
