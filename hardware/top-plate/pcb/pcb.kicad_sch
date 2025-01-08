@@ -10248,7 +10248,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "618a60a2-7b57-494f-b92d-f929edcc9ea7")
-		(property "Reference" "LED14"
+		(property "Reference" "LED15"
 			(at 350.52 102.1459 0)
 			(effects
 				(font
@@ -10308,7 +10308,7 @@
 		(instances
 			(project "top-plate"
 				(path "/2543a06c-fafe-4237-8cf7-5b57da9ea55c"
-					(reference "LED14")
+					(reference "LED15")
 					(unit 1)
 				)
 			)
@@ -10822,7 +10822,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "6c0f1e27-376c-450b-bfbf-e9a5d7cd11a1")
-		(property "Reference" "LED7"
+		(property "Reference" "LED6"
 			(at 370.84 61.5059 0)
 			(effects
 				(font
@@ -10882,7 +10882,7 @@
 		(instances
 			(project "top-plate"
 				(path "/2543a06c-fafe-4237-8cf7-5b57da9ea55c"
-					(reference "LED7")
+					(reference "LED6")
 					(unit 1)
 				)
 			)
@@ -12736,7 +12736,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a1e324d2-7e78-485e-91d6-d84ba25e5fff")
-		(property "Reference" "LED15"
+		(property "Reference" "LED14"
 			(at 370.84 102.1459 0)
 			(effects
 				(font
@@ -12796,7 +12796,7 @@
 		(instances
 			(project "top-plate"
 				(path "/2543a06c-fafe-4237-8cf7-5b57da9ea55c"
-					(reference "LED15")
+					(reference "LED14")
 					(unit 1)
 				)
 			)
@@ -12812,7 +12812,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a4ecee76-1a9e-4b86-89d9-84da4fe0bc68")
-		(property "Reference" "LED6"
+		(property "Reference" "LED7"
 			(at 350.52 61.5059 0)
 			(effects
 				(font
@@ -12872,7 +12872,7 @@
 		(instances
 			(project "top-plate"
 				(path "/2543a06c-fafe-4237-8cf7-5b57da9ea55c"
-					(reference "LED6")
+					(reference "LED7")
 					(unit 1)
 				)
 			)
@@ -14832,7 +14832,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d445b590-c490-494c-9a0a-7f127c6d2ccb")
-		(property "Reference" "LED16"
+		(property "Reference" "LED13"
 			(at 391.16 102.1459 0)
 			(effects
 				(font
@@ -14892,7 +14892,7 @@
 		(instances
 			(project "top-plate"
 				(path "/2543a06c-fafe-4237-8cf7-5b57da9ea55c"
-					(reference "LED16")
+					(reference "LED13")
 					(unit 1)
 				)
 			)
@@ -15107,7 +15107,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "df805c50-357d-46ca-b5bb-d51dafe4ff70")
-		(property "Reference" "LED5"
+		(property "Reference" "LED8"
 			(at 330.2 61.5059 0)
 			(effects
 				(font
@@ -15167,7 +15167,7 @@
 		(instances
 			(project "top-plate"
 				(path "/2543a06c-fafe-4237-8cf7-5b57da9ea55c"
-					(reference "LED5")
+					(reference "LED8")
 					(unit 1)
 				)
 			)
@@ -15183,7 +15183,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e299fb1e-c672-4207-b2e2-7b64f27216bf")
-		(property "Reference" "LED8"
+		(property "Reference" "LED5"
 			(at 391.16 61.5059 0)
 			(effects
 				(font
@@ -15243,7 +15243,7 @@
 		(instances
 			(project "top-plate"
 				(path "/2543a06c-fafe-4237-8cf7-5b57da9ea55c"
-					(reference "LED8")
+					(reference "LED5")
 					(unit 1)
 				)
 			)
@@ -15589,7 +15589,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ed0e704a-f778-4273-8eb1-9902c46b469a")
-		(property "Reference" "LED13"
+		(property "Reference" "LED16"
 			(at 330.2 102.1459 0)
 			(effects
 				(font
@@ -15649,7 +15649,7 @@
 		(instances
 			(project "top-plate"
 				(path "/2543a06c-fafe-4237-8cf7-5b57da9ea55c"
-					(reference "LED13")
+					(reference "LED16")
 					(unit 1)
 				)
 			)
