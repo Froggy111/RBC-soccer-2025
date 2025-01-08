@@ -1498,6 +1498,126 @@
 				)
 			)
 		)
+		(symbol "EasyEDA:01550900M"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "FH"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "01550900M"
+				(at 0 -5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "EasyEDA:FUSE-SMD_L9.8-W5.0"
+				(at 0 -7.62 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "https://lcsc.com/product-detail/Others_Littelfuse_01550900M_Littelfuse-01550900M_C108518.html"
+				(at 0 -10.16 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "LCSC Part" "C108518"
+				(at 0 -12.7 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "01550900M_0_1"
+				(rectangle
+					(start -2.54 1.02)
+					(end 2.54 -1.02)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.54 0) (xy 2.54 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "01550900M_1_1"
+				(pin passive line
+					(at -5.08 0 0)
+					(length 2.54)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 5.08 0 180)
+					(length 2.54)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
 		(symbol "EasyEDA:MT-0-102-A101-M200-RS+PJ"
 			(exclude_from_sim no)
 			(in_bom yes)
@@ -5631,12 +5751,6 @@
 		(uuid "26f64c5f-65bc-4e93-9716-d4f2f43f3192")
 	)
 	(junction
-		(at 62.23 88.9)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "2bbc11ac-2433-4c32-acff-d784ec3afeed")
-	)
-	(junction
 		(at 337.82 30.48)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5689,6 +5803,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "89b16e7e-2b21-40dd-9ae6-db8883466bf1")
+	)
+	(junction
+		(at 72.39 88.9)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "8ab1f16d-c789-4ba9-9026-369565d90346")
 	)
 	(junction
 		(at 378.46 93.98)
@@ -6579,16 +6699,6 @@
 			(type default)
 		)
 		(uuid "1346a8b9-ce49-417f-b250-9807f8cc3fae")
-	)
-	(wire
-		(pts
-			(xy 62.23 88.9) (xy 58.42 88.9)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "159b4236-0225-46dc-a0bf-540bde82faeb")
 	)
 	(wire
 		(pts
@@ -8712,7 +8822,7 @@
 	)
 	(wire
 		(pts
-			(xy 63.5 88.9) (xy 62.23 88.9)
+			(xy 73.66 88.9) (xy 72.39 88.9)
 		)
 		(stroke
 			(width 0)
@@ -9419,6 +9529,16 @@
 			(type default)
 		)
 		(uuid "f4f0f995-99c3-498f-bf1d-4a319270f92e")
+	)
+	(wire
+		(pts
+			(xy 68.58 88.9) (xy 72.39 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f50d7d81-e9b5-4a6c-8b14-031065dcdb5c")
 	)
 	(wire
 		(pts
@@ -17545,7 +17665,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 62.23 81.28 180)
+		(at 72.39 81.28 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -17554,7 +17674,7 @@
 		(fields_autoplaced yes)
 		(uuid "488ed726-fe19-4996-b7f3-bce43a7c90d0")
 		(property "Reference" "#PWR031"
-			(at 62.23 74.93 0)
+			(at 72.39 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17563,7 +17683,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 62.23 76.2 0)
+			(at 72.39 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17571,7 +17691,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 62.23 81.28 0)
+			(at 72.39 81.28 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17580,7 +17700,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 62.23 81.28 0)
+			(at 72.39 81.28 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17589,7 +17709,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 62.23 81.28 0)
+			(at 72.39 81.28 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -21147,7 +21267,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 62.23 85.09 0)
+		(at 72.39 85.09 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
@@ -21157,7 +21277,7 @@
 		(fields_autoplaced yes)
 		(uuid "7e3ac310-cd4f-44b4-a3e9-955e169477be")
 		(property "Reference" "C4"
-			(at 66.04 83.8199 0)
+			(at 76.2 83.8199 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -21166,7 +21286,7 @@
 			)
 		)
 		(property "Value" "22uF"
-			(at 66.04 86.3599 0)
+			(at 76.2 86.3599 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -21175,7 +21295,7 @@
 			)
 		)
 		(property "Footprint" "PCM_Capacitor_SMD_AKL:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder"
-			(at 61.2648 88.9 0)
+			(at 71.4248 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -21184,7 +21304,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 62.23 85.09 0)
+			(at 72.39 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -21193,7 +21313,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
-			(at 62.23 85.09 0)
+			(at 72.39 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -30860,7 +30980,7 @@
 	)
 	(symbol
 		(lib_id "power:+5V")
-		(at 63.5 88.9 270)
+		(at 73.66 88.9 270)
 		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
@@ -30870,7 +30990,7 @@
 		(fields_autoplaced yes)
 		(uuid "e95337de-ac56-48c3-a3de-3feac03ccbb5")
 		(property "Reference" "#PWR032"
-			(at 59.69 88.9 0)
+			(at 69.85 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -30879,7 +30999,7 @@
 			)
 		)
 		(property "Value" "+5V"
-			(at 67.31 88.8999 90)
+			(at 77.47 88.8999 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -30888,7 +31008,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 63.5 88.9 0)
+			(at 73.66 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -30897,7 +31017,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 63.5 88.9 0)
+			(at 73.66 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -30906,7 +31026,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 63.5 88.9 0)
+			(at 73.66 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -32162,6 +32282,83 @@
 			(project "middle-plate"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
 					(reference "#PWR0131")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "EasyEDA:01550900M")
+		(at 63.5 88.9 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f4d42f57-9e8d-403d-b21e-672223fd5782")
+		(property "Reference" "FH1"
+			(at 63.5 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "01550900M"
+			(at 63.5 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "EasyEDA:FUSE-SMD_L9.8-W5.0"
+			(at 63.5 96.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://lcsc.com/product-detail/Others_Littelfuse_01550900M_Littelfuse-01550900M_C108518.html"
+			(at 63.5 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 63.5 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC Part" "C108518"
+			(at 63.5 101.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "afc7b16f-4d4e-49fb-8839-f47590c688ce")
+		)
+		(pin "1"
+			(uuid "56cde6b5-4a0e-44f3-9a8b-2ef768f0520a")
+		)
+		(instances
+			(project "pcb"
+				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
+					(reference "FH1")
 					(unit 1)
 				)
 			)
