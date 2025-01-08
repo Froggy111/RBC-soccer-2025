@@ -6,8 +6,8 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(property "Reference" "INMP441"
-			(at 0 -3.175 0)
+		(property "Reference" "U"
+			(at -1.905 -6.985 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -51,8 +51,8 @@
 		)
 		(symbol "INMP441_1_1"
 			(rectangle
-				(start -12.7 5)
-				(end 12.7 -5)
+				(start -10 5)
+				(end 7.5 -5)
 				(stroke
 					(width 0)
 					(type default)
@@ -62,9 +62,9 @@
 				)
 			)
 			(pin power_in line
-				(at -10.16 7.62 270)
+				(at -7.62 7.62 270)
 				(length 2.54)
-				(name "VDD"
+				(name "GND"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -79,10 +79,10 @@
 					)
 				)
 			)
-			(pin input line
-				(at -7.62 7.62 270)
+			(pin power_in line
+				(at -5.08 7.62 270)
 				(length 2.54)
-				(name "GND"
+				(name "VDD"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -97,10 +97,10 @@
 					)
 				)
 			)
-			(pin input line
-				(at -5.08 7.62 270)
+			(pin output line
+				(at -2.54 7.62 270)
 				(length 2.54)
-				(name "GND"
+				(name "SD"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -116,9 +116,9 @@
 				)
 			)
 			(pin input line
-				(at -2.54 7.62 270)
+				(at 0 7.62 270)
 				(length 2.54)
-				(name "GND"
+				(name "L/R"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -134,9 +134,9 @@
 				)
 			)
 			(pin input line
-				(at 0 7.62 270)
+				(at 2.54 7.62 270)
 				(length 2.54)
-				(name "CHIPEN"
+				(name "WS"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -152,24 +152,6 @@
 				)
 			)
 			(pin input line
-				(at 2.54 7.62 270)
-				(length 2.54)
-				(name "LR"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number "6"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
-			(pin tri_state line
 				(at 5.08 7.62 270)
 				(length 2.54)
 				(name "SCK"
@@ -179,43 +161,7 @@
 						)
 					)
 				)
-				(number "7"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
-			(pin tri_state line
-				(at 7.62 7.62 270)
-				(length 2.54)
-				(name "SD"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number "8"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
-			(pin tri_state line
-				(at 10.16 7.62 270)
-				(length 2.54)
-				(name "WS"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number "9"
+				(number "6"
 					(effects
 						(font
 							(size 1.27 1.27)

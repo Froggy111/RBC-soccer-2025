@@ -2,4 +2,5 @@
   (version 7)
   (lib (name "0.96-inch OLED 7-pin")(type "KiCad")(uri "${KIPRJMOD}/0.96-inch OLED 7-pin.kicad_sym")(options "")(descr ""))
   (lib (name "INMP44")(type "KiCad")(uri "${KIPRJMOD}/INMP44.kicad_sym")(options "")(descr ""))
+  (lib (name "GY-ICM20948V2")(type "KiCad")(uri "${KIPRJMOD}/GY-ICM20948V2.kicad_sym")(options "")(descr ""))
 )

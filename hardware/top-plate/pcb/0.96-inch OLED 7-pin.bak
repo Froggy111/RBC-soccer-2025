@@ -6,8 +6,8 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(property "Reference" "0.96-inch_OLED_7-pin"
-			(at 0 -0.254 0)
+		(property "Reference" "U"
+			(at 0 -7.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -51,8 +51,8 @@
 		)
 		(symbol "0.96-inch_OLED_7-pin_1_1"
 			(rectangle
-				(start -11.43 7.62)
-				(end 11.43 -2.54)
+				(start -10 7.62)
+				(end 10 -5)
 				(stroke
 					(width 0)
 					(type default)
@@ -79,10 +79,46 @@
 					)
 				)
 			)
+			(pin passive line
+				(at 12.7 0 180)
+				(length 2.54)
+				(name "MNT3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "10"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -12.7 0 0)
+				(length 2.54)
+				(name "MNT4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "11"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
 			(pin power_in line
 				(at -5.08 10.16 270)
 				(length 2.54)
-				(name "vcc"
+				(name "VCC"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -97,10 +133,10 @@
 					)
 				)
 			)
-			(pin tri_state line
+			(pin input line
 				(at -2.54 10.16 270)
 				(length 2.54)
-				(name "DO"
+				(name "D0/SCLK"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -115,10 +151,10 @@
 					)
 				)
 			)
-			(pin input line
+			(pin tri_state line
 				(at 0 10.16 270)
 				(length 2.54)
-				(name "DI"
+				(name "D1/SDI"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -136,7 +172,7 @@
 			(pin input line
 				(at 2.54 10.16 270)
 				(length 2.54)
-				(name "RES"
+				(name "NRST"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -154,7 +190,7 @@
 			(pin input line
 				(at 5.08 10.16 270)
 				(length 2.54)
-				(name "DC"
+				(name "D/C#"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -180,6 +216,42 @@
 					)
 				)
 				(number "7"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -12.7 2.54 0)
+				(length 2.54)
+				(name "MNT1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "8"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 12.7 2.54 180)
+				(length 2.54)
+				(name "MNT2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "9"
 					(effects
 						(font
 							(size 1.27 1.27)
