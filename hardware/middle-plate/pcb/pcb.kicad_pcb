@@ -1530,7 +1530,7 @@
 		(tags "mounting hole 2.2mm m2")
 		(property "Reference" "H12"
 			(at 0 -3.2 0)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "c117221e-ca3d-4a85-8fb4-c3d6b921d888")
 			(effects
 				(font
@@ -1744,7 +1744,7 @@
 		(tags "mounting hole 2.2mm m2")
 		(property "Reference" "H16"
 			(at 0 -3.2 0)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "166c4050-2591-41c0-b371-463d94a0b609")
 			(effects
 				(font
@@ -3896,7 +3896,7 @@
 		(tags "mounting hole 3.2mm m3")
 		(property "Reference" "H4"
 			(at 0 -4.2 0)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "c6803246-41c8-4ff4-a40b-65b8b8feb315")
 			(effects
 				(font
@@ -7530,7 +7530,7 @@
 		(tags "mounting hole 3.2mm m3")
 		(property "Reference" "H1"
 			(at 0 -4.2 0)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "9553e79e-f86a-464a-b610-774227f51454")
 			(effects
 				(font
@@ -8041,7 +8041,7 @@
 		(tags "mounting hole 3.2mm m3")
 		(property "Reference" "H6"
 			(at 0 -4.2 0)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "dfcdfdd5-53d3-4bb3-bade-d323ac93974c")
 			(effects
 				(font
@@ -10389,7 +10389,7 @@
 		(tags "mounting hole 3.2mm m3")
 		(property "Reference" "H5"
 			(at 0 -4.2 0)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "d304b96c-00dd-4dfa-845e-fc44a58296dc")
 			(effects
 				(font
@@ -15494,7 +15494,7 @@
 		(tags "mounting hole 2.2mm m2")
 		(property "Reference" "H9"
 			(at 0 -3.2 0)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "2c2079d8-2439-4e75-a3dc-f07482a47213")
 			(effects
 				(font
@@ -16554,7 +16554,7 @@
 		(tags "mounting hole 3.2mm m3")
 		(property "Reference" "H2"
 			(at 0 -4.2 0)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "3d99369f-4ec4-4c10-894f-28c4675bb535")
 			(effects
 				(font
@@ -20120,7 +20120,7 @@
 		(tags "mounting hole 2.2mm m2")
 		(property "Reference" "H11"
 			(at 0 -3.2 0)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "2d155d9b-ee1c-4d15-8f95-c7ffe5d6ec2d")
 			(effects
 				(font
@@ -21066,7 +21066,7 @@
 		(tags "mounting hole 2.2mm m2")
 		(property "Reference" "H13"
 			(at 0 -3.2 0)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "d6dc88f0-1779-4957-aced-72fe7983d577")
 			(effects
 				(font
@@ -23711,7 +23711,7 @@
 		(tags "mounting hole 3.2mm m3")
 		(property "Reference" "H8"
 			(at 0 -4.2 0)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "0ab1919f-dfcb-4641-8a41-f4bb59a97b28")
 			(effects
 				(font
@@ -24222,7 +24222,7 @@
 		(tags "mounting hole 3.2mm m3")
 		(property "Reference" "H3"
 			(at 0 -4.2 0)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "efdefeac-e185-473b-ac0c-d9df74a0049c")
 			(effects
 				(font
@@ -25354,7 +25354,7 @@
 		(tags "mounting hole 2.2mm m2")
 		(property "Reference" "H15"
 			(at 0 -3.2 0)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "7c635bae-c806-4370-8d19-79b116b8569e")
 			(effects
 				(font
@@ -29318,7 +29318,7 @@
 		(tags "mounting hole 2.2mm m2")
 		(property "Reference" "H10"
 			(at 0 -3.2 0)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "ec7953d0-5acb-41f0-a832-6ce0d87d1c8c")
 			(effects
 				(font
@@ -30042,7 +30042,7 @@
 		(tags "mounting hole 3.2mm m3")
 		(property "Reference" "H7"
 			(at 0 -4.2 0)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "b060de6b-5f7a-4b9a-bb36-810195ff8850")
 			(effects
 				(font
@@ -30553,7 +30553,7 @@
 		(tags "mounting hole 2.2mm m2")
 		(property "Reference" "H14"
 			(at 0 -3.2 0)
-			(layer "F.SilkS")
+			(layer "F.Fab")
 			(uuid "a8df34a2-01b9-4793-8668-a3614f477931")
 			(effects
 				(font
