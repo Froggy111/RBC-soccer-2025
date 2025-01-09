@@ -266,6 +266,108 @@
 				)
 			)
 		)
+		(symbol "Connector:TestPoint"
+			(pin_numbers hide)
+			(pin_names
+				(offset 0.762) hide)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "TP"
+				(at 0 6.858 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "TestPoint"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 5.08 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 5.08 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "test point"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "test point tp"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "Pin* Test*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "TestPoint_0_1"
+				(circle
+					(center 0 3.302)
+					(radius 0.762)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "TestPoint_1_1"
+				(pin passive line
+					(at 0 0 90)
+					(length 2.54)
+					(name "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
 		(symbol "Connector_Generic:Conn_01x02"
 			(pin_names
 				(offset 1.016) hide)
@@ -9844,6 +9946,16 @@
 		)
 		(uuid "6ead1c98-ffcd-462b-81a1-4ef4ddb258c5")
 	)
+	(text "spare pins"
+		(exclude_from_sim no)
+		(at 300.99 181.61 0)
+		(effects
+			(font
+				(size 5 5)
+			)
+		)
+		(uuid "78073eb3-64b5-4a99-acbe-933be3c5f5ba")
+	)
 	(text "A bunch of pushbuttons for centralised\nhardware and software control.\nRPi control pushbuttons have a pullup resistor.\nMake sure it can only sink 0.5mA (at least 7kOhm)."
 		(exclude_from_sim no)
 		(at 353.314 19.304 0)
@@ -9888,9 +10000,19 @@
 		)
 		(uuid "af79ac6a-0b3b-4032-ad44-5f9db3b2f31f")
 	)
-	(text "Power to top plate.\nXT30 is overkill, but indicative and convenient.\nAlso allows everything to be easily tested seperately.\nAlso not much bigger than JST-XH (3A)."
+	(text "testpoints"
 		(exclude_from_sim no)
-		(at 39.624 35.56 0)
+		(at 382.016 192.278 0)
+		(effects
+			(font
+				(size 5 5)
+			)
+		)
+		(uuid "b3b8936c-1c0d-471a-b9c3-c1d0c0946cf4")
+	)
+	(text "Power to top plate.\nJST-XH to match JST-XH of top plate.\nNo XT30 on top plate due to height constraints\nand if sideways, space constraints."
+		(exclude_from_sim no)
+		(at 39.624 34.544 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -11883,6 +12005,73 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 384.81 213.36 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "01a65cb8-6880-484a-9226-7d04b970dbf6")
+		(property "Reference" "3V3TP1"
+			(at 389.89 212.0899 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 389.89 214.6299 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_THTPad_D1.0mm_Drill0.5mm"
+			(at 384.81 218.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 384.81 218.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 384.81 213.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "096ac78e-6b2b-4d73-b49a-fa6b022d1fb9")
+		)
+		(instances
+			(project "pcb"
+				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
+					(reference "3V3TP1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Mechanical:MountingHole_Pad")
 		(at 271.78 270.51 270)
 		(unit 1)
@@ -13669,6 +13858,73 @@
 			(project "middle-plate"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
 					(reference "IR19")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 384.81 198.12 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "17ded478-9cd8-4a58-bad8-d1aa9053336b")
+		(property "Reference" "#PWR0183"
+			(at 378.46 198.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 381 198.1199 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" ""
+			(at 384.81 198.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 384.81 198.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 384.81 198.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "735e2bfc-71ea-4c06-9000-5f7686623125")
+		)
+		(instances
+			(project "pcb"
+				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
+					(reference "#PWR0183")
 					(unit 1)
 				)
 			)
@@ -16471,6 +16727,73 @@
 			(project "middle-plate"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
 					(reference "#PWR053")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 384.81 203.2 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "39e9b4c5-ffef-4f8f-a401-9331078e11ff")
+		(property "Reference" "VCCTP1"
+			(at 389.89 201.9299 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 389.89 204.4699 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_THTPad_D1.0mm_Drill0.5mm"
+			(at 384.81 208.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 384.81 208.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 384.81 203.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5e32223c-fc65-47dd-8df1-4bc4fa68eaf4")
+		)
+		(instances
+			(project "pcb"
+				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
+					(reference "VCCTP1")
 					(unit 1)
 				)
 			)
@@ -19523,6 +19846,73 @@
 			(project "middle-plate"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
 					(reference "#PWR0102")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 384.81 198.12 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "67b8e344-c0c1-458e-abf9-76e86788a602")
+		(property "Reference" "GNDTP1"
+			(at 389.89 196.8499 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 389.89 199.3899 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_THTPad_D1.0mm_Drill0.5mm"
+			(at 384.81 203.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 384.81 203.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 384.81 198.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "27379983-2983-4ccf-aaa2-160df09c9624")
+		)
+		(instances
+			(project "pcb"
+				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
+					(reference "GNDTP1")
 					(unit 1)
 				)
 			)
@@ -23193,76 +23583,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Connector_Generic:Conn_01x02")
-		(at 29.21 36.83 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "9362b932-e7cf-4c92-ab63-5880b0276bbc")
-		(property "Reference" "PWR2"
-			(at 31.75 36.8299 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "XT30-F"
-			(at 31.75 39.3699 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Connector_AMASS:AMASS_XT30U-F_1x02_P5.0mm_Vertical"
-			(at 29.21 36.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 29.21 36.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 29.21 36.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "21d368c4-6d6f-4900-bd63-abac642c552a")
-		)
-		(pin "2"
-			(uuid "732d627e-295c-4537-9513-c655ec48cac5")
-		)
-		(instances
-			(project "middle-plate"
-				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
-					(reference "PWR2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:GND")
 		(at 107.95 69.85 270)
 		(mirror x)
@@ -23748,6 +24068,73 @@
 			(project "pcb"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
 					(reference "JP6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 384.81 208.28 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "98797e83-064c-4c73-94de-ba1e3d412478")
+		(property "Reference" "5VTP1"
+			(at 389.89 207.0099 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 389.89 209.5499 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_THTPad_D1.0mm_Drill0.5mm"
+			(at 384.81 213.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 384.81 213.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 384.81 208.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "23dc059b-76b9-46ae-815b-de958daecf06")
+		)
+		(instances
+			(project "pcb"
+				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
+					(reference "5VTP1")
 					(unit 1)
 				)
 			)
@@ -25222,6 +25609,73 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+3V3")
+		(at 384.81 213.36 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "acb5dc94-e442-4d62-a636-f2f778a1afb2")
+		(property "Reference" "#PWR0186"
+			(at 388.62 213.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3V3"
+			(at 381 213.3599 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 384.81 213.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 384.81 213.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3V3\""
+			(at 384.81 213.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "b77052d9-5749-4e66-8c09-c1799cebf1e3")
+		)
+		(instances
+			(project "pcb"
+				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
+					(reference "#PWR0186")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Mechanical:MountingHole_Pad")
 		(at 220.98 275.59 270)
 		(unit 1)
@@ -25769,6 +26223,74 @@
 			(project "middle-plate"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
 					(reference "#PWR055")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+5V")
+		(at 384.81 208.28 90)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "b1454736-17d5-48e0-948a-3dfeba29079a")
+		(property "Reference" "#PWR0185"
+			(at 388.62 208.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+5V"
+			(at 381 208.2799 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 384.81 208.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 384.81 208.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+5V\""
+			(at 384.81 208.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "1c8bcbb1-cafb-4dbd-a520-1d9f93c07f38")
+		)
+		(instances
+			(project "pcb"
+				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
+					(reference "#PWR0185")
 					(unit 1)
 				)
 			)
@@ -26713,6 +27235,73 @@
 			(project "middle-plate"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
 					(reference "SW5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+12V")
+		(at 384.81 203.2 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "bd787a90-2fbf-4be2-83ba-1fd28de89402")
+		(property "Reference" "#PWR0184"
+			(at 388.62 203.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VCC"
+			(at 381 203.1999 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 384.81 203.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 384.81 203.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+12V\""
+			(at 384.81 203.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "dc1bf774-2550-4571-ad45-d09eaacf9554")
+		)
+		(instances
+			(project "pcb"
+				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
+					(reference "#PWR0184")
 					(unit 1)
 				)
 			)
@@ -29191,6 +29780,76 @@
 			(project "middle-plate"
 				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
 					(reference "#PWR069")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x02")
+		(at 29.21 36.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d6c38b0c-fd23-4554-b6e7-f9599d766d41")
+		(property "Reference" "PWR2"
+			(at 31.75 36.8299 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Conn_01x02"
+			(at 31.75 39.3699 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical"
+			(at 29.21 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 29.21 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 29.21 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "bbc1d64b-69e0-4321-864b-8f5059bab517")
+		)
+		(pin "1"
+			(uuid "408cd77d-fb1e-4b49-bfdf-2ed0e16ff7ad")
+		)
+		(instances
+			(project "pcb"
+				(path "/9bb3e9c6-12db-4b47-aa39-b193ca752b9a"
+					(reference "PWR2")
 					(unit 1)
 				)
 			)
