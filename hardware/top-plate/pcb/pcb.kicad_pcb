@@ -32014,7 +32014,7 @@
 		(layer "Edge.Cuts")
 		(uuid "b189dfae-e238-4e76-865f-40df422245a1")
 	)
-	(gr_text "Features:\n16 ultrasound ring\nRGB LEDs\n2 IMUs\nOLED panel\nMicrophone\nAnd way too many\nbreakouts boards."
+	(gr_text "Features:\n16 ultrasound ring\nRGB LEDs\n2 IMUs\nOLED panel\nMicrophone\nAnd way too many\nbreakout boards."
 		(at -50.6 24.4 0)
 		(layer "F.SilkS")
 		(uuid "02870d3c-3cdc-4b68-8980-e8a2bfa9a635")
