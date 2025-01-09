@@ -6315,7 +6315,7 @@
 		(descr "Resistor SMD 1206 (3216 Metric), square (rectangular) end terminal, IPC_7351 nominal with elongated pad for handsoldering. (Body size source: IPC-SM-782 page 72, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf), generated with kicad-footprint-generator")
 		(tags "resistor handsolder")
 		(property "Reference" "R1"
-			(at 0 -2 180)
+			(at 2.55 -1.855 0)
 			(layer "F.SilkS")
 			(uuid "e8c9acab-93b2-4b6e-b977-46a1ed86caf6")
 			(effects
@@ -8556,16 +8556,42 @@
 		(layer "Edge.Cuts")
 		(uuid "f3a1392c-8136-44cc-ace7-6281a42ea4a9")
 	)
-	(gr_text_box "VCC | INA | GND | GND"
-		(start -47.6 -1.295)
-		(end -46.2 -11.545)
+	(gr_text "Team BotByWire\nKicker PCB V0.1"
+		(at -9 -14.6 0)
+		(layer "F.SilkS")
+		(uuid "63658656-e334-4b9a-a9a4-19d225f66b0c")
+		(effects
+			(font
+				(size 1.5 1.5)
+				(thickness 0.3)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+	)
+	(gr_text "kick!"
+		(at -20.4 -3.8 90)
+		(layer "F.SilkS")
+		(uuid "a15c2a30-7ef9-4f02-a182-92bc3974cbf4")
+		(effects
+			(font
+				(size 1.5 1.5)
+				(thickness 0.3)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+	)
+	(gr_text_box "VCC|INA|GND|GND"
+		(start -48 -1.475)
+		(end -46.6 -11.725)
 		(angle 90)
 		(layer "F.SilkS")
 		(uuid "41e1e518-94ce-4a91-b3a9-579c284d1ca4")
 		(effects
 			(font
-				(size 0.5 0.5)
-				(thickness 0.1)
+				(size 0.8 0.8)
+				(thickness 0.15)
 				(bold yes)
 			)
 			(justify top)
@@ -8578,15 +8604,15 @@
 	)
 	(gr_text_box "INB|OUTB"
 		(pts
-			(xy -38.80023 -13.94977) (xy -35.971803 -16.778197) (xy -34.981853 -15.788248) (xy -37.810281 -12.959821)
+			(xy -39.215179 -13.564719) (xy -36.386752 -16.393146) (xy -35.396802 -15.403197) (xy -38.22523 -12.57477)
 		)
 		(angle 45)
 		(layer "F.SilkS")
 		(uuid "be65c4db-5890-4c50-9524-17bc60c1568e")
 		(effects
 			(font
-				(size 0.5 0.5)
-				(thickness 0.1)
+				(size 0.8 0.8)
+				(thickness 0.15)
 				(bold yes)
 			)
 			(justify top)
@@ -8597,16 +8623,16 @@
 			(type solid)
 		)
 	)
-	(gr_text_box "GND | GND | VCC | VCC"
-		(start 46.1 -1.15)
-		(end 47.5 -11.65)
+	(gr_text_box "GND|GND|VCC|VCC"
+		(start 45.8 0.05)
+		(end 47.2 -10.45)
 		(angle 90)
 		(layer "F.SilkS")
 		(uuid "d8aba1c6-3685-4dfc-a632-b2a9a617657b")
 		(effects
 			(font
-				(size 0.5 0.5)
-				(thickness 0.1)
+				(size 0.8 0.8)
+				(thickness 0.15)
 				(bold yes)
 			)
 			(justify left top)
