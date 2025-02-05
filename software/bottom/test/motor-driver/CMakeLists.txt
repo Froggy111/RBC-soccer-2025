@@ -1,1 +1,1 @@
-add_executable(motor_driver main.cpp)
+add_executable(motor_driver main.c)

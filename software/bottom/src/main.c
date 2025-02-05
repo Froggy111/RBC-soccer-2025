@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <pico/stdlib.h>
+#include "pico/stdlib.h"
 #include <pico/stdio.h>
 
 // Pico W devices use a GPIO on the WIFI chip for the LED,
