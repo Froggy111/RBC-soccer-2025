@@ -12,7 +12,7 @@ pico_sdk_init()
 link_libraries(pico_stdlib)
 
 # Main
-add_executable(main src/main.c) 
+add_executable(main src/main.cpp) 
 pico_enable_stdio_usb(main 1)
 pico_enable_stdio_uart(main 1)
 pico_add_extra_outputs(main)

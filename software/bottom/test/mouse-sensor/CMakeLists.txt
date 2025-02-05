@@ -1,1 +1,1 @@
-add_executable(mouse_sensor main.c)
+add_executable(mouse_sensor main.cpp)
