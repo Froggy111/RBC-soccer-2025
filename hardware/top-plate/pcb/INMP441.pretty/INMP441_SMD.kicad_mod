@@ -673,4 +673,37 @@
 			"fdded433-169b-47b0-be97-a504970644c6"
 		)
 	)
+	(model "${KICAD8_3DMODEL_DIR}/Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x03_P2.54mm_Vertical_SMD_Pin1Left.wrl"
+		(offset
+			(xyz -3.81 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+	(model "${KICAD8_3DMODEL_DIR}/Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x03_P2.54mm_Vertical_SMD_Pin1Left.wrl"
+		(offset
+			(xyz 3.81 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 180)
+		)
+	)
+	(model "${KICAD_3RD_PARTY}/custom/custom.3dshapes/INMP441_breakout.step"
+		(offset
+			(xyz 0 0 10)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 0 0)
+		)
+	)
 )

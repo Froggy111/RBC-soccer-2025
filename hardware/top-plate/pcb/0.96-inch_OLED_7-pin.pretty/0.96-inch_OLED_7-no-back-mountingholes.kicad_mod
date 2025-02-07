@@ -524,4 +524,26 @@
 			"fc9f21b1-3034-4877-b906-d630cf1f395d"
 		)
 	)
+	(model "${KICAD8_3DMODEL_DIR}/Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x07_P2.54mm_Vertical.step"
+		(offset
+			(xyz -7.6 12.325 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 -90)
+		)
+	)
+	(model "${KICAD_3RD_PARTY}/custom/custom.3dshapes/SSD1306_0.96_7P_OLED.step"
+		(offset
+			(xyz 0 -14.15 11)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 90)
+		)
+	)
 )
