@@ -4,6 +4,13 @@
 3. `make`
 4. `./RBC-2025`
 
+## Libraries not Found
+Ensure your **includePath** includes the following:
+```${workspaceFolder}/**
+${env:PICO_SDK_PATH}/**
+/usr/include/**
+```
+
 ## To Monitor STDIO
 - After attaching PICO, check `sudo dmesg | tail` for location where device attached 
 	```
