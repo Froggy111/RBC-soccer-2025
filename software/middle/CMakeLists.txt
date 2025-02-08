@@ -7,9 +7,23 @@ project(bottom C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
-# link libraries
-find_package(spdlog REQUIRED)
+# Include Threads
+set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+set(CMAKE_HAVE_THREADS_LIBRARY 1)
+set(CMAKE_USE_WIN32_THREADS_INIT 0)
+set(CMAKE_USE_PTHREADS_INIT 1)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+
+# Link Main Libraries
+Include(FetchContent)
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.15.1
+)
+FetchContent_MakeAvailable(spdlog)
 pico_sdk_init()
+# spdlog, pico_stdlib
 link_libraries(pico_stdlib spdlog::spdlog)
 
 # Add them as an executable
