@@ -28,7 +28,7 @@ enum mux2a{
     mux2a_SCLK = 11,
     mux2a_MOSI = 12,
     mux2a_MISO = 13,
-    mux2a_CS = 14
+    mux2a_CS = 20
 };
 
 enum mux2b{

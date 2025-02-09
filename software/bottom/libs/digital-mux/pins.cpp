@@ -7,7 +7,7 @@
 #include "pinmap.hpp"
 
 class MCP23S17{
-    public:int32_t MISO, MOSI, SCLK, CS;
+    int32_t MISO, MOSI, SCLK, CS;
     public:int32_t port_num, baud;
     public:void init(int32_t miso, int32_t mosi, int32_t sclk, int32_t cs, int32_t port,
         int32_t baudrate){
@@ -17,8 +17,28 @@ class MCP23S17{
         } else if (port == 1) {
             port_num = 1;
         }
-      
-        
+    }
+
+    void write8(int32_t bytes, uint8_t reg_address, uint8_t data[]) {
+        uint8_t com_data[bytes + 1];
+        com_data[0] = reg_address & 0x7F;
+        for (int byte = 1; byte < bytes; byte++) {
+            com_data[byte] = data[byte];
+        }
+        gpio_put(CS, 0);
+        spi_write_blocking((port_num ? SPI_PORT1 : SPI_PORT0), com_data, bytes);
+        gpio_put(CS, 1);
+    }
+
+    uint8_t read8(uint8_t reg_address) {
+        uint8_t buffer[1];
+        uint8_t reg = reg_address | 0X80;
+        gpio_put(CS, 0);
+        spi_write_blocking((port_num ? SPI_PORT1 : SPI_PORT0), &reg, 1);
+        spi_read_blocking((port_num ? SPI_PORT1 : SPI_PORT0), 0, buffer, 1);
+        gpio_put(CS, 1);
+
+        return buffer[0];
     }
 };
 
@@ -57,7 +77,28 @@ class Pins {
             gpio_set_dir(mux2a_CS, GPIO_OUT);
             gpio_put(mux2a_CS, 1);
         }
+    }
 
+    void write8(int32_t pin, int32_t bytes, uint8_t reg_address, uint8_t data[]) {
+        switch(pin){
+            case mux1a_CS:
+                mux1.write8(bytes, reg_address, data);
+                break;
+            case mux2a_CS:
+                mux1.write8(bytes, reg_address, data);
+                break;
+        }
+    }
 
+    uint8_t read8(int32_t pin, uint8_t reg_address){
+        uint8_t data;
+        switch(pin){
+            case mux1a_CS:
+                mux1.read8(reg_address);
+                break;
+            case mux2a_CS:
+                mux2.read8(reg_address);
+                break;
+        }
     }
 };
