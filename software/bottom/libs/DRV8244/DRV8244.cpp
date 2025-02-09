@@ -1,4 +1,8 @@
 #include "pico/stdlib.h"
+#include <cstdint>
+#include "pico/stdio.h"
+#include "hardware/uart.h"
+#include "hardware/gpio.h"
 #include <pico/stdio.h>
 #include "spdlog/spdlog.h"
 
