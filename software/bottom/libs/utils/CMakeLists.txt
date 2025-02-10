@@ -3,3 +3,4 @@ add_library(types)
 target_sources(types
   INTERFACE
     types.hpp)
+link_libraries(types) # universally used

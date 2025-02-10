@@ -27,14 +27,14 @@ set(CMAKE_CXX_STANDARD 17)
 pico_sdk_init()
 link_libraries(pico_stdlib)
 
+# root directory as include directory
+include_directories(${CMAKE_SOURCE_DIR})
+
 # Libraries
 add_subdirectory(libs)
 
 # Main
-add_executable(main src/main.cpp)
-pico_enable_stdio_usb(main 1)
-pico_enable_stdio_uart(main 1)
-pico_add_extra_outputs(main)
+add_subdirectory(src)
 
 # Tests
 add_subdirectory(test)

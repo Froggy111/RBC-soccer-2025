@@ -9859,7 +9859,7 @@
 		)
 		(uuid "12505d16-76c8-4c03-9994-b4c871a1ce23")
 	)
-	(label "ADC_INT2"
+	(label "ADC2_INT"
 		(at 184.15 135.89 180)
 		(effects
 			(font
@@ -11159,7 +11159,7 @@
 		)
 		(uuid "c9d18ca4-9a4e-40a6-9094-b51279989b74")
 	)
-	(label "ADC_INT2"
+	(label "ADC2_INT"
 		(at 303.53 44.45 180)
 		(effects
 			(font
@@ -11259,7 +11259,7 @@
 		)
 		(uuid "d44a0974-1b99-48b5-8e84-8a6b8e48dc1a")
 	)
-	(label "ADC_INT1"
+	(label "ADC1_INT"
 		(at 184.15 133.35 180)
 		(effects
 			(font
@@ -11299,7 +11299,7 @@
 		)
 		(uuid "d9fc80f2-1e5c-4944-b4c6-307c76c147f3")
 	)
-	(label "ADC_INT1"
+	(label "ADC1_INT"
 		(at 243.84 44.45 180)
 		(effects
 			(font

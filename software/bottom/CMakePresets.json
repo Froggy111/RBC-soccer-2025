@@ -9,7 +9,7 @@
     {
       "name": "default",
       "displayName": "default",
-      "generator": "Ninja",
+      "generator": "Unix Makefiles",
       "binaryDir": "build",
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "YES"

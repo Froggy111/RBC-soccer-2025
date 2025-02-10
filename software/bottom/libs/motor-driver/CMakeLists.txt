@@ -5,3 +5,4 @@ target_sources(DRV8244
   PUBLIC
     DRV8244.hpp
 )
+target_link_libraries(DRV8244 PRIVATE hardware_spi)
