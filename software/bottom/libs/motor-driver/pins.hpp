@@ -1,39 +1,21 @@
-#include "pico/stdlib.h"
+#pragma once
+
 #include "pinmap.hpp"
 #include <map>
 
 class PinInputControl {
-	std::map<PinMap, bool> cache;
+public:
+    void init(PinMap pin, bool value);
+    void init(PinMap pin);
+    bool write(PinMap pin, bool value);
+    bool get_last_value(PinMap pin);
 
-	void init(PinMap pin, bool value) {
-		gpio_init(pin);
-		gpio_set_dir(pin, GPIO_IN);
-		write(pin, value);
-	}
-	
-	void init(PinMap pin) {
-		gpio_init(pin);
-		gpio_set_dir(pin, GPIO_IN);
-	}
-
-	bool write(PinMap pin, bool value) {
-		gpio_put(pin, value);
-		this->cache[pin] = value;
-	}
-
-	bool get_last_value(PinMap pin) {
-		return this->cache[pin];
-	}
+private:
+    std::map<PinMap, bool> cache;
 };
 
 class PinOutputControl {
-	void init_with_value(PinMap pin) {
-		gpio_init(pin);
-		gpio_set_dir(pin, GPIO_IN);
-		this->read(pin);
-	}
-
-	bool read(PinMap pin) {
-		return gpio_get(pin);
-	}
+public:
+    void init_with_value(PinMap pin);
+    bool read(PinMap pin);
 };
