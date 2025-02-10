@@ -1,21 +1,24 @@
-#pragma once
-
 #include "pinmap.hpp"
 #include <map>
+#include <stdexcept>
 
-class PinInputControl {
+class PinInputControl
+{
 public:
-    void init(PinMap pin, bool value);
+    void init_digital(PinMap pin, bool value);
+    void init_analog(PinMap pin, int value);
     void init(PinMap pin);
-    bool write(PinMap pin, bool value);
+    void write_digital(PinMap pin, bool value);
+    void write_analog(PinMap pin, int value);
     bool get_last_value(PinMap pin);
 
 private:
-    std::map<PinMap, bool> cache;
+    std::map<PinMap, std::pair<bool, int>> cache;
 };
 
-class PinOutputControl {
+class PinOutputControl
+{
 public:
-    void init_with_value(PinMap pin);
-    bool read(PinMap pin);
+    void init_digital(PinMap pin);
+    bool read_digital(PinMap pin);
 };
