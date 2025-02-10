@@ -35,7 +35,7 @@ class PinInputControl {
 };
 
 
-// pins responsible for providing output to DRV8244
+// pins responsible for providing output from DRV8244
 class PinOutputControl {
 	void init_with_value(PinMap pin) {
 		gpio_init(pin);
