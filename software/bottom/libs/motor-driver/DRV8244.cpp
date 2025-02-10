@@ -7,8 +7,11 @@
 #include "pinmap.hpp"
 #include "pins.hpp"
 
+#define DEFAULT_IPROPI 0 // iPROPi off by default
+#define DEFAULT_NSLEEP 1 // nSleep off by default
 #define DEFAULT_DRVOFF 1 // driver off by default
-
+#define DEFAULT_IN1 0    // IN1 off by default
+#define DEFAULT_IN2 0    // IN2 off by default
 
 class MotorDriver
 {
@@ -67,5 +70,9 @@ class MotorDriver
     init_pins();
 
     spdlog::info("DRV8244 initialized");
+  }
+
+  void command(uint32_t speed, uint32_t direction)
+  {
   }
 };
