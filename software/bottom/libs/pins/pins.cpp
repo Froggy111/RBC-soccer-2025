@@ -3,7 +3,7 @@
 #include <map>
 #include <iostream>
 
-// pins responsible for providing input to DRV8244
+// pins responsible for providing input to MCP23S17
 class PinInputControl {
 	std::map<pinmap::Pins, bool> cache;
 
@@ -36,7 +36,7 @@ class PinInputControl {
 };
 
 
-// pins responsible for providing output from DRV8244
+// pins responsible for providing output from MCP23S17
 class PinOutputControl {
 	void init_with_value(pinmap::Pins pin) {
 		gpio_init(pin);
