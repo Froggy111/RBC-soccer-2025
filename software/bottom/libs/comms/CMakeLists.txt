@@ -9,6 +9,8 @@ target_sources(usb
 #   message(FATAL_ERROR "pico_usb_reset_interface not found")
 # endif()
 target_link_libraries(usb PRIVATE tinyusb_device pico_usb_reset_interface)
+pico_enable_stdio_usb(usb 1)
+pico_enable_stdio_uart(usb 0)
 
 add_library(uart)
 target_sources(uart
