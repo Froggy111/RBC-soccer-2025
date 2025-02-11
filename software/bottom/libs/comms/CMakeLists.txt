@@ -8,9 +8,8 @@ target_sources(usb
 # if (NOT TARGET pico_usb_reset_interface)
 #   message(FATAL_ERROR "pico_usb_reset_interface not found")
 # endif()
-target_link_libraries(usb PRIVATE tinyusb_device pico_usb_reset_interface)
-pico_enable_stdio_usb(usb 1)
-pico_enable_stdio_uart(usb 0)
+# pico_enable_stdio_usb(usb 1)
+# pico_enable_stdio_uart(usb 0)
 
 add_library(uart)
 target_sources(uart
@@ -27,7 +26,7 @@ target_sources(comms
   PUBLIC
     comms.hpp
 )
-target_link_libraries(comms PRIVATE usb uart)
+target_link_libraries(comms usb uart)
 
 add_library(debug_) # named debug_ to avoid clashing with cmake option debug
 target_sources(debug_
@@ -36,5 +35,5 @@ target_sources(debug_
   PUBLIC
     debug.hpp
 )
-target_link_libraries(debug_ PRIVATE comms)
+target_link_libraries(debug_ comms)
 link_libraries(debug_)

@@ -1,1 +1,1 @@
-add_subdirectory(usb)
+add_subdirectory(usb-hello-world)

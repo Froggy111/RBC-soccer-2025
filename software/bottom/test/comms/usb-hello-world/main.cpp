@@ -1,16 +1,17 @@
 #include "libs/comms/usb.hpp"
 #include "libs/utils/types.hpp"
+#include <pico/stdio.h>
+#include <stdio.h>
 
 using namespace types;
 
 int main() {
   usb::CDC cdc = usb::CDC();
-  cdc.enable_usb_boot();
-  cdc.init_tud_cdc();
-
-  u8 payload[] = "Hello world!";
+  cdc.init();
+  u8 payload[] = "Hello world!\n";
   while (true) {
-    cdc.tusb_write(payload, sizeof(payload));
+    cdc.write(payload, sizeof(payload));
     sleep_ms(1000);
   }
+  return 0;
 }
