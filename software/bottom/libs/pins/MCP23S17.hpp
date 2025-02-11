@@ -1,3 +1,4 @@
+#pragma once
 #include "hardware/gpio.h"
 #include "hardware/spi.h"
 #include <cstdint>

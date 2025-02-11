@@ -1,11 +1,11 @@
 #include "hardware/gpio.h"
+#include "hardware/spi.h"
 #include "hardware/uart.h"
 #include "pico/stdio.h"
 #include "pico/stdlib.h"
-#include "hardware/spi.h"
-#include "spdlog/spdlog.h"
 #include "pinmap.hpp"
 #include "pins.hpp"
+#include "spdlog/spdlog.h"
 
 #define DEFAULT_IPROPI 0 // iPROPi off by default
 #define DEFAULT_NSLEEP 1 // nSleep off by default
@@ -13,13 +13,11 @@
 #define DEFAULT_IN1 0    // IN1 off by default
 #define DEFAULT_IN2 0    // IN2 off by default
 
-class MotorDriver
-{
+class MotorDriver {
   PinInputControl inputControl;
   PinOutputControl outputControl;
 
-  void init_spi(int32_t SPI_SPEED)
-  {
+  void init_spi(int32_t SPI_SPEED) {
     // Initialize SPI pins
     gpio_set_function(PinMap::SCK, GPIO_FUNC_SPI);
     gpio_set_function(PinMap::MOSI, GPIO_FUNC_SPI);
@@ -36,8 +34,7 @@ class MotorDriver
     gpio_put(PinMap::CS, 1); // Set CS high (inactive)
   }
 
-  void init_pins()
-  {
+  void init_pins() {
     // Initialize pins
     // nFault
     outputControl.init_digital(PinMap::NFAULT);
@@ -59,8 +56,7 @@ class MotorDriver
     inputControl.init_digital(PinMap::IN2, 0);
   }
 
-  void init(int32_t SPI_SPEED)
-  {
+  void init(int32_t SPI_SPEED) {
     spdlog::info("---> Initializing DRV8244");
 
     spdlog::info("Initializing SPI");
@@ -72,7 +68,5 @@ class MotorDriver
     spdlog::info("DRV8244 initialized");
   }
 
-  void command(uint32_t speed, uint32_t direction)
-  {
-  }
+  void command(uint32_t speed, uint32_t direction) {}
 };
