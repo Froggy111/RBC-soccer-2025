@@ -27,7 +27,7 @@ set(CMAKE_CXX_STANDARD 17)
 pico_sdk_init()
 
 # root directory as include directory
-link_libraries(bottom pico_stdlib)
+link_libraries(pico_stdlib)
 include_directories(bottom ${CMAKE_SOURCE_DIR})
 
 # Libraries
