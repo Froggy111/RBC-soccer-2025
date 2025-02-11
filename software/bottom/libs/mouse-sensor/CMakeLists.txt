@@ -5,4 +5,4 @@ target_sources(PMW3360
   PUBLIC
     PMW3360.hpp
 )
-target_link_libraries(PMW3360 PRIVATE hardware_spi)
+target_link_libraries(PMW3360 hardware_spi)

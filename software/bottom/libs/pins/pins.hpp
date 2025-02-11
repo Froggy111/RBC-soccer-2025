@@ -1,7 +1,7 @@
 #pragma once
 #include "hardware/gpio.h"
 #include "hardware/spi.h
-#include "libs/pinmap/pinmap.hpp"
+#include "libs/hardware-descriptors/pinmap.hpp"
 #include <pico/stdlib.h>
 
 #define SPI_PORT0 spi0

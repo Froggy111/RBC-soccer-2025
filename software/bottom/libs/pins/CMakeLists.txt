@@ -5,7 +5,7 @@ target_sources(MCP23S17
   PUBLIC
     MCP23S17.hpp
 )
-target_link_libraries(MCP23S17 PRIVATE hardware_spi)
+target_link_libraries(MCP23S17 hardware_spi)
 
 add_library(pins)
 target_sources(pins
@@ -14,4 +14,4 @@ target_sources(pins
   PUBLIC
     pins.hpp
 )
-target_link_libraries(pins PRIVATE MCP23S17)
+target_link_libraries(pins MCP23S17)
