@@ -19,5 +19,7 @@ private:
 class PinOutputControl {
 public:
   void init_digital(PinMap pin);
+  void init_analog(PinMap pin);
   bool read_digital(PinMap pin);
+  int read_analog(PinMap pin);
 };
