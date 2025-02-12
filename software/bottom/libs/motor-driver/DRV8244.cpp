@@ -3,7 +3,6 @@
 #include "pico/stdio.h"
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
-#include "spdlog/spdlog.h"
 #include "pinmap.hpp"
 #include "pins.hpp"
 #include "DRV8244.hpp"
@@ -12,7 +11,6 @@
 #define DEFAULT_DRVOFF 1 // driver off by default
 #define DEFAULT_IN1 0    // IN1 off by default
 #define DEFAULT_IN2 0    // IN2 off by default
-
 
 // ! init
 void MotorDriver::init_spi(int32_t SPI_SPEED)
@@ -62,17 +60,17 @@ void MotorDriver::init_pins()
 
 void MotorDriver::init(int32_t SPI_SPEED)
 {
-  spdlog::info("---> Initializing DRV8244");
+  printf("---> Initializing DRV8244");
 
-  spdlog::info("Initializing SPI");
+  printf("Initializing SPI");
   init_spi(SPI_SPEED);
 
-  spdlog::info("Initializing pins");
+  printf("Initializing pins");
   init_pins();
 
-  spdlog::info("Listen for errors");
+  printf("Listen for errors");
 
-  spdlog::info("---> DRV8244 initialized");
+  printf("---> DRV8244 initialized");
 }
 
 //! register handling
@@ -114,12 +112,12 @@ void MotorDriver::write_register(uint8_t reg, uint8_t data)
 void MotorDriver::handle_error(PinInputControl* inputControl,
   PinOutputControl* outputControl)
 {
-  spdlog::error("---> DRV8244 Fault Detected!");
+  printf("---> DRV8244 Fault Detected!");
 
   bool isActive = inputControl->get_last_value(PinMap::NSLEEP);
   if (isActive)
   {
-    spdlog::info("Driver is ACTIVE. Reading active state registers...");
+    printf("Driver is ACTIVE. Reading active state registers...");
 
     // Read registers that provide diagnostic data during active operation.
     // (Replace register addresses with the correct ones from your datasheet.)
@@ -127,18 +125,18 @@ void MotorDriver::handle_error(PinInputControl* inputControl,
     uint8_t status1 = read_register(0x02);      // e.g., STATUS1 register
     uint8_t status2 = read_register(0x03);      // e.g., STATUS2 register
 
-    spdlog::info("FAULT_SUMMARY: 0x{:02X}", faultSummary);
-    spdlog::info("STATUS1:       0x{:02X}", status1);
-    spdlog::info("STATUS2:       0x{:02X}", status2);
+    printf("FAULT_SUMMARY: 0x{:02X}", faultSummary);
+    printf("STATUS1:       0x{:02X}", status1);
+    printf("STATUS2:       0x{:02X}", status2);
   }
   else
   {
-    spdlog::info("Driver is in STANDBY.");
+    printf("Driver is in STANDBY.");
     // TODO: Implement standby state fault handling
   }
 
   // * try to clear the fault
-  spdlog::info("Attempting to clear the fault...");
+  printf("Attempting to clear the fault...");
   // TODO: Implement fault clearing
 }
 

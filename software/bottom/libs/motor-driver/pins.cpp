@@ -1,79 +1,72 @@
 #include "pico/stdlib.h"
 #include "pinmap.hpp"
+#include "pins.hpp"
 #include <map>
 #include <iostream>
 
 // pins responsible for providing input to DRV8244
-class PinInputControl
+void PinInputControl::init_digital(PinMap pin, bool value)
 {
-	std::map<PinMap, std::pair<bool, int>> cache;
+	gpio_init(pin);
+	gpio_set_dir(pin, GPIO_IN);
+	write_digital(pin, value);
+}
 
-	void init_digital(PinMap pin, bool value)
-	{
-		gpio_init(pin);
-		gpio_set_dir(pin, GPIO_IN);
-		write_digital(pin, value);
-	}
+void PinInputControl::init_analog(PinMap pin, int value)
+{
+	// help
+}
 
-	void init_analog(PinMap pin, int value)
-	{
-		// help
-	}
+void PinInputControl::init(PinMap pin)
+{
+	gpio_init(pin);
+	gpio_set_dir(pin, GPIO_IN);
+}
 
-	void init(PinMap pin)
+void PinInputControl::write_digital(PinMap pin, bool value)
+{
+	if (cache.find(pin) == cache.end())
 	{
-		gpio_init(pin);
-		gpio_set_dir(pin, GPIO_IN);
+		throw std::runtime_error("Pin not initialized");
 	}
+	gpio_put(pin, value);
+	cache[pin] = {0, value};
+}
 
-	void write_digital(PinMap pin, bool value)
-	{
-		if (this->cache.find(pin) == this->cache.end())
-		{
-			throw std::runtime_error("Pin not initialized");
-		}
-		gpio_put(pin, value);
-		this->cache[pin] = {0, value};
-	}
+void PinInputControl::write_analog(PinMap pin, int value)
+{
+	// help
+	cache[pin] = {1, value};
+}
 
-	void write_analog(PinMap pin, int value)
+bool PinInputControl::get_last_value(PinMap pin)
+{
+	if (this->cache.find(pin) == this->cache.end())
 	{
-		// help
-		this->cache[pin] = {1, value};
+		throw std::runtime_error("Pin not initialized");
 	}
-
-	bool get_last_value(PinMap pin)
-	{
-		if (this->cache.find(pin) == this->cache.end())
-		{
-			throw std::runtime_error("Pin not initialized");
-		}
-		return this->cache[pin].second;
-	}
-};
+	return this->cache[pin].second;
+}
 
 // pins responsible for providing output to DRV8244
-class PinOutputControl
+void PinOutputControl::init_digital(PinMap pin)
 {
-	void init_digital(PinMap pin)
-	{
-		gpio_init(pin);
-		gpio_set_dir(pin, GPIO_OUT);
-		this->read_digital(pin);
-	}
+	gpio_init(pin);
+	gpio_set_dir(pin, GPIO_OUT);
+	read_digital(pin);
+}
 
-	void init_analog(PinMap pin)
-	{
-		// help
-	}
+void PinOutputControl::init_analog(PinMap pin)
+{
+	// help
+}
 
-	bool read_digital(PinMap pin)
-	{
-		return gpio_get(pin);
-	}
+bool PinOutputControl::read_digital(PinMap pin)
+{
+	return gpio_get(pin);
+}
 
-	int read_analog(PinMap pin)
-	{
-		// help
-	}
-};
+int PinOutputControl::read_analog(PinMap pin)
+{
+	// help
+}
