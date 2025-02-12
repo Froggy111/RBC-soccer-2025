@@ -1,3 +1,9 @@
+add_library(identifiers)
+target_sources(identifiers
+  INTERFACE
+    identifiers.hpp
+)
+
 add_library(usb)
 target_sources(usb
   PRIVATE
@@ -5,11 +11,7 @@ target_sources(usb
   PUBLIC
     usb.hpp
 )
-# if (NOT TARGET pico_usb_reset_interface)
-#   message(FATAL_ERROR "pico_usb_reset_interface not found")
-# endif()
-# pico_enable_stdio_usb(usb 1)
-# pico_enable_stdio_uart(usb 0)
+target_link_libraries(usb identifiers)
 
 add_library(uart)
 target_sources(uart

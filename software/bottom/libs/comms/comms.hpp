@@ -1,2 +1,15 @@
 #pragma once
+#include "libs/comms/uart.hpp"
 #include "libs/comms/usb.hpp"
+#include "libs/utils/types.hpp"
+
+/**
+ * INFO:
+ * IMPORTANT: RP2040 and RPi are all little endian (least significant byte first)
+ * Communication format is defined as such, in both directions:
+ * Byte 1 & 2: Length (least significant byte first) (excludes length bytes)
+ * Byte 3: Identifier (u8 enum)
+ * The rest is passed to the specific handler.
+ */
+
+namespace comms {}
