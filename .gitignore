@@ -3,6 +3,8 @@
 build
 */.build
 
+generated/
+
 .cache
 */.cache
 
