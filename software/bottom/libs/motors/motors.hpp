@@ -3,11 +3,12 @@
 
 class Motors {
 private:
-  MotorDriver motor1;
-  MotorDriver motor2;
-  MotorDriver motor3;
-  MotorDriver motor4;
+  static MotorDriver motor1;
+  static MotorDriver motor2;
+  static MotorDriver motor3;
+  static MotorDriver motor4;
 public:
   void init();
-  void on_error_callback();
+  void set_error_callback();
+  static void handle_error_callback(uint gpio, uint32_t events);
 };

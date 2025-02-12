@@ -108,7 +108,7 @@ void MotorDriver::write8(uint8_t reg, uint8_t data)
 }
 
 //! on error
-void MotorDriver::handle_error(uint gpio, uint32_t events)
+void MotorDriver::handle_error()
 {
   printf("---> DRV8244 Fault Detected!");
 

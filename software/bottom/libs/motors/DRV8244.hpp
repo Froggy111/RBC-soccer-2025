@@ -13,12 +13,11 @@ private:
   static uint8_t read8(types::u8 reg);
   static void write8(types::u8 reg, types::u8 data);
 
-  void handle_error(uint gpio, uint32_t events);
-
   PinInputControl inputControl;
   PinOutputControl outputControl;
 
 public:
   void init(types::u8 id, types::u16 SPI_SPEED);
   void command(types::u16 speed, bool direction);
+  void handle_error();
 };
