@@ -11,5 +11,5 @@ add_subdirectory(comms) # this also links debug
 add_subdirectory(pins)
 
 # then these which need to link to utils
-add_subdirectory(motor-driver)
+add_subdirectory(motors)
 add_subdirectory(mouse-sensor)

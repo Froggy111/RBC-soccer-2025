@@ -6,6 +6,7 @@
 #include "pinmap.hpp"
 #include "pins.hpp"
 #include "DRV8244.hpp"
+#include "libs/utils/types.hpp"
 
 #define DEFAULT_NSLEEP 1 // nSleep on by default
 #define DEFAULT_DRVOFF 1 // driver off by default
@@ -13,7 +14,7 @@
 #define DEFAULT_IN2 0    // IN2 off by default
 
 // ! init
-void MotorDriver::init_spi(int32_t SPI_SPEED)
+void MotorDriver::init_spi(types::u32 SPI_SPEED)
 {
   // Initialize SPI pins
   gpio_set_function(PinMap::SCK, GPIO_FUNC_SPI);
@@ -58,7 +59,7 @@ void MotorDriver::init_pins()
   inputControl.init_digital(PinMap::IN2, DEFAULT_IN2);
 }
 
-void MotorDriver::init(int32_t SPI_SPEED)
+void MotorDriver::init(types::u8 id, types::u16 SPI_SPEED)
 {
   printf("---> Initializing DRV8244");
 
@@ -68,13 +69,11 @@ void MotorDriver::init(int32_t SPI_SPEED)
   printf("Initializing pins");
   init_pins();
 
-  printf("Listen for errors");
-
   printf("---> DRV8244 initialized");
 }
 
 //! register handling
-uint8_t MotorDriver::read_register(uint8_t reg)
+uint8_t MotorDriver::read8(uint8_t reg)
 {
   uint8_t txBuf[2];
   uint8_t rxBuf[2];
@@ -93,7 +92,7 @@ uint8_t MotorDriver::read_register(uint8_t reg)
   return rxBuf[1];
 }
 
-void MotorDriver::write_register(uint8_t reg, uint8_t data)
+void MotorDriver::write8(uint8_t reg, uint8_t data)
 {
   uint8_t txBuf[2];
   // If your protocol requires a write bit, you might do:
@@ -109,21 +108,20 @@ void MotorDriver::write_register(uint8_t reg, uint8_t data)
 }
 
 //! on error
-void MotorDriver::handle_error(PinInputControl* inputControl,
-  PinOutputControl* outputControl)
+void MotorDriver::handle_error(uint gpio, uint32_t events)
 {
   printf("---> DRV8244 Fault Detected!");
 
-  bool isActive = inputControl->get_last_value(PinMap::NSLEEP);
+  bool isActive = inputControl.get_last_value(PinMap::NSLEEP);
   if (isActive)
   {
     printf("Driver is ACTIVE. Reading active state registers...");
 
     // Read registers that provide diagnostic data during active operation.
     // (Replace register addresses with the correct ones from your datasheet.)
-    uint8_t faultSummary = read_register(0x01); // e.g., FAULT_SUMMARY register
-    uint8_t status1 = read_register(0x02);      // e.g., STATUS1 register
-    uint8_t status2 = read_register(0x03);      // e.g., STATUS2 register
+    uint8_t faultSummary = read8(0x01); // e.g., FAULT_SUMMARY register
+    uint8_t status1 = read8(0x02);      // e.g., STATUS1 register
+    uint8_t status2 = read8(0x03);      // e.g., STATUS2 register
 
     printf("FAULT_SUMMARY: 0x{:02X}", faultSummary);
     printf("STATUS1:       0x{:02X}", status1);
@@ -140,6 +138,6 @@ void MotorDriver::handle_error(PinInputControl* inputControl,
   // TODO: Implement fault clearing
 }
 
-void MotorDriver::command(uint32_t speed, uint32_t direction)
+void MotorDriver::command(types::u16 speed, bool direction)
 {
 }
