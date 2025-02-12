@@ -51,8 +51,6 @@ void CDC::_set_data_avail_callback(void (*function)(void *), void *args) {
   stdio_set_chars_available_callback(function, args);
 }
 
-u8 command_too_long_err[] = "Sent command is longer than max_recieve_buf_size.";
-
 void CDC::_data_avail_callback(void *args) {
   CurrentRecvState *crs = (CurrentRecvState *)args;
   u8 newbyte = stdio_getchar();
@@ -69,15 +67,21 @@ void CDC::_data_avail_callback(void *args) {
     return;
   }
   // data bytes
-  if (crs->recieved_length < crs->expected_length - 1) {
+  if (crs->recieved_length < crs->expected_length) {
     crs->data_buffer[crs->recieved_length] = newbyte;
     crs->recieved_length++;
+    crs->parity_byte ^= newbyte;
     return;
   }
-  // last data byte
-  crs->data_buffer[crs->recieved_length] = newbyte;
-  RawCommand raw_command = {crs->recieved_length, crs->data_buffer};
-  crs->reset();
+  // last byte (parity byte)
+  else if (crs->recieved_length == crs->expected_length) {
+    // check parity
+    if (crs->parity_byte != newbyte) {
+      // raise PARITY_ERROR
+    }
+    RawCommand raw_command = {crs->recieved_length, crs->data_buffer};
+    crs->reset();
+  }
 }
 
 } // namespace usb

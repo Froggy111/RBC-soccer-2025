@@ -29,11 +29,13 @@ struct CurrentRecvState {
   types::u8 length_bytes_recieved = 0;
   types::u16 expected_length = 0;
   types::u16 recieved_length = 0;
+  types::u8 parity_byte = 0;
   types::u8 *data_buffer = nullptr;
   inline void reset(void) {
     length_bytes_recieved = 0;
     expected_length = 0;
     recieved_length = 0;
+    parity_byte = 0;
     data_buffer = nullptr;
   }
 };
