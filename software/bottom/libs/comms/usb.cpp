@@ -1,10 +1,12 @@
 #include "libs/comms/usb.hpp"
+#include "libs/comms/errors.hpp"
 #include "libs/comms/identifiers.hpp"
 #include "libs/utils/types.hpp"
+extern "C" {
 #include <hardware/gpio.h>
 #include <pico/stdio.h>
 #include <pico/stdlib.h>
-#include <type_traits>
+}
 
 using namespace types;
 
@@ -17,6 +19,8 @@ bool CDC::init(void) {
     return false; // some error, idk
   }
   // usb-cdc initialised, proceed
+  _current_recv_state.reset();
+  _current_recv_state.data_buffer = _read_buffer;
   // set callback for data avail, to recieve full raw commands async
   _set_data_avail_callback(_data_avail_callback, (void *)&_current_recv_state);
 }
@@ -58,11 +62,13 @@ void CDC::_data_avail_callback(void *args) {
   if (crs->length_bytes_recieved < 2) {
     crs->expected_length =
         newbyte << (8 * crs->length_bytes_recieved); // assuming little endian
+    crs->length_bytes_recieved++;
     // sent command is too long, report error
     if (crs->expected_length > max_recieve_buf_size) {
-      send_data(comms::SendIdentifiers::ERROR, command_too_long_err,
-                sizeof(command_too_long_err));
+      comms::Errors err = comms::Errors::PACKET_RECV_TOO_LONG;
+      send_data(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err, sizeof(err));
       crs->reset();
+      // NOTE: after this, behavior becomes undefined
     }
     return;
   }
@@ -77,10 +83,17 @@ void CDC::_data_avail_callback(void *args) {
   else if (crs->recieved_length == crs->expected_length) {
     // check parity
     if (crs->parity_byte != newbyte) {
-      // raise PARITY_ERROR
+      // raise PARITY_FAILED
+      comms::Errors err = comms::Errors::PARITY_FAILED;
+      send_data(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err, sizeof(err));
     }
     RawCommand raw_command = {crs->recieved_length, crs->data_buffer};
     crs->reset();
+  }
+  // NOTE: SOMETHING REALLY WENT WRONG
+  else {
+    comms::Errors err = comms::Errors::RECIEVED_MORE_THAN_EXPECTED;
+    send_data(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err, sizeof(err));
   }
 }
 

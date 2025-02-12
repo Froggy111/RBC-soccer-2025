@@ -3,7 +3,8 @@
 
 namespace pinmap {
 
-enum class Pins : types::u8 {
+enum class DigitalPins : types::u8 {
+  // Pico
   DRV2_IN1 = 0,
   DRV2_IN2 = 1,
   SPI0_SCLK = 2,
@@ -27,63 +28,70 @@ enum class Pins : types::u8 {
   DRV4_IN1 = 20,
   DRV4_IN2 = 21,
   MOUSE1_MOT = 22,
+
+  // Mux1A
+  DRV4_OFF = 23,
+  MOUSE1_RST = 24,
+  MOUSE1_SCS = 25,
+  AMUX_S3 = 26,
+  AMUX_S2 = 27,
+  AMUX_EN = 28,
+  AMUX_S1 = 29,
+  AMUX_S0 = 30,
+
+  // Mux1B
+  DRV1_OFF = 31,
+  DRV1_SCS = 32,
+  DRV1_NSLEEP = 33,
+  DRV5_SCS = 34,
+  DRV5_OFF = 35,
+  DRV5_NSLEEP = 36,
+  DRV4_NSLEEP = 37,
+  DRV4_SCS = 38,
+
+  // Mux2A
+  DRV2_NFAULT = 39,
+  DRV2_NSLEEP = 40,
+  MOUSE2_RST = 41,
+  MOUSE2_SCS = 42,
+  DRV3_SCS = 43,
+  DRV3_OFF = 44,
+  DRV3_NSLEEP = 45,
+  DRV3_NFAULT = 46,
+
+  // Mux2B
+  DRV5_NFAULT = 47,
+  ADC1_INT = 48,
+  ADC2_INT = 49,
+  DRV1_NFAULT = 50,
+  DRV4_NFAULT = 51,
+  DMUX1_INT = 52,
+  DRV2_OFF = 53,
+  DRV2_SCS = 54,
+};
+
+enum class AnalogPins : types::u8 {
+  // Pico
   AMUX3_COM = 26,
   AMUX2_COM = 27,
   AMUX1_COM = 28,
 
-  // Mux1A
-  DRV4_OFF = 29,
-  MOUSE1_RST = 30,
-  MOUSE1_SCS = 31,
-  AMUX_S3 = 32,
-  AMUX_S2 = 33,
-  AMUX_EN = 34,
-  AMUX_S1 = 35,
-  AMUX_S0 = 36,
-
-  // Mux1B
-  DRV1_OFF = 37,
-  DRV1_SCS = 38,
-  DRV1_NSLEEP = 39,
-  DRV5_SCS = 40,
-  DRV5_OFF = 41,
-  DRV5_NSLEEP = 42,
-  DRV4_NSLEEP = 43,
-  DRV4_SCS = 44,
-
-  // Mux2A
-  DRV2_NFAULT = 45,
-  DRV2_NSLEEP = 46,
-  MOUSE2_RST = 47,
-  MOUSE2_SCS = 48,
-  DRV3_SCS = 49,
-  DRV3_OFF = 50,
-  DRV3_NSLEEP = 51,
-  DRV3_NFAULT = 52,
-
-  // Mux2B
-  DRV5_NFAULT = 53,
-  ADC1_INT = 54,
-  ADC2_INT = 55,
-  DRV1_NFAULT = 56,
-  DRV4_NFAULT = 57,
-  DMUX1_INT = 58,
-  DRV2_OFF = 59,
-  DRV2_SCS = 60,
-
   // ADC1
-  DRV2_IPROPI = 61,
-  LIGHTGATE = 62,
-  DRV3_IPROPI = 63,
-  DRV5_IPROPI = 64,
+  DRV2_IPROPI = 29,
+  LIGHTGATE = 30,
+  DRV3_IPROPI = 31,
+  DRV5_IPROPI = 32,
 
   // ADC2
-  LOADCELL_AMINUS = 65,
-  LOADCELL_APLUS = 66,
-  DRV1_IPROPI = 67,
-  DRV4_IPROPI = 68
+  LOADCELL_AMINUS = 33,
+  LOADCELL_APLUS = 34,
+  DRV1_IPROPI = 35,
+  DRV4_IPROPI = 36,
+
+  // AMUX1
 };
 
+// NOTE: The below are mostly for reference. Pin numbers can be obtained from subtracting values depending on range.
 enum class Pico : types::u8 {
   DRV2_IN1 = 0,
   DRV2_IN2 = 1,
@@ -169,6 +177,63 @@ enum class ADC2 : types::u8 {
   LOADCELL_APLUS = 1,
   DRV1_IPROPI = 2,
   DRV4_IPROPI = 3
+};
+
+enum class AMUX1 : types::u8 {
+  LS1 = 0,
+  LS2 = 1,
+  LS3 = 2,
+  LS4 = 3,
+  LS5 = 4,
+  LS6 = 5,
+  LS7 = 6,
+  LS8 = 7,
+  LS16 = 8,
+  LS15 = 9,
+  LS14 = 10,
+  LS13 = 11,
+  LS12 = 12,
+  LS11 = 13,
+  LS10 = 14,
+  LS9 = 15
+};
+
+enum class AMUX2 : types::u8 {
+  LS28 = 0,
+  LS27 = 1,
+  LS26 = 2,
+  LS25 = 3,
+  LS24 = 4,
+  LS23 = 5,
+  LS22 = 6,
+  LS21 = 7,
+  LS17 = 8,
+  LS18 = 9,
+  LS19 = 10,
+  LS20 = 11,
+  LS29 = 12,
+  LS30 = 13,
+  LS31 = 14,
+  LS32 = 15
+};
+
+enum class AMUX3 : types::u8 {
+  LS40 = 0,
+  LS39 = 1,
+  LS38 = 2,
+  LS37 = 3,
+  LS36 = 4,
+  LS35 = 5,
+  LS34 = 6,
+  LS33 = 7,
+  LS41 = 8,
+  LS42 = 9,
+  LS43 = 10,
+  LS44 = 11,
+  LS45 = 12,
+  LS46 = 13,
+  LS47 = 14,
+  LS48 = 15
 };
 
 } // namespace pinmap

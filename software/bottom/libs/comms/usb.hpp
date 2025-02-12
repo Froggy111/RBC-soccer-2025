@@ -10,20 +10,26 @@
 
 #include "libs/comms/identifiers.hpp"
 #include "libs/utils/types.hpp"
+extern "C" {
 #include <pico/stdio.h>
 #include <pico/stdlib.h>
+}
 
 /**
+ * WARNING: RP2040 and RPi are all little endian (least significant byte first)
  * INFO:
- * IMPORTANT: RP2040 and RPi are all little endian (least significant byte first)
  * Communication format is defined as such, in both directions:
  * Byte 1 & 2: Length (least significant byte first) (excludes length bytes)
- * (pico will check that length is less than max_recieve_buf_size)
+ * (pico will check that length <= max_recieve_buf_size)
+ * WARNING: LENGTH INCLUDES IDENTIFIER BYTE. This is done for convenience in the recieving state.
+ * INFO:
  * Byte 3: Identifier (u8 enum)
  * The rest is passed to the specific handler.
  */
-
 namespace usb {
+
+static const types::u16 max_recieve_buf_size =
+    1024; // this should absolutely be enough for all recieved commands
 
 struct CurrentRecvState {
   types::u8 length_bytes_recieved = 0;
@@ -36,7 +42,7 @@ struct CurrentRecvState {
     expected_length = 0;
     recieved_length = 0;
     parity_byte = 0;
-    data_buffer = nullptr;
+    memset(0, data_buffer, max_recieve_buf_size);
   }
 };
 
@@ -47,11 +53,8 @@ struct RawCommand {
 
 class CDC {
 public:
-  static const types::u16 max_recieve_buf_size =
-      1024; // this should absolutely be enough for all recieved commands
-
   CDC();
-  static bool init(void);
+  bool init(void);
 
   /**
    * @brief write data from buffer
