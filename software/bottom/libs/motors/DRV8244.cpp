@@ -8,6 +8,7 @@
 #include "pinmap.hpp"
 #include "dbg_pins.hpp"
 #include "faults.hpp"
+#include "status.hpp"
 
 #define DEFAULT_NSLEEP 1 // nSleep on by default
 #define DEFAULT_DRVOFF 1 // driver off by default
@@ -103,6 +104,22 @@ void MotorDriver::write8(uint8_t reg, uint8_t data) {
   gpio_put(pinmap["CS"], 1);
 }
 
+//! reading specific registers
+std::string MotorDriver::read_fault_summary() {
+  uint8_t faultSummary = read8(0x01); // e.g., FAULT_SUMMARY register
+  return Fault::get_fault_description(faultSummary);
+}
+
+std::string MotorDriver::read_status1() {
+  uint8_t statusSummary = read8(0x02); // e.g., FAULT_SUMMARY register
+  return Status::get_status1_description(statusSummary);
+}
+
+std::string MotorDriver::read_status2() {
+  uint8_t statusSummary = read8(0x03); // e.g., FAULT_SUMMARY register
+  return Status::get_status1_description(statusSummary);
+}
+
 //! on error
 void MotorDriver::handle_error(void* _) {
   printf("---> DRV8244 Fault Detected!");
@@ -112,14 +129,9 @@ void MotorDriver::handle_error(void* _) {
     printf("Driver is ACTIVE. Reading active state registers...");
 
     // Read registers that provide diagnostic data during active operation.
-    // (Replace register addresses with the correct ones from your datasheet.)
-    uint8_t faultSummary = read8(0x01); // e.g., FAULT_SUMMARY register
-    uint8_t status1 = read8(0x02);      // e.g., STATUS1 register
-    uint8_t status2 = read8(0x03);      // e.g., STATUS2 register
-
-    printf("FAULT_SUMMARY: %s", Fault::get_fault_description(faultSummary));
-    printf("STATUS1:       0x{%d}", status1);
-    printf("STATUS2:       0x{%d}", status2);
+    printf("FAULT_SUMMARY: %s", read_fault_summary());
+    printf("STATUS1: %s", read_status1());
+    printf("STATUS2: %s", read_status1());
   } else {
     printf("Driver is in STANDBY.");
     // TODO: Implement standby state fault handling
