@@ -1,3 +1,5 @@
+include_directories(include)
+
 add_library(comms)
 target_sources(comms
   PRIVATE

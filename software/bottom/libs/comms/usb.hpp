@@ -11,6 +11,8 @@
 #include "libs/comms/identifiers.hpp"
 #include "libs/utils/types.hpp"
 extern "C" {
+#include "libs/comms/default_usb_config.h"
+#include <pico/bootrom.h>
 #include <pico/stdio.h>
 #include <pico/stdlib.h>
 }
@@ -29,7 +31,7 @@ extern "C" {
 namespace usb {
 
 static const types::u16 max_recieve_buf_size =
-    1024; // this should absolutely be enough for all recieved commands
+    USB_RX_BUFSIZE; // this should absolutely be enough for all recieved commands
 
 struct CurrentRecvState {
   types::u8 length_bytes_recieved = 0;

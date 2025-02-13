@@ -66,6 +66,7 @@ void CDC::_data_avail_callback(void *args) {
     // sent command is too long, report error
     if (crs->expected_length > max_recieve_buf_size) {
       comms::Errors err = comms::Errors::PACKET_RECV_TOO_LONG;
+      // FIXME: This will not work, stdio cannot be used in this callback
       send_data(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err, sizeof(err));
       crs->reset();
       // NOTE: after this, behavior becomes undefined
@@ -85,6 +86,7 @@ void CDC::_data_avail_callback(void *args) {
     if (crs->parity_byte != newbyte) {
       // raise PARITY_FAILED
       comms::Errors err = comms::Errors::PARITY_FAILED;
+      // FIXME: This will not work, stdio cannot be used in this callback
       send_data(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err, sizeof(err));
     }
     RawCommand raw_command = {crs->recieved_length, crs->data_buffer};
@@ -93,6 +95,7 @@ void CDC::_data_avail_callback(void *args) {
   // NOTE: SOMETHING REALLY WENT WRONG
   else {
     comms::Errors err = comms::Errors::RECIEVED_MORE_THAN_EXPECTED;
+    // FIXME: This will not work, stdio cannot be used in this callback
     send_data(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err, sizeof(err));
   }
 }
