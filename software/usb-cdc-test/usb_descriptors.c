@@ -43,7 +43,7 @@ static const tusb_desc_device_t device_descriptor = {
     .bNumConfigurations = 1};
 
 // Configuration Descriptor
-#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN + 9)
+#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN + 9 + 7)
 
 static const uint8_t configuration_descriptor[] = {
     // Config number, interface count, string index, total length, attribute,
@@ -56,16 +56,25 @@ static const uint8_t configuration_descriptor[] = {
                        8, // Notification endpoint & size
                        EP_CDC_OUT, EP_CDC_IN, 64), // Data endpoints & size
 
-    // Simple vendor interface descriptor
+    // Vendor interface descriptor with dummy endpoint so picotool can detect it
     9,                          // bLength
     TUSB_DESC_INTERFACE,        // bDescriptorType
     USB_VENDOR_INTERFACE,       // bInterfaceNumber
     0,                          // bAlternateSetting
-    0,                          // bNumEndpoints
+    1,                          // bNumEndpoints (changed from 0 to 1)
     TUSB_CLASS_VENDOR_SPECIFIC, // bInterfaceClass
     RESET_INTERFACE_SUBCLASS,   // bInterfaceSubClass
     RESET_INTERFACE_PROTOCOL,   // bInterfaceProtocol
-    USB_STR_VENDOR              // iInterface
+    USB_STR_VENDOR,             // iInterface
+
+    // Dummy endpoint descriptor for the reset interface (not actually used for
+    // data)
+    7,                  // bLength (size of endpoint descriptor)
+    TUSB_DESC_ENDPOINT, // bDescriptorType (endpoint)
+    EP_VENDOR_OUT, // bEndpointAddress (choose the OUT endpoint, for example)
+    0x03, // bmAttributes: Bulk transfer (could also be Interrupt if preferred)
+    64,   // wMaxPacketSize
+    0     // bInterval
 };
 
 // String Descriptors

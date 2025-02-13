@@ -20,6 +20,7 @@ target_include_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(main
     pico_stdlib
     pico_unique_id
+    pico_usb_reset_interface
     tinyusb_device
 )
 
