@@ -1,29 +1,29 @@
 #include "pico/stdlib.h"
 #include "pinmap.hpp"
-#include "pins.hpp"
+#include "dbg_pins.hpp"
 #include <map>
 #include <iostream>
 
 // pins responsible for providing input to DRV8244
-void PinInputControl::init_digital(PinMap pin, bool value)
+void PinInputControl::init_digital(DigitalPinMap pin, bool value)
 {
 	gpio_init(pin);
 	gpio_set_dir(pin, GPIO_IN);
 	write_digital(pin, value);
 }
 
-void PinInputControl::init_analog(PinMap pin, int value)
+void PinInputControl::init_analog(DigitalPinMap pin, int value)
 {
 	// help
 }
 
-void PinInputControl::init(PinMap pin)
+void PinInputControl::init(DigitalPinMap pin)
 {
 	gpio_init(pin);
 	gpio_set_dir(pin, GPIO_IN);
 }
 
-void PinInputControl::write_digital(PinMap pin, bool value)
+void PinInputControl::write_digital(DigitalPinMap pin, bool value)
 {
 	if (cache.find(pin) == cache.end())
 	{
@@ -33,13 +33,13 @@ void PinInputControl::write_digital(PinMap pin, bool value)
 	cache[pin] = {0, value};
 }
 
-void PinInputControl::write_analog(PinMap pin, int value)
+void PinInputControl::write_analog(DigitalPinMap pin, int value)
 {
 	// help
 	cache[pin] = {1, value};
 }
 
-bool PinInputControl::get_last_value(PinMap pin)
+bool PinInputControl::get_last_value(DigitalPinMap pin)
 {
 	if (this->cache.find(pin) == this->cache.end())
 	{
@@ -49,24 +49,24 @@ bool PinInputControl::get_last_value(PinMap pin)
 }
 
 // pins responsible for providing output to DRV8244
-void PinOutputControl::init_digital(PinMap pin)
+void PinOutputControl::init_digital(DigitalPinMap pin)
 {
 	gpio_init(pin);
 	gpio_set_dir(pin, GPIO_OUT);
 	read_digital(pin);
 }
 
-void PinOutputControl::init_analog(PinMap pin)
+void PinOutputControl::init_analog(DigitalPinMap pin)
 {
 	// help
 }
 
-bool PinOutputControl::read_digital(PinMap pin)
+bool PinOutputControl::read_digital(DigitalPinMap pin)
 {
 	return gpio_get(pin);
 }
 
-int PinOutputControl::read_analog(PinMap pin)
+int PinOutputControl::read_analog(DigitalPinMap pin)
 {
 	// help
 }
