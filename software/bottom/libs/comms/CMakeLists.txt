@@ -1,5 +1,3 @@
-include_directories(include)
-
 add_library(comms)
 target_sources(comms
   PRIVATE
@@ -16,6 +14,8 @@ target_sources(comms
     include/identifiers.hpp
     include/errors.hpp
 )
+target_include_directories(comms PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(comms pico_unique_id pico_usb_reset_interface tinyusb_device)
 
 add_library(debug_) # named debug_ to avoid clashing with cmake option debug
 target_sources(debug_
@@ -24,5 +24,6 @@ target_sources(debug_
   PUBLIC
     include/debug.hpp
 )
+target_include_directories(debug_ PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(debug_ comms)
 link_libraries(debug_)

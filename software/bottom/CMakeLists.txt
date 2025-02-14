@@ -29,8 +29,8 @@ pico_sdk_init()
 # globally used
 link_libraries(pico_stdlib)
 link_libraries(pico_stdio_usb)
-# root directory as include directory
-include_directories(${CMAKE_SOURCE_DIR})
+# # root directory as include directory
+# include_directories(${CMAKE_SOURCE_DIR})
 
 # Libraries
 add_subdirectory(libs)

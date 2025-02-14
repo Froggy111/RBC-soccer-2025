@@ -1,7 +1,7 @@
 #include "libs/comms/comms.hpp"
+#include "lib/types.hpp"
 #include "libs/comms/uart.hpp"
 #include "libs/comms/usb.hpp"
-#include "libs/utils/types.hpp"
 
 /**
  * INFO:
