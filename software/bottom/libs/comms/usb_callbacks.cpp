@@ -1,8 +1,8 @@
+#include "comms/usb.hpp"
 #include "hardware/watchdog.h"
-#include "lib/comms/usb.hpp"
-#include "lib/types.hpp"
 #include "pico/bootrom.h"
 #include "tusb.h"
+#include "types.hpp"
 
 namespace usb_cb_hooks {
 

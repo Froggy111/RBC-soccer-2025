@@ -2,6 +2,7 @@
 add_library(types)
 target_sources(types
   PUBLIC
-    include/lib/types.hpp)
+    include/types.hpp)
 target_include_directories(types PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
-link_libraries(types) # universally used
+target_link_globals(types)
+add_global_library(types)

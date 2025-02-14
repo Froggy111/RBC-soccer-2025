@@ -1,7 +1,8 @@
 add_library(hardware-descriptors)
 target_sources(hardware-descriptors
   INTERFACE
-    include/lib/pinmap.hpp
+    include/pinmap.hpp
 )
 target_include_directories(hardware-descriptors PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
-link_libraries(hardware-descriptors) # universally used
+target_link_globals(hardware-descriptors)
+add_global_library(hardware-descriptors)
