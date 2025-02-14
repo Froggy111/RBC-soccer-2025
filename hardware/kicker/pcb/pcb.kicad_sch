@@ -3717,7 +3717,6 @@
 	)
 	(label "INA"
 		(at 54.61 87.63 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3728,7 +3727,6 @@
 	)
 	(label "OUTB"
 		(at 54.61 95.25 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3739,7 +3737,6 @@
 	)
 	(label "OUTA"
 		(at 172.72 92.71 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3750,7 +3747,6 @@
 	)
 	(label "OUTA"
 		(at 143.51 86.36 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3761,7 +3757,6 @@
 	)
 	(label "INB"
 		(at 104.14 96.52 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3772,7 +3767,6 @@
 	)
 	(label "OUTB"
 		(at 143.51 105.41 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3783,7 +3777,6 @@
 	)
 	(label "FB"
 		(at 113.03 53.34 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3794,7 +3787,6 @@
 	)
 	(label "INB"
 		(at 54.61 97.79 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3805,7 +3797,6 @@
 	)
 	(label "INA"
 		(at 104.14 93.98 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3816,7 +3807,6 @@
 	)
 	(label "FB"
 		(at 73.66 49.53 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6355,7 +6345,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10kR"
+		(property "Value" "10R"
 			(at 165.1 96.5199 0)
 			(effects
 				(font
