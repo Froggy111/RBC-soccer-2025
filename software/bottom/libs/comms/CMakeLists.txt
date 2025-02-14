@@ -6,13 +6,15 @@ target_sources(comms
     comms.cpp
     usb.cpp
     uart.cpp
+    usb_descriptors.c
   INTERFACE # this can prob be privated, but idk
-    usb.hpp
-    uart.hpp
+    include/comms/usb.hpp
+    include/comms/uart.hpp
+    include/comms/default_usb_config.h
   PUBLIC
-    comms.hpp
-    identifiers.hpp
-    errors.hpp
+    include/comms.hpp
+    include/identifiers.hpp
+    include/errors.hpp
 )
 
 add_library(debug_) # named debug_ to avoid clashing with cmake option debug
@@ -20,7 +22,7 @@ target_sources(debug_
   PRIVATE
     debug.cpp
   PUBLIC
-    debug.hpp
+    include/debug.hpp
 )
 target_link_libraries(debug_ comms)
 link_libraries(debug_)

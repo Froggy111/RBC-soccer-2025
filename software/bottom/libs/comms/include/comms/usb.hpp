@@ -33,17 +33,15 @@ namespace usb {
 static const types::u16 max_recieve_buf_size =
     USB_RX_BUFSIZE; // this should absolutely be enough for all recieved commands
 
-struct CurrentRecvState {
+struct CurrentRXState {
   types::u8 length_bytes_recieved = 0;
   types::u16 expected_length = 0;
   types::u16 recieved_length = 0;
-  types::u8 parity_byte = 0;
   types::u8 *data_buffer = nullptr;
   inline void reset(void) {
     length_bytes_recieved = 0;
     expected_length = 0;
     recieved_length = 0;
-    parity_byte = 0;
     memset(0, data_buffer, max_recieve_buf_size);
   }
 };
@@ -63,13 +61,11 @@ public:
    * @param data: u8 array
    * @param len: length of data
    */
-  inline static void write(const types::u8 *data, const types::u16 len) {
-    stdio_put_string((char *)data, len, false, false);
-  }
+  static void write(const types::u8 *data, const types::u16 len);
   /**
    * @brief flush write buffer
    */
-  inline static void flush(void) { stdio_flush(); }
+  static void flush(void);
   /**
    * @brief sends data, formatted correctly, will flush buffer.
    * @param idenfitier: identifier for the sent data
@@ -107,11 +103,11 @@ private:
   static void _set_data_avail_callback(void (*function)(void *), void *args);
   /**
    * @brief callback that adds to data buffer while parsing length. Feeds command into command_recv_callback.
-   * @param args: ptr to CurrentRecvState (is cast to void ptr due to the stdio callback hook being void ptr).
+   * @param args: ptr to CurrentRXState (is cast to void ptr due to the stdio callback hook being void ptr).
    */
   static void _data_avail_callback(void *args);
   types::u8 _read_buffer[max_recieve_buf_size] = {0};
-  CurrentRecvState _current_recv_state;
+  CurrentRXState _current_recv_state;
 };
 
 } // namespace usb

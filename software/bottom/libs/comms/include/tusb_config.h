@@ -1,15 +1,18 @@
 #include "libs/comms/default_usb_config.h"
+#ifndef _TUSB_CONFIG_H_
+#define _TUSB_CONFIG_H_
 
-#define CFG_TUSB_RHPORT0_MODE (OPT_MODE_DEVICE)
+// RHPort number used for device
+#define CFG_TUSB_RHPORT0_MODE OPT_MODE_DEVICE
 
-#define CFG_TUD_CDC (1)
-#define CFG_TUD_CDC_RX_BUFSIZE (USB_RX_BUFSIZE)
-#define CFG_TUD_CDC_TX_BUFSIZE (USB_TX_BUFSIZE)
+// Device mode configuration
+#define CFG_TUD_CDC 1
+#define CFG_TUD_CDC_RX_BUFSIZE USB_RX_BUFSIZE
+#define CFG_TUD_CDC_TX_BUFSIZE USB_TX_BUFSIZE
 
-#if !PICO_STDIO_USB_RESET_INTERFACE_SUPPORT_MS_OS_20_DESCRIPTOR
-#define CFG_TUD_VENDOR (0)
-#else
-#define CFG_TUD_VENDOR (1)
-#define CFG_TUD_VENDOR_RX_BUFSIZE (USB_RX_BUFSIZE)
-#define CFG_TUD_VENDOR_TX_BUFSIZE (USB_TX_BUFSIZE)
-#endif
+// Enable vendor interface for reset functionality
+#define CFG_TUD_VENDOR 1
+#define CFG_TUD_VENDOR_RX_BUFSIZE USB_RX_BUFSIZE
+#define CFG_TUD_VENDOR_TX_BUFSIZE USB_TX_BUFSIZE
+
+#endif /* _TUSB_CONFIG_H_ */

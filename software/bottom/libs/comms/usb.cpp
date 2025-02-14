@@ -1,16 +1,21 @@
 #include "libs/comms/usb.hpp"
+#include "class/cdc/cdc_device.h"
 #include "libs/comms/errors.hpp"
 #include "libs/comms/identifiers.hpp"
 #include "libs/utils/types.hpp"
 extern "C" {
 #include <hardware/gpio.h>
-#include <pico/stdio.h>
 #include <pico/stdlib.h>
+#include <tusb.h>
 }
 
 using namespace types;
 
+void tud_cdc_rx_cb(uint8_t itf) {}
+
 namespace usb {
+
+CurrentRecvState state;
 
 CDC::CDC() {}
 

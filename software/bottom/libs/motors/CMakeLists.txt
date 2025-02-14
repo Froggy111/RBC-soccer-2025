@@ -1,3 +1,4 @@
+include_directories(include)
 add_library(DRV8244)
 target_sources(DRV8244
   PRIVATE

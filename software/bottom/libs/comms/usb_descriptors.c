@@ -1,171 +1,123 @@
-// NOTE: Copied and modified from pico_stdio_usb/stdio_usb_descriptors.c
+#include "pico/unique_id.h"
+#include "tusb.h"
+#include <pico/usb_reset_interface.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+// Private constants for USB descriptors
+#define USB_VID 0x2E8A // Raspberry Pi
+#define USB_PID 0x000a // Pico SDK CDC
 
-#include <pico/stdio_usb/reset_interface.h>
-#include <pico/unique_id.h>
-#include <tusb.h>
+// Interface numbers
+#define USB_CDC_INTERFACE 0    // CDC interfaces start at 0
+#define USB_VENDOR_INTERFACE 2 // Vendor interface comes after CDC
 
-#ifndef USBD_VID
-#define USBD_VID (0x2E8A) // Raspberry Pi
-#endif
+// Endpoint numbers
+#define EP_CDC_NOTIF 0x81
+#define EP_CDC_OUT 0x02
+#define EP_CDC_IN 0x82
+#define EP_VENDOR_OUT 0x03 // Added vendor endpoints
+#define EP_VENDOR_IN 0x83
 
-#ifndef USBD_PID
-#if PICO_RP2040
-#define USBD_PID (0x000a) // Raspberry Pi Pico SDK CDC for RP2040
-#else
-#define USBD_PID (0x0009) // Raspberry Pi Pico SDK CDC
-#endif
-#endif
+// String index constants
+#define USB_STR_ZERO 0
+#define USB_STR_MANUF 1
+#define USB_STR_PRODUCT 2
+#define USB_STR_SERIAL 3
+#define USB_STR_CDC 4
+#define USB_STR_VENDOR 5
 
-#ifndef USBD_MANUFACTURER
-#define USBD_MANUFACTURER "BotByWire"
-#endif
-
-#ifndef USBD_PRODUCT
-#define USBD_PRODUCT "Pico"
-#endif
-
-#define TUD_RPI_RESET_DESC_LEN 9
-#if !PICO_STDIO_USB_ENABLE_RESET_VIA_VENDOR_INTERFACE
-#define USBD_DESC_LEN (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN)
-#else
-#define USBD_DESC_LEN                                                          \
-  (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN + TUD_RPI_RESET_DESC_LEN)
-#endif
-#if !PICO_STDIO_USB_DEVICE_SELF_POWERED
-#define USBD_CONFIGURATION_DESCRIPTOR_ATTRIBUTE (0)
-#define USBD_MAX_POWER_MA (250)
-#else
-#define USBD_CONFIGURATION_DESCRIPTOR_ATTRIBUTE                                \
-  TUSB_DESC_CONFIG_ATT_SELF_POWERED
-#define USBD_MAX_POWER_MA (1)
-#endif
-
-#define USBD_ITF_CDC (0) // needs 2 interfaces
-#if !PICO_STDIO_USB_ENABLE_RESET_VIA_VENDOR_INTERFACE
-#define USBD_ITF_MAX (2)
-#else
-#define USBD_ITF_RPI_RESET (2)
-#define USBD_ITF_MAX (3)
-#endif
-
-#define USBD_CDC_EP_CMD (0x81)
-#define USBD_CDC_EP_OUT (0x02)
-#define USBD_CDC_EP_IN (0x82)
-#define USBD_CDC_CMD_MAX_SIZE (8)
-#define USBD_CDC_IN_OUT_MAX_SIZE (64)
-
-#define USBD_STR_0 (0x00)
-#define USBD_STR_MANUF (0x01)
-#define USBD_STR_PRODUCT (0x02)
-#define USBD_STR_SERIAL (0x03)
-#define USBD_STR_CDC (0x04)
-#define USBD_STR_RPI_RESET (0x05)
-
-// Note: descriptors returned from callbacks must exist long enough for transfer to complete
-
-static const tusb_desc_device_t usbd_desc_device = {
+// Device Descriptor
+static const tusb_desc_device_t device_descriptor = {
     .bLength = sizeof(tusb_desc_device_t),
     .bDescriptorType = TUSB_DESC_DEVICE,
-// On Windows, if bcdUSB = 0x210 then a Microsoft OS 2.0 descriptor is required, else the device won't be detected
-// This is only needed for driverless access to the reset interface - the CDC interface doesn't require these descriptors
-// for driverless access, but will still not work if bcdUSB = 0x210 and no descriptor is provided. Therefore always
-// use bcdUSB = 0x200 if the Microsoft OS 2.0 descriptor isn't enabled
-#if PICO_STDIO_USB_ENABLE_RESET_VIA_VENDOR_INTERFACE &&                        \
-    PICO_STDIO_USB_RESET_INTERFACE_SUPPORT_MS_OS_20_DESCRIPTOR
-    .bcdUSB = 0x0210,
-#else
     .bcdUSB = 0x0200,
-#endif
     .bDeviceClass = TUSB_CLASS_MISC,
     .bDeviceSubClass = MISC_SUBCLASS_COMMON,
     .bDeviceProtocol = MISC_PROTOCOL_IAD,
     .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
-    .idVendor = USBD_VID,
-    .idProduct = USBD_PID,
+    .idVendor = USB_VID,
+    .idProduct = USB_PID,
     .bcdDevice = 0x0100,
-    .iManufacturer = USBD_STR_MANUF,
-    .iProduct = USBD_STR_PRODUCT,
-    .iSerialNumber = USBD_STR_SERIAL,
-    .bNumConfigurations = 1,
+    .iManufacturer = USB_STR_MANUF,
+    .iProduct = USB_STR_PRODUCT,
+    .iSerialNumber = USB_STR_SERIAL,
+    .bNumConfigurations = 1};
+
+// Configuration Descriptor
+#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN + 9 + 7)
+
+static const uint8_t configuration_descriptor[] = {
+    // Config number, interface count, string index, total length, attribute,
+    // power in mA
+    TUD_CONFIG_DESCRIPTOR(1, 3, 0, CONFIG_TOTAL_LEN,
+                          TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 100),
+
+    // CDC with Interface Association Descriptor (IAD)
+    TUD_CDC_DESCRIPTOR(USB_CDC_INTERFACE, USB_STR_CDC, EP_CDC_NOTIF,
+                       8, // Notification endpoint & size
+                       EP_CDC_OUT, EP_CDC_IN, 64), // Data endpoints & size
+
+    // Vendor interface descriptor with dummy endpoint so picotool can detect it
+    9,                          // bLength
+    TUSB_DESC_INTERFACE,        // bDescriptorType
+    USB_VENDOR_INTERFACE,       // bInterfaceNumber
+    0,                          // bAlternateSetting
+    1,                          // bNumEndpoints (changed from 0 to 1)
+    TUSB_CLASS_VENDOR_SPECIFIC, // bInterfaceClass
+    RESET_INTERFACE_SUBCLASS,   // bInterfaceSubClass
+    RESET_INTERFACE_PROTOCOL,   // bInterfaceProtocol
+    USB_STR_VENDOR,             // iInterface
+
+    // Dummy endpoint descriptor for the reset interface (not actually used for
+    // data)
+    7,                  // bLength (size of endpoint descriptor)
+    TUSB_DESC_ENDPOINT, // bDescriptorType (endpoint)
+    EP_VENDOR_OUT, // bEndpointAddress (choose the OUT endpoint, for example)
+    0x03, // bmAttributes: Bulk transfer (could also be Interrupt if preferred)
+    64,   // wMaxPacketSize
+    0     // bInterval
 };
 
-#define TUD_RPI_RESET_DESCRIPTOR(_itfnum, _stridx)                             \
-  /* Interface */                                                              \
-  9, TUSB_DESC_INTERFACE, _itfnum, 0, 0, TUSB_CLASS_VENDOR_SPECIFIC,           \
-      RESET_INTERFACE_SUBCLASS, RESET_INTERFACE_PROTOCOL, _stridx,
+// String Descriptors
+static char serial_str[PICO_UNIQUE_BOARD_ID_SIZE_BYTES * 2 + 1];
 
-static const uint8_t usbd_desc_cfg[USBD_DESC_LEN] = {
-    TUD_CONFIG_DESCRIPTOR(1, USBD_ITF_MAX, USBD_STR_0, USBD_DESC_LEN,
-                          USBD_CONFIGURATION_DESCRIPTOR_ATTRIBUTE,
-                          USBD_MAX_POWER_MA),
+static const char *string_descriptors[] = {[USB_STR_MANUF] = "Raspberry Pi",
+                                           [USB_STR_PRODUCT] = "Pico",
+                                           [USB_STR_SERIAL] = serial_str,
+                                           [USB_STR_CDC] = "Board CDC",
+                                           [USB_STR_VENDOR] =
+                                               "Reset Interface"};
 
-    TUD_CDC_DESCRIPTOR(USBD_ITF_CDC, USBD_STR_CDC, USBD_CDC_EP_CMD,
-                       USBD_CDC_CMD_MAX_SIZE, USBD_CDC_EP_OUT, USBD_CDC_EP_IN,
-                       USBD_CDC_IN_OUT_MAX_SIZE),
-
-#if PICO_STDIO_USB_ENABLE_RESET_VIA_VENDOR_INTERFACE
-    TUD_RPI_RESET_DESCRIPTOR(USBD_ITF_RPI_RESET, USBD_STR_RPI_RESET)
-#endif
-};
-
-static char usbd_serial_str[PICO_UNIQUE_BOARD_ID_SIZE_BYTES * 2 + 1];
-
-static const char *const usbd_desc_str[] = {
-    [USBD_STR_MANUF] = USBD_MANUFACTURER, [USBD_STR_PRODUCT] = USBD_PRODUCT,
-    [USBD_STR_SERIAL] = usbd_serial_str,  [USBD_STR_CDC] = "Board CDC",
-#if PICO_STDIO_USB_ENABLE_RESET_VIA_VENDOR_INTERFACE
-    [USBD_STR_RPI_RESET] = "Reset",
-#endif
-};
-
-const uint8_t *tud_descriptor_device_cb(void) {
-  return (const uint8_t *)&usbd_desc_device;
+// Callbacks remain the same
+uint8_t const *tud_descriptor_device_cb(void) {
+  return (uint8_t const *)&device_descriptor;
 }
 
-const uint8_t *tud_descriptor_configuration_cb(__unused uint8_t index) {
-  return usbd_desc_cfg;
+uint8_t const *tud_descriptor_configuration_cb(uint8_t index) {
+  (void)index;
+  return configuration_descriptor;
 }
 
-const uint16_t *tud_descriptor_string_cb(uint8_t index,
-                                         __unused uint16_t langid) {
-#ifndef USBD_DESC_STR_MAX
-#define USBD_DESC_STR_MAX (20)
-#elif USBD_DESC_STR_MAX > 127
-#error USBD_DESC_STR_MAX too high (max is 127).
-#elif USBD_DESC_STR_MAX < 17
-#error USBD_DESC_STR_MAX too low (min is 17).
-#endif
-  static uint16_t desc_str[USBD_DESC_STR_MAX];
+uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
+  static uint16_t desc_str[32];
+  uint8_t len;
 
-  // Assign the SN using the unique flash id
-  if (!usbd_serial_str[0]) {
-    pico_get_unique_board_id_string(usbd_serial_str, sizeof(usbd_serial_str));
+  if (!serial_str[0]) {
+    pico_get_unique_board_id_string(serial_str, sizeof(serial_str));
   }
 
-  uint8_t len;
   if (index == 0) {
-    desc_str[1] = 0x0409; // supported language is English
+    desc_str[1] = 0x0409; // English
     len = 1;
   } else {
-    if (index >= sizeof(usbd_desc_str) / sizeof(usbd_desc_str[0])) {
+    if (index >= sizeof(string_descriptors) / sizeof(string_descriptors[0])) {
       return NULL;
     }
-    const char *str = usbd_desc_str[index];
-    for (len = 0; len < USBD_DESC_STR_MAX - 1 && str[len]; ++len) {
+    const char *str = string_descriptors[index];
+    for (len = 0; len < 31 && str[len]; ++len) {
       desc_str[1 + len] = str[len];
     }
   }
 
-  // first byte is length (including header), second byte is string type
-  desc_str[0] = (uint16_t)((TUSB_DESC_STRING << 8) | (2 * len + 2));
-
+  desc_str[0] = (TUSB_DESC_STRING << 8) | (2 * len + 2);
   return desc_str;
 }
-
-#ifdef __cplusplus
-}
-#endif
