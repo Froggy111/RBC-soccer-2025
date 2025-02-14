@@ -4,17 +4,19 @@
 #include "tusb.h"
 #include "types.hpp"
 
-namespace usb_cb_hooks {
+using namespace types;
 
-using tud_cdc_line_coding_cb_t = void (*)(types::u8, const cdc_line_coding_t,
+namespace usb_cb {
+
+using cdc_line_coding_cb_t = void (*)(u8, const cdc_line_coding_t, void *);
+using vendor_control_xfer_cb_t = void (*)(u8, u8, const tusb_control_request_t,
                                           void *);
-using tud_vendor_control_xfer_cb_t = void (*)(u8, u8,
-                                              const tusb_control_request_t,
-                                              void *);
+cdc_line_coding_cb_t line_coding_cb_fn = nullptr;
+void *line_coding_cb_user_args = nullptr;
 
-tud_cdc_line_coding_cb_t tud_line_coding_cb;
-
-} // namespace usb_cb_hooks
+vendor_control_xfer_cb_t vendor_control_xfer_cb_fn = nullptr;
+void *vendor_control_xfer_cb_user_args = nullptr;
+} // namespace usb_cb
 
 // CDC callbacks
 void tud_cdc_line_coding_cb(uint8_t itf, cdc_line_coding_t const *coding) {

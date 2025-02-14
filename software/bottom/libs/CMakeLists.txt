@@ -28,6 +28,8 @@ function(target_link_globals target_name)
   endforeach()
 endfunction()
 
+add_global_library(pico_stdlib)
+
 # utils should always be first
 add_subdirectory(utils) # this also links common util libs
 
