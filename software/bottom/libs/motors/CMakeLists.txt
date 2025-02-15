@@ -10,7 +10,7 @@ target_sources(DRV8244
     include/dbg_pins.hpp
     include/faults.hpp
     include/status.hpp
-    include/driver_pinmap.hpp
+    include/pin_selector.hpp
 )
 target_include_directories(DRV8244 PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(DRV8244 hardware_spi)

@@ -22,7 +22,7 @@ private:
 
   PinInputControl inputControl;
   PinOutputControl outputControl;
-  std::map<std::string, types::u8> pinmap;
+  PinSelector pinSelector;
 
 public:
   void init(types::u8 id, types::u16 SPI_SPEED);
