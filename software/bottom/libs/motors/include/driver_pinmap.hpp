@@ -1,7 +1,8 @@
-#include "libs/hardware-descriptors/pinmap.hpp"
-#include "libs/utils/types.hpp"
-#include <map>
-#include <string>
+#include "pinmap.hpp"
+#include "types.hpp"
+extern "C" {
+#include <pico/stdlib.h>
+}
 
 typedef std::map<std::string, types::u8> DriverPinMap;
 

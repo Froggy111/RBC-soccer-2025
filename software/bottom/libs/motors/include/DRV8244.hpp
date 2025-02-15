@@ -1,8 +1,9 @@
 #pragma once
-#include "libs/utils/types.hpp"
-#include "pico/stdio.h"
+#include "types.hpp"
 #include "dbg_pins.hpp"
-#include <string>
+extern "C" {
+#include <pico/stdlib.h>
+}
 
 class MotorDriver {
 private:

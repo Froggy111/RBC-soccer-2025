@@ -1,14 +1,13 @@
 #include "DRV8244.hpp"
-#include "hardware/gpio.h"
 #include "hardware/spi.h"
-#include "hardware/uart.h"
-#include "libs/utils/types.hpp"
-#include "pico/stdio.h"
-#include "pico/stdlib.h"
+#include "types.hpp"
 #include "pinmap.hpp"
 #include "dbg_pins.hpp"
 #include "faults.hpp"
 #include "status.hpp"
+extern "C" {
+#include <pico/stdlib.h>
+}
 
 #define DEFAULT_NSLEEP 1 // nSleep on by default
 #define DEFAULT_DRVOFF 1 // driver off by default

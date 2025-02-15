@@ -1,8 +1,8 @@
-#include "pico/stdlib.h"
-#include "pinmap.hpp"
+#include "driver_pinmap.hpp"
 #include "dbg_pins.hpp"
-#include <map>
-#include <iostream>
+extern "C" {
+#include <pico/stdlib.h>
+}
 
 // pins responsible for providing input to DRV8244
 void PinInputControl::init_digital(DigitalPinMap pin, bool value)
