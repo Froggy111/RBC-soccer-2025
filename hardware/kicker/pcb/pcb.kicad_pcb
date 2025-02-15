@@ -8582,7 +8582,7 @@
 			(justify left bottom)
 		)
 	)
-	(gr_text_box "VCC|INA|GND|GND"
+	(gr_text_box "GND|GND|INA|VCC"
 		(start -48 -1.475)
 		(end -46.6 -11.725)
 		(angle 90)
