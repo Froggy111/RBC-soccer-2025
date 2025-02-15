@@ -4,6 +4,8 @@
 #include "dbg_pins.hpp"
 #include "faults.hpp"
 #include "status.hpp"
+#include "debug.hpp"
+#include "hardware/spi.h"
 
 #define DEFAULT_NSLEEP 1 // nSleep on by default
 #define DEFAULT_DRVOFF 1 // driver off by default
@@ -14,20 +16,20 @@
 // ! init
 // use -1 as driver_id for debug pins
 void MotorDriver::init(types::u8 id, types::u16 SPI_SPEED) {
-  printf("---> Initializing DRV8244");
+  debug::msg("---> Initializing DRV8244");
   if (id == (types::u8) -1) {
     pinSelector.set_debug_mode(true);
   } else {
     pinSelector.set_driver_id(id);
   }
 
-  printf("Initializing SPI");
+  debug::msg("Initializing SPI");
   init_spi(SPI_SPEED);
 
-  printf("Initializing pins");
+  debug::msg("Initializing pins");
   init_pins();
 
-  printf("---> DRV8244 initialized");
+  debug::msg("---> DRV8244 initialized");
 }
 
 void MotorDriver::init_spi(types::u16 SPI_SPEED) {
@@ -122,23 +124,23 @@ std::string MotorDriver::read_status2() {
 
 //! on error
 void MotorDriver::handle_error(void* _) {
-  printf("---> DRV8244 Fault Detected!");
+  debug::msg("---> DRV8244 Fault Detected!");
 
   bool isActive = inputControl.get_last_value(pinSelector.get_pin(NSLEEP));
   if (isActive) {
-    printf("Driver is ACTIVE. Reading active state registers...");
+    debug::msg("Driver is ACTIVE. Reading active state registers...");
 
     // Read registers that provide diagnostic data during active operation.
-    printf("FAULT_SUMMARY: %s", read_fault_summary());
-    printf("STATUS1: %s", read_status1());
-    printf("STATUS2: %s", read_status1());
+    debug::msg("FAULT_SUMMARY: " + read_fault_summary());
+    debug::msg("STATUS1: " + read_status1());
+    debug::msg("STATUS2: " + read_status1());
   } else {
-    printf("Driver is in STANDBY.");
+    debug::msg("Driver is in STANDBY.");
     // TODO: Implement standby state fault handling
   }
 
   // * try to clear the fault
-  printf("Attempting to clear the fault...");
+  debug::msg("Attempting to clear the fault...");
   // TODO: Implement fault clearing
 }
 
@@ -152,21 +154,23 @@ void MotorDriver::command(types::u16 duty_cycle, bool direction) {
   if (!isActive || isFault || isOff) {
     // * check if the driver is active
     if (!isActive) {
-      printf("Driver is not active. Cannot command motor.");
+      debug::msg("Driver is not active. Cannot command motor.");
       return;
     }
 
     // * check if the driver is off
     if (isOff) {
-      printf("Driver is off. Cannot command motor.");
+      debug::msg("Driver is off. Cannot command motor.");
       return;
     }
 
     // * check if the driver is in fault
     if (isFault) {
-      printf("Driver has faulted. Cannot command motor.");
+      debug::msg("Driver has faulted. Cannot command motor.");
       return;
     }
+
+    
   }
 
   // * command the motor
