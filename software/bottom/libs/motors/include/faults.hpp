@@ -1,6 +1,6 @@
 #pragma once
-#include "libs/utils/types.hpp"
 #include <string>
+#include "types.hpp"
 
 namespace Fault {
 enum class Fault : types::u8 {

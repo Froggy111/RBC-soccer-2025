@@ -1,50 +1,52 @@
 #include "DRV8244.hpp"
-#include "hardware/gpio.h"
-#include "hardware/spi.h"
-#include "hardware/uart.h"
-#include "libs/utils/types.hpp"
-#include "pico/stdio.h"
-#include "pico/stdlib.h"
-#include "pinmap.hpp"
+#include "types.hpp"
+#include "pin_selector.hpp"
 #include "dbg_pins.hpp"
 #include "faults.hpp"
 #include "status.hpp"
+#include "debug.hpp"
+#include "hardware/spi.h"
 
 #define DEFAULT_NSLEEP 1 // nSleep on by default
 #define DEFAULT_DRVOFF 1 // driver off by default
 #define DEFAULT_IN1 0    // IN1 off by default
 #define DEFAULT_IN2 0    // IN2 off by default
+#define DEFAULT_CS 1     // CS high by default
 
 // ! init
 // use -1 as driver_id for debug pins
 void MotorDriver::init(types::u8 id, types::u16 SPI_SPEED) {
-  printf("---> Initializing DRV8244");
-  pinmap = generate_pinmap(id);
+  debug::msg("---> Initializing DRV8244");
+  if (id == (types::u8) -1) {
+    pinSelector.set_debug_mode(true);
+  } else {
+    pinSelector.set_driver_id(id);
+  }
 
-  printf("Initializing SPI");
+  debug::msg("Initializing SPI");
   init_spi(SPI_SPEED);
 
-  printf("Initializing pins");
+  debug::msg("Initializing pins");
   init_pins();
 
-  printf("---> DRV8244 initialized");
+  debug::msg("---> DRV8244 initialized");
 }
 
 void MotorDriver::init_spi(types::u16 SPI_SPEED) {
   // Initialize SPI pins
-  gpio_set_function(pinmap["SCK"], GPIO_FUNC_SPI);
-  gpio_set_function(pinmap["MOSI"], GPIO_FUNC_SPI);
-  gpio_set_function(pinmap["MISO"], GPIO_FUNC_SPI);
-  gpio_set_function(pinmap["CS"], GPIO_FUNC_SPI);
+  gpio_set_function(pinSelector.get_pin(SCK), GPIO_FUNC_SPI);
+  gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
+  gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
+  gpio_set_function(pinSelector.get_pin(CS), GPIO_FUNC_SPI);
 
   // Set SPI format
   spi_init(spi0, SPI_SPEED);
   spi_set_format(spi0, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 
   // Set CS pin as output
-  gpio_init(pinmap["CS"]);
-  gpio_set_dir(pinmap["CS"], GPIO_OUT);
-  gpio_put(pinmap["CS"], 1); // Set CS high (inactive)
+  gpio_init(pinSelector.get_pin(CS));
+  gpio_set_dir(pinSelector.get_pin(CS), GPIO_OUT);
+  gpio_put(pinSelector.get_pin(CS), DEFAULT_CS);
 }
 
 void MotorDriver::init_registers_through_spi() {}
@@ -52,23 +54,23 @@ void MotorDriver::init_registers_through_spi() {}
 void MotorDriver::init_pins() {
   // Initialize pins
   // nFault
-  outputControl.init_digital(pinmap["NFAULT"]);
+  outputControl.init_digital(pinSelector.get_pin(NFAULT));
 
   // iPROPi
-  inputControl.init(pinmap["IPROPI"]);
-  outputControl.init_digital(pinmap["IPROPI"]);
+  inputControl.init(pinSelector.get_pin(IPROPI));
+  outputControl.init_digital(pinSelector.get_pin(IPROPI));
 
   // nSleep
-  inputControl.init_digital(pinmap["NSLEEP"], DEFAULT_NSLEEP);
+  inputControl.init_digital(pinSelector.get_pin(NSLEEP), DEFAULT_NSLEEP);
 
   // DRVOFF
-  inputControl.init_digital(pinmap["DRVOFF"], DEFAULT_DRVOFF);
+  inputControl.init_digital(pinSelector.get_pin(DRVOFF), DEFAULT_DRVOFF);
 
   // EN/IN1
-  inputControl.init_digital(pinmap["IN1"], DEFAULT_IN1);
+  inputControl.init_digital(pinSelector.get_pin(IN1), DEFAULT_IN1);
 
   // PH/IN2
-  inputControl.init_digital(pinmap["IN2"], DEFAULT_IN2);
+  inputControl.init_digital(pinSelector.get_pin(IN2), DEFAULT_IN2);
 }
 
 //! register handling
@@ -81,10 +83,10 @@ uint8_t MotorDriver::read8(uint8_t reg) {
   txBuf[1] = 0x00; // dummy byte
 
   // Assert chip-select (active low)
-  gpio_put(pinmap["CS"], 0);
+  gpio_put(pinSelector.get_pin(CS), 0);
   spi_write_read_blocking(spi0, txBuf, rxBuf, 2);
   // Deassert chip-select
-  gpio_put(pinmap["CS"], 1);
+  gpio_put(pinSelector.get_pin(CS), 1);
 
   // Return the second byte received (the register data)
   return rxBuf[1];
@@ -98,10 +100,10 @@ void MotorDriver::write8(uint8_t reg, uint8_t data) {
   txBuf[1] = data;
 
   // Assert chip-select (active low)
-  gpio_put(pinmap["CS"], 0);
+  gpio_put(pinSelector.get_pin(CS), 0);
   spi_write_blocking(spi0, txBuf, 2);
   // Deassert chip-select
-  gpio_put(pinmap["CS"], 1);
+  gpio_put(pinSelector.get_pin(CS), 1);
 }
 
 //! reading specific registers
@@ -122,51 +124,53 @@ std::string MotorDriver::read_status2() {
 
 //! on error
 void MotorDriver::handle_error(void* _) {
-  printf("---> DRV8244 Fault Detected!");
+  debug::msg("---> DRV8244 Fault Detected!");
 
-  bool isActive = inputControl.get_last_value(pinmap["NSLEEP"]);
+  bool isActive = inputControl.get_last_value(pinSelector.get_pin(NSLEEP));
   if (isActive) {
-    printf("Driver is ACTIVE. Reading active state registers...");
+    debug::msg("Driver is ACTIVE. Reading active state registers...");
 
     // Read registers that provide diagnostic data during active operation.
-    printf("FAULT_SUMMARY: %s", read_fault_summary());
-    printf("STATUS1: %s", read_status1());
-    printf("STATUS2: %s", read_status1());
+    debug::msg("FAULT_SUMMARY: " + read_fault_summary());
+    debug::msg("STATUS1: " + read_status1());
+    debug::msg("STATUS2: " + read_status1());
   } else {
-    printf("Driver is in STANDBY.");
+    debug::msg("Driver is in STANDBY.");
     // TODO: Implement standby state fault handling
   }
 
   // * try to clear the fault
-  printf("Attempting to clear the fault...");
+  debug::msg("Attempting to clear the fault...");
   // TODO: Implement fault clearing
 }
 
 void MotorDriver::command(types::u16 duty_cycle, bool direction) {
-  bool isActive = inputControl.get_last_value(pinmap["NSLEEP"]);
-  bool isFault = outputControl.read_digital(pinmap["NFAULT"]);
-  bool isOff = inputControl.get_last_value(pinmap["DRVOFF"]);
+  bool isActive = inputControl.get_last_value(pinSelector.get_pin(NSLEEP));
+  bool isFault = outputControl.read_digital(pinSelector.get_pin(NFAULT));
+  bool isOff = inputControl.get_last_value(pinSelector.get_pin(DRVOFF));
 
   // trying to optimize for overhead when conditions are correct
   // but compiler exists
   if (!isActive || isFault || isOff) {
     // * check if the driver is active
     if (!isActive) {
-      printf("Driver is not active. Cannot command motor.");
+      debug::msg("Driver is not active. Cannot command motor.");
       return;
     }
 
     // * check if the driver is off
     if (isOff) {
-      printf("Driver is off. Cannot command motor.");
+      debug::msg("Driver is off. Cannot command motor.");
       return;
     }
 
     // * check if the driver is in fault
     if (isFault) {
-      printf("Driver has faulted. Cannot command motor.");
+      debug::msg("Driver has faulted. Cannot command motor.");
       return;
     }
+
+    
   }
 
   // * command the motor

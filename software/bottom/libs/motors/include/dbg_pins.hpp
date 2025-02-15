@@ -1,7 +1,7 @@
 #pragma once
-#include "pinmap.hpp"
 #include <map>
-#include "libs/utils/types.hpp"
+#include "pinmap.hpp"
+#include "types.hpp"
 
 class PinInputControl {
 public:

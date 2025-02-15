@@ -1,8 +1,9 @@
 #pragma once
-#include "libs/utils/types.hpp"
-#include "pico/stdio.h"
+#include "types.hpp"
 #include "dbg_pins.hpp"
-#include <string>
+extern "C" {
+#include <pico/stdlib.h>
+}
 
 class MotorDriver {
 private:
@@ -21,7 +22,7 @@ private:
 
   PinInputControl inputControl;
   PinOutputControl outputControl;
-  std::map<std::string, types::u8> pinmap;
+  PinSelector pinSelector;
 
 public:
   void init(types::u8 id, types::u16 SPI_SPEED);
