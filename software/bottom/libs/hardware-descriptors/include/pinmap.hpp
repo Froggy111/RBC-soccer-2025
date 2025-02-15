@@ -1,5 +1,5 @@
 #pragma once
-#include "libs/utils/types.hpp"
+#include "types.hpp"
 
 namespace pinmap {
 

@@ -1,7 +1,7 @@
 #pragma once
-#include "libs/comms/uart.hpp"
-#include "libs/comms/usb.hpp"
-#include "libs/utils/types.hpp"
+#include "comms/uart.hpp"
+#include "comms/usb.hpp"
+#include "types.hpp"
 
 /**
  * INFO:
@@ -12,4 +12,9 @@
  * The rest is passed to the specific handler.
  */
 
-namespace comms {}
+namespace comms {
+
+extern usb::CDC USB_CDC;
+extern uart::Serial UART_serial;
+
+} // namespace comms

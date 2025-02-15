@@ -1,7 +1,7 @@
-#include "libs/comms/comms.hpp"
-#include "lib/types.hpp"
-#include "libs/comms/uart.hpp"
-#include "libs/comms/usb.hpp"
+#include "comms.hpp"
+#include "comms/uart.hpp"
+#include "comms/usb.hpp"
+#include "types.hpp"
 
 /**
  * INFO:
@@ -12,4 +12,9 @@
  * The rest is passed to the specific handler.
  */
 
-namespace comms {}
+namespace comms {
+
+usb::CDC USB_CDC;
+uart::Serial UART_serial;
+
+} // namespace comms

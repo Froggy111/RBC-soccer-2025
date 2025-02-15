@@ -8,10 +8,10 @@
  * Not urgent though, probably does not matter by too much.
  */
 
-#include "libs/comms/identifiers.hpp"
-#include "libs/utils/types.hpp"
+#include "comms/default_usb_config.h"
+#include "identifiers.hpp"
+#include "types.hpp"
 extern "C" {
-#include "libs/comms/default_usb_config.h"
 #include <pico/bootrom.h>
 #include <pico/stdio.h>
 #include <pico/stdlib.h>
@@ -55,7 +55,7 @@ class CDC {
 public:
   CDC();
   bool init(void);
-
+  inline bool is_initialised(void) { return _is_initialised; }
   /**
    * @brief write data from buffer
    * @param data: u8 array
@@ -106,6 +106,7 @@ private:
    * @param args: ptr to CurrentRXState (is cast to void ptr due to the stdio callback hook being void ptr).
    */
   static void _data_avail_callback(void *args);
+  bool _is_initialised = false;
   types::u8 _read_buffer[max_recieve_buf_size] = {0};
   CurrentRXState _current_recv_state;
 };

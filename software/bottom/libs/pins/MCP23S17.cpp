@@ -1,7 +1,7 @@
-#include "libs/hardware-descriptors/pinmap.hpp"
-#include "pins.hpp"
 #include "hardware/gpio.h"
 #include "hardware/spi.h"
+#include "pinmap.hpp"
+#include "pins.hpp"
 #include <cassert>
 #include <cstdint>
 #include <pico/stdlib.h>
@@ -13,9 +13,8 @@ public:
   int32_t port_num, baud;
 
 public:
-  void init(pinmap::Pins miso, pinmap::Pins mosi, pinmap::Pins sclk, pinmap::Pins cs, int32_t
-  port,
-            int32_t baudrate) {
+  void init(pinmap::Pins miso, pinmap::Pins mosi, pinmap::Pins sclk,
+            pinmap::Pins cs, int32_t port, int32_t baudrate) {
     MISO = miso, MOSI = mosi, SCLK = sclk, CS = cs, baud = baudrate;
     if (port == 0) {
       port_num = 0;
@@ -84,8 +83,7 @@ class Pins {
     }
   }
 
-  void write8(int32_t pin, int32_t bytes, uint8_t reg_address, uint8_t
-  data[]) {
+  void write8(int32_t pin, int32_t bytes, uint8_t reg_address, uint8_t data[]) {
     switch (pin) {
     case mux1a_CS:
       mux1.write8(bytes, reg_address, data);

@@ -1,5 +1,5 @@
-#include "libs/hardware-descriptors/pinmap.hpp"
 #include "pico/stdlib.h"
+#include "pinmap.hpp"
 #include <iostream>
 #include <map>
 

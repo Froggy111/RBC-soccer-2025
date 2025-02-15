@@ -30,14 +30,17 @@ endfunction()
 
 add_global_library(pico_stdlib)
 
-# utils should always be first
-add_subdirectory(utils) # this also links common util libs
+# macro configs should be first
+add_subdirectory(config) # this links config
+
+# then utils
+add_subdirectory(utils) # this links common util libs
 
 # then hardware descriptors
-add_subdirectory(hardware-descriptors) # this also links hardware-descriptors
+add_subdirectory(hardware-descriptors) # this links hardware-descriptors
 
 # then communication interface
-add_subdirectory(comms) # this also links debug
+add_subdirectory(comms) # this links debug
 
 # then pins
 add_subdirectory(pins)

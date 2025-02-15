@@ -6,14 +6,13 @@ target_sources(comms
     uart.cpp
     usb_descriptors.c
     usb_callbacks.cpp
-  INTERFACE # this can prob be privated, but idk
+  PUBLIC
     include/comms/usb.hpp
     include/comms/uart.hpp
     include/comms/default_usb_config.h
-  PUBLIC
     include/comms.hpp
-    include/identifiers.hpp
-    include/errors.hpp
+    include/comms/identifiers.hpp
+    include/comms/errors.hpp
 )
 target_include_directories(comms PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(comms pico_unique_id pico_usb_reset_interface tinyusb_device)

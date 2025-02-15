@@ -1,8 +1,8 @@
-#include "libs/comms/usb.hpp"
+#include "comms/usb.hpp"
 #include "class/cdc/cdc_device.h"
-#include "libs/comms/errors.hpp"
-#include "libs/comms/identifiers.hpp"
-#include "libs/utils/types.hpp"
+#include "errors.hpp"
+#include "identifiers.hpp"
+#include "types.hpp"
 extern "C" {
 #include <hardware/gpio.h>
 #include <pico/stdlib.h>
@@ -28,6 +28,7 @@ bool CDC::init(void) {
   _current_recv_state.data_buffer = _read_buffer;
   // set callback for data avail, to recieve full raw commands async
   _set_data_avail_callback(_data_avail_callback, (void *)&_current_recv_state);
+  _is_initialised = true;
 }
 
 bool CDC::send_data(const comms::SendIdentifiers identifier, const u8 *data,
