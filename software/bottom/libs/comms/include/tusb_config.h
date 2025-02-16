@@ -1,4 +1,4 @@
-#include "libs/comms/default_usb_config.h"
+#include "comms/default_usb_config.h"
 #ifndef _TUSB_CONFIG_H_
 #define _TUSB_CONFIG_H_
 

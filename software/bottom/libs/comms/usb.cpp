@@ -1,7 +1,7 @@
 #include "comms/usb.hpp"
 #include "class/cdc/cdc_device.h"
-#include "errors.hpp"
-#include "identifiers.hpp"
+#include "comms/errors.hpp"
+#include "comms/identifiers.hpp"
 #include "types.hpp"
 extern "C" {
 #include <hardware/gpio.h>
@@ -15,12 +15,12 @@ void tud_cdc_rx_cb(uint8_t itf) {}
 
 namespace usb {
 
-CurrentRecvState state;
+CurrentRXState state;
 
 CDC::CDC() {}
 
 bool CDC::init(void) {
-  if (!stdio_usb_init()) {
+  if (tusb_init()) {
     return false; // some error, idk
   }
   // usb-cdc initialised, proceed

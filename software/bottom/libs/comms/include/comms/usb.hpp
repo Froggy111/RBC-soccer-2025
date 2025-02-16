@@ -54,6 +54,11 @@ struct RawCommand {
 class CDC {
 public:
   CDC();
+  /**
+   * @brief initialises USB CDC
+   * @warning must be callled after rtos scheduler is started, if using with rtos (due to tinyusb)
+   * @returns true if successfully initialised, false if not
+   */
   bool init(void);
   inline bool is_initialised(void) { return _is_initialised; }
   /**

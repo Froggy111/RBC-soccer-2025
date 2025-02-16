@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "identifiers.hpp"
+#include "comms/identifiers.hpp"
 #include "types.hpp"
 #include "comms.hpp"
 
@@ -17,7 +17,7 @@ enum class LogLevel : types::u8 {
   FATAL = (types::u8)comms::SendIdentifiers::FATAL,
 };
 
-void msg(std::string format, LogLevel log_level=LogLevel::INFO ...);
-void msg_UART(std::string format, LogLevel log_level=LogLevel::INFO ...);
+void msg(std::string format, LogLevel log_level = LogLevel::INFO, ...);
+void msg_UART(std::string format, LogLevel log_level = LogLevel::INFO, ...);
 
 } // namespace debug

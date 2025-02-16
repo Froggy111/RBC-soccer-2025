@@ -1,1 +1,3 @@
 build
+# .clangd requires arm-none-eabi sysroot path to be manually input, copy from .clangd-template
+.clangd
