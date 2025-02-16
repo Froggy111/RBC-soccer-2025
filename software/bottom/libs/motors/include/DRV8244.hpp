@@ -1,9 +1,7 @@
 #pragma once
 #include "types.hpp"
 #include "dbg_pins.hpp"
-extern "C" {
-#include <pico/stdlib.h>
-}
+#include "pin_selector.hpp"
 
 class MotorDriver {
 private:

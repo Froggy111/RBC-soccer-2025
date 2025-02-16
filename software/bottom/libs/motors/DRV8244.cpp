@@ -6,7 +6,6 @@
 #include "status.hpp"
 #include "debug.hpp"
 #include "hardware/spi.h"
-#include <stdio.h>
 
 #define DEFAULT_NSLEEP 0 // sleep by default
 #define DEFAULT_DRVOFF 0 // driver on by default
@@ -51,8 +50,8 @@ void MotorDriver::init_spi(types::u16 SPI_SPEED) {
 }
 
 void MotorDriver::init_registers_through_spi() {
-  // * set PH/EN mode
   
+
 }
 
 void MotorDriver::init_pins() {
@@ -145,29 +144,23 @@ void MotorDriver::handle_error(void* _) {
 }
 
 bool MotorDriver::check_config() {
-  bool isActive = inputControl.get_last_value(pinSelector.get_pin(NSLEEP));
-  bool isFault = outputControl.read_digital(pinSelector.get_pin(NFAULT));
-  bool isOff = inputControl.get_last_value(pinSelector.get_pin(DRVOFF));
-
-  // * check if the driver is active
-  if (!isActive) {
+  // check if the driver is active
+  if (!inputControl.get_last_value(pinSelector.get_pin(NSLEEP))) {
     debug::msg("Driver is not active. Cannot command motor.");
     return false;
   }
 
-  // * check if the driver is off
-  if (isOff) {
+  // check if the driver is off
+  if (inputControl.get_last_value(pinSelector.get_pin(DRVOFF))) {
     debug::msg("Driver is off. Cannot command motor.");
     return false;
   }
 
-  // * check if the driver is in fault
-  if (isFault) {
+  // check if the driver is in fault
+  if (outputControl.read_digital(pinSelector.get_pin(NFAULT))) {
     debug::msg("Driver has faulted. Cannot command motor.");
     return false;
   }
-
-
 }
 
 void MotorDriver::command(types::u16 duty_cycle, bool direction) {
