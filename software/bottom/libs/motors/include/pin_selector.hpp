@@ -1,3 +1,5 @@
+#pragma once
+
 #include "pinmap.hpp"
 #include "types.hpp"
 extern "C" {
