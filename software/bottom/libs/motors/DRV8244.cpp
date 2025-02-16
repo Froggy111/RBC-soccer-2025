@@ -6,9 +6,10 @@
 #include "status.hpp"
 #include "debug.hpp"
 #include "hardware/spi.h"
+#include <stdio.h>
 
-#define DEFAULT_NSLEEP 1 // nSleep on by default
-#define DEFAULT_DRVOFF 1 // driver off by default
+#define DEFAULT_NSLEEP 0 // sleep by default
+#define DEFAULT_DRVOFF 0 // driver on by default
 #define DEFAULT_IN1 0    // IN1 off by default
 #define DEFAULT_IN2 0    // IN2 off by default
 #define DEFAULT_CS 1     // CS high by default
@@ -49,16 +50,15 @@ void MotorDriver::init_spi(types::u16 SPI_SPEED) {
   gpio_put(pinSelector.get_pin(CS), DEFAULT_CS);
 }
 
-void MotorDriver::init_registers_through_spi() {}
+void MotorDriver::init_registers_through_spi() {
+  // * set PH/EN mode
+  
+}
 
 void MotorDriver::init_pins() {
   // Initialize pins
   // nFault
   outputControl.init_digital(pinSelector.get_pin(NFAULT));
-
-  // iPROPi
-  inputControl.init(pinSelector.get_pin(IPROPI));
-  outputControl.init_digital(pinSelector.get_pin(IPROPI));
 
   // nSleep
   inputControl.init_digital(pinSelector.get_pin(NSLEEP), DEFAULT_NSLEEP);
@@ -74,9 +74,9 @@ void MotorDriver::init_pins() {
 }
 
 //! register handling
-uint8_t MotorDriver::read8(uint8_t reg) {
-  uint8_t txBuf[2];
-  uint8_t rxBuf[2];
+types::u8 MotorDriver::read8(types::u8 reg) {
+  types::u8 txBuf[2];
+  types::u8 rxBuf[2];
   // If your protocol requires a read bit, you might do:
   // txBuf[0] = reg | 0x80;
   txBuf[0] = reg;
@@ -92,8 +92,8 @@ uint8_t MotorDriver::read8(uint8_t reg) {
   return rxBuf[1];
 }
 
-void MotorDriver::write8(uint8_t reg, uint8_t data) {
-  uint8_t txBuf[2];
+void MotorDriver::write8(types::u8 reg, types::u8 data) {
+  types::u8 txBuf[2];
   // If your protocol requires a write bit, you might do:
   // txBuf[0] = reg & 0x7F;
   txBuf[0] = reg;
@@ -108,17 +108,17 @@ void MotorDriver::write8(uint8_t reg, uint8_t data) {
 
 //! reading specific registers
 std::string MotorDriver::read_fault_summary() {
-  uint8_t faultSummary = read8(0x01); // e.g., FAULT_SUMMARY register
+  types::u8 faultSummary = read8(0x01); // e.g., FAULT_SUMMARY register
   return Fault::get_fault_description(faultSummary);
 }
 
 std::string MotorDriver::read_status1() {
-  uint8_t statusSummary = read8(0x02); // e.g., FAULT_SUMMARY register
+  types::u8 statusSummary = read8(0x02); // e.g., FAULT_SUMMARY register
   return Status::get_status1_description(statusSummary);
 }
 
 std::string MotorDriver::read_status2() {
-  uint8_t statusSummary = read8(0x03); // e.g., FAULT_SUMMARY register
+  types::u8 statusSummary = read8(0x03); // e.g., FAULT_SUMMARY register
   return Status::get_status1_description(statusSummary);
 }
 
@@ -144,35 +144,33 @@ void MotorDriver::handle_error(void* _) {
   // TODO: Implement fault clearing
 }
 
-void MotorDriver::command(types::u16 duty_cycle, bool direction) {
+bool MotorDriver::check_config() {
   bool isActive = inputControl.get_last_value(pinSelector.get_pin(NSLEEP));
   bool isFault = outputControl.read_digital(pinSelector.get_pin(NFAULT));
   bool isOff = inputControl.get_last_value(pinSelector.get_pin(DRVOFF));
 
-  // trying to optimize for overhead when conditions are correct
-  // but compiler exists
-  if (!isActive || isFault || isOff) {
-    // * check if the driver is active
-    if (!isActive) {
-      debug::msg("Driver is not active. Cannot command motor.");
-      return;
-    }
-
-    // * check if the driver is off
-    if (isOff) {
-      debug::msg("Driver is off. Cannot command motor.");
-      return;
-    }
-
-    // * check if the driver is in fault
-    if (isFault) {
-      debug::msg("Driver has faulted. Cannot command motor.");
-      return;
-    }
-
-    
+  // * check if the driver is active
+  if (!isActive) {
+    debug::msg("Driver is not active. Cannot command motor.");
+    return false;
   }
 
+  // * check if the driver is off
+  if (isOff) {
+    debug::msg("Driver is off. Cannot command motor.");
+    return false;
+  }
+
+  // * check if the driver is in fault
+  if (isFault) {
+    debug::msg("Driver has faulted. Cannot command motor.");
+    return false;
+  }
+
+
+}
+
+void MotorDriver::command(types::u16 duty_cycle, bool direction) {
   // * command the motor
 
 }

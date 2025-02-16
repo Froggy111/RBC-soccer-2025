@@ -27,5 +27,6 @@ private:
 public:
   void init(types::u8 id, types::u16 SPI_SPEED);
   void command(types::u16 speed, bool direction);
+  bool check_config();
   void handle_error(void* _);
 };
