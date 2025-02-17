@@ -1,0 +1,6 @@
+﻿Designator,Mid X,Mid Y,Rotation,Layer
+J1,0.0,-17.0,0.0,top
+LED1,0.0,0.2375,90.0,top
+PR1,0.0,0.0,270.0,bottom
+R1,-3.0,-4.0,180.0,top
+R2,3.0,-4.0,180.0,top
