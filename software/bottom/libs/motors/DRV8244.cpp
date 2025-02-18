@@ -18,9 +18,10 @@
 #define CONFIG3_REG_DEFAULT 0b00000000
 #define CONFIG3_REG_MASK 0b11000000
 
+
 // ! init
 // use -1 as driver_id for debug pins
-void MotorDriver::init(types::u8 id, types::u16 SPI_SPEED) {
+void MotorDriver::init(types::u8 id, types::u64 SPI_SPEED) {
   debug::msg("---> Initializing DRV8244");
   if (id == (types::u8)-1) {
     pinSelector.set_debug_mode(true);
@@ -40,7 +41,7 @@ void MotorDriver::init(types::u8 id, types::u16 SPI_SPEED) {
   debug::msg("---> DRV8244 initialized");
 }
 
-void MotorDriver::init_spi(types::u16 SPI_SPEED) {
+void MotorDriver::init_spi(types::u64 SPI_SPEED) {
   // Initialize SPI pins
   gpio_set_function(pinSelector.get_pin(SCK), GPIO_FUNC_SPI);
   gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
@@ -68,6 +69,9 @@ void MotorDriver::init_pins() {
   // DRVOFF
   inputControl.init_digital(pinSelector.get_pin(DRVOFF), DEFAULT_DRVOFF);
 
+  // EN/IN1
+  inputControl.init_digital(pinSelector.get_pin(IN1), DEFAULT_IN1);
+
   // PH/IN2
   inputControl.init_digital(pinSelector.get_pin(IN2), DEFAULT_IN2);
 }
@@ -94,10 +98,10 @@ types::u8 MotorDriver::read8(types::u8 reg) {
 void MotorDriver::write8(types::u8 reg, types::u8 data, types::u8 mask) {
   // Read current value if we're doing a partial write
   types::u8 current_value = (mask == 0xFF) ? 0 : read8(reg);
-
+  
   // Clear the bits we want to write (using inverted mask)
   current_value &= ~mask;
-
+  
   // Set the new bits (masked to only affect the bits we want to change)
   types::u8 new_value = current_value | (data & mask);
 
@@ -120,8 +124,7 @@ void MotorDriver::config_registers() {
 
   //* CONFIG3 Register
   // change S_MODE to PH/EN
-  write8(0x0C, CONFIG3_REG_DEFAULT,
-         CONFIG3_REG_MASK); // Only modify the first two bits (bits 7-6)
+  write8(0x0C, CONFIG3_REG_DEFAULT, CONFIG3_REG_MASK);  // Only modify the first two bits (bits 7-6)
 }
 
 bool MotorDriver::check_registers() {
@@ -151,24 +154,24 @@ std::string MotorDriver::read_status2() {
 }
 
 //! on error
-void MotorDriver::handle_error(void *_) {
+void MotorDriver::handle_error(MotorDriver *driver) {
   debug::msg("---> DRV8244 Fault Detected!");
 
   // Read registers that provide diagnostic data during active operation.
-  debug::msg("FAULT_SUMMARY: " + read_fault_summary());
-  debug::msg("STATUS1: " + read_status1());
-  debug::msg("STATUS2: " + read_status1());
+  debug::msg("FAULT_SUMMARY: " + driver->read_fault_summary());
+  debug::msg("STATUS1: " + driver->read_status1());
+  debug::msg("STATUS2: " + driver->read_status1());
 
   // * try to clear the fault
   debug::msg("Attempting to clear the fault...");
-  write8(0x08, 0b0000001, 0b0000001);
+  driver->write8(0x08, 0b0000001, 0b0000001);
 
   // * check if the fault was cleared
-  if (read8(0x01) == 0) {
+  if (driver->read8(0x01) == 0) {
     debug::msg("Fault cleared successfully.");
   } else {
     debug::msg("Fault could not be cleared.");
-    debug::msg("FAULT_SUMMARY: " + read_fault_summary());
+    debug::msg("FAULT_SUMMARY: " + driver->read_fault_summary());
   }
 }
 
@@ -193,30 +196,35 @@ bool MotorDriver::check_config() {
 
   // check registers
   if (!check_registers()) {
-    debug::msg(
-        "Driver registers are not configured correctly. Cannot command motor.");
+    debug::msg("Driver registers are not configured correctly. Cannot command motor.");
     return false;
   }
 }
 
 bool MotorDriver::command(types::u16 duty_cycle, bool direction) {
-  // Check for configuration issues or faults
-  if (!check_config())
+  // Verify if the driver can accept commands
+  if (!check_config()) {
+    debug::msg("Motor command aborted due to configuration error.");
     return false;
+  }
+
+  // Retrieve the physical pin numbers for motor control
+  uint in1_pin = pinSelector.get_pin(IN1);
+  uint in2_pin = pinSelector.get_pin(IN2);
 
   // Command motor by setting one channel to PWM and the other low
-  pwm_set_gpio_level(pinSelector.get_pin(IN1), duty_cycle);
-  inputControl.write_digital(pinSelector.get_pin(IN2), direction);
+  if (direction) {
+    // For one direction, apply PWM on IN1 and drive IN2 low
+    gpio_put(in2_pin, 0);
+    pwm_set_gpio_level(in1_pin, duty_cycle);
+  } else {
+    // For the reverse direction, apply PWM on IN2 and drive IN1 low
+    gpio_put(in1_pin, 0);
+    pwm_set_gpio_level(in2_pin, duty_cycle);
+  }
 
   debug::msg(
       "Motor command executed: Duty cycle = " + std::to_string(duty_cycle) +
       ", Direction = " + std::to_string(direction));
-
   return true;
-}
-
-void MotorDriver::set_activate(bool activate) {
-  // Activate the driver by setting nSleep to 0
-  inputControl.write_digital(pinSelector.get_pin(NSLEEP), !activate);
-  debug::msg("Driver activated: " + std::to_string(activate));
 }

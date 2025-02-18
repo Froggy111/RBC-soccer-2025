@@ -5,7 +5,7 @@
 
 class MotorDriver {
 private:
-  void init_spi(types::u16 SPI_SPEED);
+  void init_spi(types::u64 SPI_SPEED);
   void init_pins();
 
   // * register reading
@@ -27,7 +27,7 @@ private:
   PinSelector pinSelector;
 
 public:
-  void init(types::u8 id, types::u16 SPI_SPEED);
+  void init(types::u8 id, types::u64 SPI_SPEED);
 
   // activate the driver (nsleep to 1)
   void set_activate(bool activate);
@@ -36,5 +36,5 @@ public:
   bool command(types::u16 speed, bool direction);
 
   // handle error
-  void handle_error(void* _);
+  static void handle_error(MotorDriver *driver);
 };
