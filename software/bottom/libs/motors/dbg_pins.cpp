@@ -10,6 +10,7 @@ extern "C" {
 void PinInputControl::init_digital(types::u8 pin, bool value) {
   gpio_init(pin);
   gpio_set_dir(pin, GPIO_IN);
+  this->digital_cache[pin] = value;
   write_digital(pin, value);
 }
 
@@ -20,34 +21,30 @@ void PinInputControl::init_analog(types::u8 pin, int value) {
 void PinInputControl::init(types::u8 pin) {
   gpio_init(pin);
   gpio_set_dir(pin, GPIO_IN);
-  cache[pin] = {0, false};
-  if (cache.find(pin) == cache.end()) {
-    printf("Pin not initialized!!!! pin %d\n", pin);
-    return;
-  }
+  this->digital_cache[pin] = 0;
 }
 
 void PinInputControl::write_digital(types::u8 pin, bool value) {
-  if (cache.find(pin) == cache.end()) {
+  if (this->digital_cache.find(pin) == this->digital_cache.end()) {
     printf("Pin not initialized! pin %d\n", pin);
     return;
   }
   gpio_put(pin, value);
-  cache[pin] = {0, value};
+  this->digital_cache[pin] = value;
 }
 
 void PinInputControl::write_analog(types::u8 pin, int value) {
-  // help
-  cache[pin] = {1, value};
+  // TODO: Implement
 }
 
 bool PinInputControl::get_last_value(types::u8 pin) {
-  if (this->cache.find(pin) == this->cache.end()) {
+  if (this->digital_cache.find(pin) == this->digital_cache.end()) {
     printf("Pin not initialized! pin %d\n", pin);
     // TODO: Fix return value
     return false;
   }
-  return this->cache[pin].second;
+
+  return this->digital_cache[pin];
 }
 
 // pins responsible for providing output to DRV8244

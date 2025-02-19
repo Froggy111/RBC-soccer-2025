@@ -13,7 +13,7 @@ public:
   bool get_last_value(types::u8 pin);
 
 private:
-  std::map<types::u8, std::pair<bool, int>> cache;
+  std::map<types::u8, bool> digital_cache;
 };
 
 class PinOutputControl {

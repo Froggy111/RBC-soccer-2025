@@ -10,11 +10,11 @@ private:
   void init_pins();
 
   // * register reading
-  uint8_t read8(types::u8 reg);
+  types::u8 read8(types::u8 reg);
   void write8(types::u8 reg, types::u8 data, types::u8 mask = 0xFF);
 
   // * specific registers
-  void config_registers(); // setup the registers
+  void set_registers(); // setup the registers
   bool check_registers(); // check if the registers are configured correctly
   std::string read_fault_summary();
   std::string read_status1();

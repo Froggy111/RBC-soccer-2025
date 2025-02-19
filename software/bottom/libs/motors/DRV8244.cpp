@@ -1,6 +1,7 @@
 extern "C" {
-  #include "hardware/spi.h"
-  #include "hardware/pwm.h"
+  #include <hardware/spi.h>
+  #include <hardware/pwm.h>
+  #include <hardware/gpio.h>
   #include <pico/stdlib.h>
   #include <pico/stdio.h>
   #include <stdio.h>
@@ -12,37 +13,37 @@ extern "C" {
 #include "faults.hpp"
 #include "status.hpp"
 
-#define DEFAULT_NSLEEP 1 // sleep off by default
+#define DEFAULT_NSLEEP 1 // sleep by default
 #define DEFAULT_DRVOFF 0 // driver on by default
 #define DEFAULT_IN1 0    // IN1 off by default
 #define DEFAULT_IN2 0    // IN2 off by default
 #define DEFAULT_CS 1     // CS high by default
 
 #define COMMAND_REG_DEFAULT 0b00000000
-#define CONFIG3_REG_DEFAULT 0b00000000
+#define CONFIG3_REG_DEFAULT 0b10000000  // Changed: Set to PH/EN mode (10 in bits 7-6)
 #define CONFIG3_REG_MASK 0b11000000
 
 
 // ! init
 // use -1 as driver_id for debug pins
 void MotorDriver::init(types::u8 id, types::u64 SPI_SPEED) {
-  printf("---> Initializing DRV8244\n");
+  printf("---> Initializing DRV8244");
   if (id == (types::u8)-1) {
     pinSelector.set_debug_mode(true);
   } else {
     pinSelector.set_driver_id(id);
   }
 
-  printf("Initializing SPI\n");
+  printf("Initializing SPI");
   init_spi(SPI_SPEED);
 
-  printf("Initializing pin\n");
+  printf("Initializing pins");
   init_pins();
 
-  printf("Configuring registers\n");
-  config_registers();
+  printf("Configuring registers");
+  set_registers();
 
-  printf("---> DRV8244 initialized\n");
+  printf("---> DRV8244 initialized");
 }
 
 void MotorDriver::init_spi(types::u64 SPI_SPEED) {
@@ -81,47 +82,39 @@ void MotorDriver::init_pins() {
 }
 
 //! register handling
-types::u8 MotorDriver::read8(types::u8 reg) {
-  types::u8 txBuf[2];
-  types::u8 rxBuf[2];
-  // If your protocol requires a read bit, you might do:
-  // txBuf[0] = reg | 0x80;
-  txBuf[0] = reg;
-  txBuf[1] = 0x00; // dummy byte
+types::u8 MotorDriver::read8(types::u8 reg_addr) {
+  types::u8 tx[2];
+  types::u8 rx[2];
 
-  // Assert chip-select (active low)
-  gpio_put(pinSelector.get_pin(CS), 0);
-  spi_write_read_blocking(spi0, txBuf, rxBuf, 2);
-  // Deassert chip-select
-  gpio_put(pinSelector.get_pin(CS), 1);
+  // Set MSB to 1 to indicate a read operation.
+  tx[0] = 0x80 | reg_addr;
+  tx[1] = 0x00; // Dummy byte
 
-  // Return the second byte received (the register data)
-  return rxBuf[1];
+  gpio_put(pinSelector.get_pin(CS), 0); // Activate chip select
+  spi_write_read_blocking(spi0, tx, rx, 2);
+  gpio_put(pinSelector.get_pin(CS), 1); // Deactivate chip select
+
+  // rx[1] contains the register value read back.
+  return rx[1];
 }
 
 void MotorDriver::write8(types::u8 reg, types::u8 data, types::u8 mask) {
-  // Read current value if we're doing a partial write
-  types::u8 current_value = (mask == 0xFF) ? 0 : read8(reg);
-  
-  // Clear the bits we want to write (using inverted mask)
-  current_value &= ~mask;
-  
-  // Set the new bits (masked to only affect the bits we want to change)
-  types::u8 new_value = current_value | (data & mask);
+    // Read current register value to apply mask.
+    uint8_t current = read8(reg);
+    uint8_t new_value = (current & ~mask) | (data & mask);
 
-  types::u8 txBuf[2];
-  txBuf[0] = reg;
-  txBuf[1] = new_value;
+    uint8_t tx[2];
+    // For write, ensure MSB is cleared.
+    tx[0] = reg & 0x7F;
+    tx[1] = new_value;
 
-  // Assert chip-select (active low)
-  gpio_put(pinSelector.get_pin(CS), 0);
-  spi_write_blocking(spi0, txBuf, 2);
-  // Deassert chip-select
-  gpio_put(pinSelector.get_pin(CS), 1);
+    gpio_put(pinSelector.get_pin(CS), 0); // Activate chip select
+    spi_write_blocking(spi0, tx, 2);
+    gpio_put(pinSelector.get_pin(CS), 1); 
 }
 
 //! reading specific registers
-void MotorDriver::config_registers() {
+void MotorDriver::set_registers() {
   //* COMMAND Register
   // reset CLR_FLT, lock SPI_IN, unlock CONFIG registers
   write8(0x00, COMMAND_REG_DEFAULT);
@@ -135,7 +128,7 @@ bool MotorDriver::check_registers() {
   // Check the CONFIG3 register to ensure S_MODE is set to PH/EN
   types::u8 config3 = read8(0x0C);
   if ((config3 & CONFIG3_REG_MASK) != CONFIG3_REG_DEFAULT) {
-    printf("CONFIG3 register is not set to PH/EN mode.\n");
+    printf("CONFIG3 register is not set to PH/EN mode.");
     return false;
   }
 
@@ -162,48 +155,45 @@ void MotorDriver::handle_error(MotorDriver *driver) {
   printf("---> DRV8244 Fault Detected!");
 
   // Read registers that provide diagnostic data during active operation.
-  std::string fault_message = "FAULT_SUMMARY: " + driver->read_fault_summary();
-  std::string status_1_message = "STATUS1: " + driver->read_status1();
-  std::string status_2_message = "STATUS2: " + driver->read_status2();
-  printf("%s\n", fault_message.c_str());
-  printf("%s\n", status_1_message.c_str());
-  printf("%s\n", status_1_message.c_str());
+  printf("FAULT_SUMMARY: " + driver->read_fault_summary());
+  printf("STATUS1: " + driver->read_status1());
+  printf("STATUS2: " + driver->read_status1());
+
   // * try to clear the fault
   printf("Attempting to clear the fault...");
   driver->write8(0x08, 0b0000001, 0b0000001);
 
   // * check if the fault was cleared
   if (driver->read8(0x01) == 0) {
-    printf("Fault cleared successfully.\n");
+    printf("Fault cleared successfully.");
   } else {
-    printf("Fault could not be cleared.\n");
-    std::string fault_message = "FAULT_SUMMARY: " + driver->read_fault_summary();
-    printf("%s\n", fault_message.c_str());
+    printf("Fault could not be cleared.");
+    printf("FAULT_SUMMARY: " + driver->read_fault_summary());
   }
 }
 
 bool MotorDriver::check_config() {
   // check if the driver is active
   if (!inputControl.get_last_value(pinSelector.get_pin(NSLEEP))) {
-    printf("Driver is not active. Cannot command motor.\n");
+    printf("Driver is not active. Cannot command motor.");
     return false;
   }
 
   // check if the driver is off
   if (inputControl.get_last_value(pinSelector.get_pin(DRVOFF))) {
-    printf("Driver is off. Cannot command motor.\n");
+    printf("Driver is off. Cannot command motor.");
     return false;
   }
 
   // check if the driver is in fault
   if (outputControl.read_digital(pinSelector.get_pin(NFAULT))) {
-    printf("Driver has faulted. Cannot command motor.\n");
+    printf("Driver has faulted. Cannot command motor.");
     return false;
   }
 
   // check registers
   if (!check_registers()) {
-    printf("Driver registers are not configured correctly. Cannot command motor.\n");
+    printf("Driver registers are not configured correctly. Cannot command motor.");
     return false;
   }
 }
@@ -211,7 +201,7 @@ bool MotorDriver::check_config() {
 bool MotorDriver::command(types::u16 duty_cycle, bool direction) {
   // Verify if the driver can accept commands
   if (!check_config()) {
-    printf("Motor command aborted due to configuration error.\n");
+    printf("Motor command aborted due to configuration error.");
     return false;
   }
 
@@ -230,8 +220,8 @@ bool MotorDriver::command(types::u16 duty_cycle, bool direction) {
     pwm_set_gpio_level(in2_pin, duty_cycle);
   }
 
-  std::string debug_message = "Motor command executed: Duty cycle = " + std::to_string(duty_cycle) +
-      ", Direction = " + std::to_string(direction);
-  printf("%s\n", debug_message.c_str());
+  printf(
+      "Motor command executed: Duty cycle = " + std::to_string(duty_cycle) +
+      ", Direction = " + std::to_string(direction));
   return true;
 }
