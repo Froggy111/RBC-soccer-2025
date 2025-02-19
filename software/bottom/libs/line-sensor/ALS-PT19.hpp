@@ -1,11 +1,11 @@
 #pragma once
 #include "hardware/i2c.h"
-#define LIGHT_SENSOR_HPP
-#define LIGHT_SENSOR_ADDR 0x39 // I2C address of ALS-PT19
+#define LINE_SENSOR_HPP
+#define LINE_SENSOR_ADDR 0x39 // I2C address of ALS-PT19
 
-class LightSensor {
+class LineSensor {
     public:
-        LightSensor();
+        LineSensor();
         bool begin();
         void read();
         void set_integration_time(uint16_t time);
@@ -21,6 +21,11 @@ class LightSensor {
 };
 
 #endif
+
+
+
+
+
 
 
 
