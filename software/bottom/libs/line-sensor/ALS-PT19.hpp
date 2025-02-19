@@ -1,5 +1,5 @@
 #pragma once
-#include <Wire.h> // for I2C??
+#include "hardware/i2c.h"
 #define LIGHT_SENSOR_HPP
 #define LIGHT_SENSOR_ADDR 0x39 // I2C address of ALS-PT19
 
