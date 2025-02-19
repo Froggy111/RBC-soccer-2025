@@ -27,3 +27,6 @@ generated/
 */*.o
 *.a
 */*.a
+
+# logs fromm screens
+screenlog.*

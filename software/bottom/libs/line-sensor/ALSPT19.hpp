@@ -1,11 +1,15 @@
 #pragma once
-#include <Wire.h> // for I2C??
-#define LIGHT_SENSOR_HPP
-#define LIGHT_SENSOR_ADDR 0x39 // I2C address of ALS-PT19
+extern "C" {
+    #include "hardware/adc.h"
+}
+#include "hardware/gpio.h"
+#include "pin_selector.hpp"
+#include "types.hpp"
+#define LINE_SENSOR_HPP
 
-class LightSensor {
+class LineSensor {
     public:
-        LightSensor();
+        LineSensor();
         bool begin();
         void read();
         void set_integration_time(uint16_t time);
@@ -18,9 +22,14 @@ class LightSensor {
 
         void write_register(uint8_t reg, uint8_t val);
         uint8_t read_register(uint8_t reg);
+        PinSelector pinSelector;
 };
 
-#endif
+
+
+
+
+
 
 
 

@@ -29,6 +29,7 @@ function(target_link_globals target_name)
 endfunction()
 
 add_global_library(pico_stdlib)
+add_global_library(pico_stdio_usb)
 
 # macro configs should be first
 add_subdirectory(config) # this links config
@@ -40,7 +41,7 @@ add_subdirectory(utils) # this links common util libs
 add_subdirectory(hardware-descriptors) # this links hardware-descriptors
 
 # then communication interface
-add_subdirectory(comms) # this links debug
+# add_subdirectory(comms) # this links debug
 
 # then pins
 add_subdirectory(pins)

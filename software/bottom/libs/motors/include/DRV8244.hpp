@@ -2,18 +2,19 @@
 #include "types.hpp"
 #include "dbg_pins.hpp"
 #include "pin_selector.hpp"
+#include <string>
 
 class MotorDriver {
 private:
-  void init_spi(types::u16 SPI_SPEED);
+  void init_spi(types::u64 SPI_SPEED);
   void init_pins();
 
   // * register reading
-  uint8_t read8(types::u8 reg);
+  types::u8 read8(types::u8 reg);
   void write8(types::u8 reg, types::u8 data, types::u8 mask = 0xFF);
 
   // * specific registers
-  void config_registers(); // setup the registers
+  void set_registers(); // setup the registers
   bool check_registers(); // check if the registers are configured correctly
   std::string read_fault_summary();
   std::string read_status1();
@@ -27,7 +28,7 @@ private:
   PinSelector pinSelector;
 
 public:
-  void init(types::u8 id, types::u16 SPI_SPEED);
+  void init(types::u8 id, types::u64 SPI_SPEED);
 
   // activate the driver (nsleep to 1)
   void set_activate(bool activate);
@@ -36,5 +37,5 @@ public:
   bool command(types::u16 speed, bool direction);
 
   // handle error
-  void handle_error(void* _);
+  static void handle_error(MotorDriver *driver);
 };
