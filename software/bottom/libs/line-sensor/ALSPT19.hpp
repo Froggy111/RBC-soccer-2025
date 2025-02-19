@@ -1,7 +1,11 @@
 #pragma once
-#include "hardware/i2c.h"
+extern "C" {
+    #include "hardware/adc.h"
+}
+#include "hardware/gpio.h"
+#include "pin_selector.hpp"
+#include "types.hpp"
 #define LINE_SENSOR_HPP
-#define LINE_SENSOR_ADDR 0x39 // I2C address of ALS-PT19
 
 class LineSensor {
     public:
@@ -18,14 +22,9 @@ class LineSensor {
 
         void write_register(uint8_t reg, uint8_t val);
         uint8_t read_register(uint8_t reg);
+        PinSelector pinSelector;
 };
 
-
-
-
-
-
-#endif
 
 
 
