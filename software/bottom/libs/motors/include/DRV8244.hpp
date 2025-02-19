@@ -2,6 +2,7 @@
 #include "types.hpp"
 #include "dbg_pins.hpp"
 #include "pin_selector.hpp"
+#include <string>
 
 class MotorDriver {
 private:

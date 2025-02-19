@@ -1,14 +1,18 @@
+extern "C" {
+  #include "hardware/spi.h"
+  #include "hardware/pwm.h"
+  #include <pico/stdlib.h>
+  #include <pico/stdio.h>
+  #include <stdio.h>
+}
 #include "DRV8244.hpp"
 #include "types.hpp"
 #include "pin_selector.hpp"
 #include "dbg_pins.hpp"
 #include "faults.hpp"
 #include "status.hpp"
-#include "debug.hpp"
-#include "hardware/spi.h"
-#include "hardware/pwm.h"
 
-#define DEFAULT_NSLEEP 0 // sleep by default
+#define DEFAULT_NSLEEP 1 // sleep off by default
 #define DEFAULT_DRVOFF 0 // driver on by default
 #define DEFAULT_IN1 0    // IN1 off by default
 #define DEFAULT_IN2 0    // IN2 off by default
@@ -22,23 +26,23 @@
 // ! init
 // use -1 as driver_id for debug pins
 void MotorDriver::init(types::u8 id, types::u64 SPI_SPEED) {
-  debug::msg("---> Initializing DRV8244");
+  printf("---> Initializing DRV8244\n");
   if (id == (types::u8)-1) {
     pinSelector.set_debug_mode(true);
   } else {
     pinSelector.set_driver_id(id);
   }
 
-  debug::msg("Initializing SPI");
+  printf("Initializing SPI\n");
   init_spi(SPI_SPEED);
 
-  debug::msg("Initializing pins");
+  printf("Initializing pin\n");
   init_pins();
 
-  debug::msg("Configuring registers");
+  printf("Configuring registers\n");
   config_registers();
 
-  debug::msg("---> DRV8244 initialized");
+  printf("---> DRV8244 initialized\n");
 }
 
 void MotorDriver::init_spi(types::u64 SPI_SPEED) {
@@ -131,7 +135,7 @@ bool MotorDriver::check_registers() {
   // Check the CONFIG3 register to ensure S_MODE is set to PH/EN
   types::u8 config3 = read8(0x0C);
   if ((config3 & CONFIG3_REG_MASK) != CONFIG3_REG_DEFAULT) {
-    debug::msg("CONFIG3 register is not set to PH/EN mode.");
+    printf("CONFIG3 register is not set to PH/EN mode.\n");
     return false;
   }
 
@@ -155,48 +159,51 @@ std::string MotorDriver::read_status2() {
 
 //! on error
 void MotorDriver::handle_error(MotorDriver *driver) {
-  debug::msg("---> DRV8244 Fault Detected!");
+  printf("---> DRV8244 Fault Detected!");
 
   // Read registers that provide diagnostic data during active operation.
-  debug::msg("FAULT_SUMMARY: " + driver->read_fault_summary());
-  debug::msg("STATUS1: " + driver->read_status1());
-  debug::msg("STATUS2: " + driver->read_status1());
-
+  std::string fault_message = "FAULT_SUMMARY: " + driver->read_fault_summary();
+  std::string status_1_message = "STATUS1: " + driver->read_status1();
+  std::string status_2_message = "STATUS2: " + driver->read_status2();
+  printf("%s\n", fault_message.c_str());
+  printf("%s\n", status_1_message.c_str());
+  printf("%s\n", status_1_message.c_str());
   // * try to clear the fault
-  debug::msg("Attempting to clear the fault...");
+  printf("Attempting to clear the fault...");
   driver->write8(0x08, 0b0000001, 0b0000001);
 
   // * check if the fault was cleared
   if (driver->read8(0x01) == 0) {
-    debug::msg("Fault cleared successfully.");
+    printf("Fault cleared successfully.\n");
   } else {
-    debug::msg("Fault could not be cleared.");
-    debug::msg("FAULT_SUMMARY: " + driver->read_fault_summary());
+    printf("Fault could not be cleared.\n");
+    std::string fault_message = "FAULT_SUMMARY: " + driver->read_fault_summary();
+    printf("%s\n", fault_message.c_str());
   }
 }
 
 bool MotorDriver::check_config() {
   // check if the driver is active
   if (!inputControl.get_last_value(pinSelector.get_pin(NSLEEP))) {
-    debug::msg("Driver is not active. Cannot command motor.");
+    printf("Driver is not active. Cannot command motor.\n");
     return false;
   }
 
   // check if the driver is off
   if (inputControl.get_last_value(pinSelector.get_pin(DRVOFF))) {
-    debug::msg("Driver is off. Cannot command motor.");
+    printf("Driver is off. Cannot command motor.\n");
     return false;
   }
 
   // check if the driver is in fault
   if (outputControl.read_digital(pinSelector.get_pin(NFAULT))) {
-    debug::msg("Driver has faulted. Cannot command motor.");
+    printf("Driver has faulted. Cannot command motor.\n");
     return false;
   }
 
   // check registers
   if (!check_registers()) {
-    debug::msg("Driver registers are not configured correctly. Cannot command motor.");
+    printf("Driver registers are not configured correctly. Cannot command motor.\n");
     return false;
   }
 }
@@ -204,7 +211,7 @@ bool MotorDriver::check_config() {
 bool MotorDriver::command(types::u16 duty_cycle, bool direction) {
   // Verify if the driver can accept commands
   if (!check_config()) {
-    debug::msg("Motor command aborted due to configuration error.");
+    printf("Motor command aborted due to configuration error.\n");
     return false;
   }
 
@@ -223,8 +230,8 @@ bool MotorDriver::command(types::u16 duty_cycle, bool direction) {
     pwm_set_gpio_level(in2_pin, duty_cycle);
   }
 
-  debug::msg(
-      "Motor command executed: Duty cycle = " + std::to_string(duty_cycle) +
-      ", Direction = " + std::to_string(direction));
+  std::string debug_message = "Motor command executed: Duty cycle = " + std::to_string(duty_cycle) +
+      ", Direction = " + std::to_string(direction);
+  printf("%s\n", debug_message.c_str());
   return true;
 }
