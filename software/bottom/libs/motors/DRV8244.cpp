@@ -155,9 +155,12 @@ void MotorDriver::handle_error(MotorDriver *driver) {
   printf("---> DRV8244 Fault Detected!");
 
   // Read registers that provide diagnostic data during active operation.
-  printf("FAULT_SUMMARY: " + driver->read_fault_summary());
-  printf("STATUS1: " + driver->read_status1());
-  printf("STATUS2: " + driver->read_status1());
+  std::string fault_summary = "FAULT_SUMMARY: " + driver->read_fault_summary();
+  std::string status1 = "STATUS1: " + driver->read_status1();
+  std::string status2 = "STATUS2: " + driver->read_status2();
+  printf("%s\n", fault_summary.c_str());
+  printf("%s\n", status1.c_str());
+  printf("%s\n", status2.c_str());
 
   // * try to clear the fault
   printf("Attempting to clear the fault...");
@@ -168,7 +171,8 @@ void MotorDriver::handle_error(MotorDriver *driver) {
     printf("Fault cleared successfully.");
   } else {
     printf("Fault could not be cleared.");
-    printf("FAULT_SUMMARY: " + driver->read_fault_summary());
+    std::string fault_summary = "FAULT_SUMMARY: " + driver->read_fault_summary();
+    printf("%s\n", fault_summary.c_str());
   }
 }
 
@@ -219,9 +223,8 @@ bool MotorDriver::command(types::u16 duty_cycle, bool direction) {
     gpio_put(in1_pin, 0);
     pwm_set_gpio_level(in2_pin, duty_cycle);
   }
-
-  printf(
-      "Motor command executed: Duty cycle = " + std::to_string(duty_cycle) +
-      ", Direction = " + std::to_string(direction));
+  std::string debug = "Motor command executed: Duty cycle = " + std::to_string(duty_cycle) +
+      ", Direction = " + std::to_string(direction);
+  printf("%s", debug.c_str());
   return true;
 }
