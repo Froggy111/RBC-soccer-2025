@@ -20,6 +20,11 @@ class LineSensor {
         uint8_t read_register(uint8_t reg);
 };
 
+
+
+
+
+
 #endif
 
 
