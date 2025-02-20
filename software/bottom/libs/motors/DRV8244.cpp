@@ -1,10 +1,10 @@
 extern "C" {
-  #include <hardware/spi.h>
-  #include <hardware/pwm.h>
-  #include <hardware/gpio.h>
-  #include <pico/stdlib.h>
-  #include <pico/stdio.h>
-  #include <stdio.h>
+#include <hardware/spi.h>
+#include <hardware/pwm.h>
+#include <hardware/gpio.h>
+#include <pico/stdlib.h>
+#include <pico/stdio.h>
+#include <stdio.h>
 }
 #include "DRV8244.hpp"
 #include "types.hpp"
@@ -20,9 +20,9 @@ extern "C" {
 #define DEFAULT_CS 1     // CS high by default
 
 #define COMMAND_REG_DEFAULT 0b00000000
-#define CONFIG3_REG_DEFAULT 0b10000000  // Changed: Set to PH/EN mode (10 in bits 7-6)
+#define CONFIG3_REG_DEFAULT                                                    \
+  0b10000000 // Changed: Set to PH/EN mode (10 in bits 7-6)
 #define CONFIG3_REG_MASK 0b11000000
-
 
 // ! init
 // use -1 as driver_id for debug pins
@@ -99,23 +99,23 @@ types::u8 MotorDriver::read8(types::u8 reg_addr) {
 }
 
 void MotorDriver::write8(types::u8 reg, types::u8 data, types::u8 mask) {
-    // Read current register value to apply mask.
-    uint8_t current = read8(reg);
-    uint8_t new_value = (current & ~mask) | (data & mask);
+  // Read current register value to apply mask.
+  uint8_t current = read8(reg);
+  uint8_t new_value = (current & ~mask) | (data & mask);
 
-    uint8_t tx[2];
-    // For write, ensure MSB is cleared.
-    tx[0] = reg & 0x7F;
-    tx[1] = new_value;
+  uint8_t tx[2];
+  // For write, ensure MSB is cleared.
+  tx[0] = reg & 0x7F;
+  tx[1] = new_value;
 
-    gpio_put(pinSelector.get_pin(CS), 0); // Activate chip select
-    spi_write_blocking(spi0, tx, 2);
-    gpio_put(pinSelector.get_pin(CS), 1);
+  gpio_put(pinSelector.get_pin(CS), 0); // Activate chip select
+  spi_write_blocking(spi0, tx, 2);
+  gpio_put(pinSelector.get_pin(CS), 1);
 
-    // verify the write
-    if (read8(reg) != new_value) {
-      printf("Write failed. Register %d not set to %d\n", reg, new_value);
-    }
+  // verify the write
+  if (read8(reg) != new_value) {
+    printf("Write failed. Register %d not set to %d\n", reg, new_value);
+  }
 }
 
 //! reading specific registers
@@ -126,7 +126,8 @@ void MotorDriver::set_registers() {
 
   //* CONFIG3 Register
   // change S_MODE to PH/EN
-  write8(0x0C, CONFIG3_REG_DEFAULT, CONFIG3_REG_MASK);  // Only modify the first two bits (bits 7-6)
+  write8(0x0C, CONFIG3_REG_DEFAULT,
+         CONFIG3_REG_MASK); // Only modify the first two bits (bits 7-6)
 }
 
 bool MotorDriver::check_registers() {
@@ -176,7 +177,8 @@ void MotorDriver::handle_error(MotorDriver *driver) {
     printf("Fault cleared successfully.\n");
   } else {
     printf("Fault could not be cleared.\n");
-    std::string fault_summary = "FAULT_SUMMARY: " + driver->read_fault_summary();
+    std::string fault_summary =
+        "FAULT_SUMMARY: " + driver->read_fault_summary();
     printf("%s\n", fault_summary.c_str());
   }
 }
@@ -202,7 +204,8 @@ bool MotorDriver::check_config() {
 
   // check registers
   if (!check_registers()) {
-    printf("Driver registers are not configured correctly. Cannot command motor.\n");
+    printf("Driver registers are not configured correctly. Cannot command "
+           "motor.\n");
     return false;
   }
 }
@@ -228,7 +231,8 @@ bool MotorDriver::command(types::u16 duty_cycle, bool direction) {
     gpio_put(in1_pin, 0);
     pwm_set_gpio_level(in2_pin, duty_cycle);
   }
-  std::string debug = "Motor command executed: Duty cycle = " + std::to_string(duty_cycle) +
+  std::string debug =
+      "Motor command executed: Duty cycle = " + std::to_string(duty_cycle) +
       ", Direction = " + std::to_string(direction);
   printf("%s\n", debug.c_str());
   return true;
