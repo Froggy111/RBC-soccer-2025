@@ -6,7 +6,7 @@ else()
 endif()
 set(sdkVersion 2.1.1)
 set(toolchainVersion 13_3_Rel1)
-set(picotoolVersion 2.1.0)
+set(picotoolVersion 2.1.1)
 set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
 if (EXISTS ${picoVscode})
   include(${picoVscode})
@@ -63,6 +63,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
 # Init PicoSDK
+set(PICOTOOL_FORCE_FETCH_FROM_GIT ON)
 pico_sdk_init()
 # ====================================================================================
 
