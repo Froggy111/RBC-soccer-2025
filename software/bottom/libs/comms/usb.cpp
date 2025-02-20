@@ -2,16 +2,18 @@
 #include "class/cdc/cdc_device.h"
 #include "comms/errors.hpp"
 #include "comms/identifiers.hpp"
+#include "device/usbd.h"
 #include "types.hpp"
+#include <hardware/timer.h>
 extern "C" {
 #include <hardware/gpio.h>
 #include <pico/stdlib.h>
 #include <tusb.h>
+#include "hardware/watchdog.h"
+#include "pico/bootrom.h"
 }
 
 using namespace types;
-
-void tud_cdc_rx_cb(uint8_t itf) {}
 
 namespace usb {
 
@@ -26,21 +28,45 @@ bool CDC::init(void) {
   // usb-cdc initialised, proceed
   _current_recv_state.reset();
   _current_recv_state.data_buffer = _read_buffer;
-  // set callback for data avail, to recieve full raw commands async
-  _set_data_avail_callback(_data_avail_callback, (void *)&_current_recv_state);
   _is_initialised = true;
 }
 
-bool CDC::send_data(const comms::SendIdentifiers identifier, const u8 *data,
-                    const u16 data_len) {
-  if (data_len == 0xFFFF) {
+bool CDC::wait_for_host_connection(u32 timeout) {
+  u64 t_start = time_us_64();
+  do {
+  } while (tud_connected() && time_us_64() - t_start < timeout);
+  if (tud_connected()) {
+    return true;
+  }
+  return false;
+}
+
+bool CDC::wait_for_CDC_connection(u32 timeout) {
+  u64 t_start = time_us_64();
+  do {
+  } while (tud_cdc_connected() && time_us_64() - t_start < timeout);
+  if (tud_cdc_connected()) {
+    return true;
+  }
+  return false;
+}
+
+bool CDC::write(const comms::SendIdentifiers identifier, const u8 *data,
+                const u16 data_len) {
+  u16 reported_len = data_len + sizeof(identifier);
+  u16 packet_len = sizeof(reported_len) + reported_len;
+  if (packet_len > MAX_TRANSMIT_BUF_SIZE) {
     return false;
   }
-  u16 real_len = data_len + sizeof(identifier);
-  write((u8 *)&real_len, sizeof(real_len));     // length bytes
-  write((u8 *)&identifier, sizeof(identifier)); // identifier
-  write(data, data_len);                        // data
-  flush();
+  if (tud_cdc_available() < packet_len) {
+    tud_cdc_write_flush(); // NOTE: this blocks (in tinyusb + rp2040), which we want.
+  }
+  // write to tusb CDC buffer
+  tud_cdc_write(&reported_len, sizeof(reported_len));
+  tud_cdc_write(&identifier, sizeof(identifier));
+  tud_cdc_write(data, data_len);
+
+  return true;
 }
 
 u32 CDC::read(u8 *data, u32 len, u32 timeout) {
@@ -57,9 +83,34 @@ u32 CDC::read(u8 *data, u32 len, u32 timeout) {
   }
 }
 
-void CDC::_set_data_avail_callback(void (*function)(void *), void *args) {
-  stdio_set_chars_available_callback(function, args);
+void CDC::_line_coding_cb(u8 interface, cdc_line_coding_t const *coding,
+                          void *args) {
+  // Handle reset via baud rate if needed
+  if (coding->bit_rate == 1200) {
+    reset_usb_boot(0, 0);
+  }
 }
+
+bool CDC::_vendor_control_xfer_cb(u8 rhport, u8 stage,
+                                  tusb_control_request_t const *request,
+                                  void *args) {
+  if (stage != CONTROL_STAGE_SETUP)
+    return true;
+
+  switch (request->bRequest) {
+  case 0x01: // Reset to bootloader
+    reset_usb_boot(0, 0);
+    return true;
+
+  case 0x02: // Reset to application
+    watchdog_reboot(0, 0, 100);
+    return true;
+  }
+
+  return false;
+}
+
+void CDC::_rx_cb(u8 interface, void *args) {}
 
 void CDC::_data_avail_callback(void *args) {
   CurrentRecvState *crs = (CurrentRecvState *)args;

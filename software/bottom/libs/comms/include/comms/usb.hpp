@@ -8,6 +8,7 @@
  * Not urgent though, probably does not matter by too much.
  */
 
+#include "class/cdc/cdc.h"
 #include "comms/default_usb_config.h"
 #include "identifiers.hpp"
 #include "types.hpp"
@@ -15,6 +16,7 @@ extern "C" {
 #include <pico/bootrom.h>
 #include <pico/stdio.h>
 #include <pico/stdlib.h>
+#include <tusb.h>
 }
 
 /**
@@ -22,7 +24,7 @@ extern "C" {
  * INFO:
  * Communication format is defined as such, in both directions:
  * Byte 1 & 2: Length (least significant byte first) (excludes length bytes)
- * (pico will check that length <= max_recieve_buf_size)
+ * (pico will check that length <= MAX_RECIEVE_BUF_SIZE)
  * WARNING: LENGTH INCLUDES IDENTIFIER BYTE. This is done for convenience in the recieving state.
  * INFO:
  * Byte 3: Identifier (u8 enum)
@@ -30,8 +32,26 @@ extern "C" {
  */
 namespace usb {
 
-static const types::u16 max_recieve_buf_size =
-    USB_RX_BUFSIZE; // this should absolutely be enough for all recieved commands
+static const types::u32 HOST_CONNECTION_TIMEOUT =
+    1000 * 1000;                                              // in microseconds
+static const types::u32 CDC_CONNECTION_TIMEOUT = 1000 * 1000; // in microseconds
+
+static const types::u16 MAX_RECIEVE_BUF_SIZE = USB_RX_BUFSIZE;
+static const types::u16 MAX_TRANSMIT_BUF_SIZE = USB_TX_BUFSIZE;
+
+using CDCLineCodingCB = void (*)(types::u8, const cdc_line_coding_t *, void *);
+using VendorControlXferCB = bool (*)(types::u8, types::u8,
+                                     const tusb_control_request_t *, void *);
+using CDCRxCB = void (*)(types::u8, void *);
+
+extern CDCLineCodingCB CDC_line_coding_cb_fn;
+extern void *CDC_line_coding_cb_user_args;
+
+extern VendorControlXferCB vendor_control_xfer_cb_fn;
+extern void *vendor_control_xfer_cb_user_args;
+
+extern CDCRxCB CDC_rx_cb_fn;
+extern void *CDC_rx_cb_user_args;
 
 struct CurrentRXState {
   types::u8 length_bytes_recieved = 0;
@@ -42,7 +62,7 @@ struct CurrentRXState {
     length_bytes_recieved = 0;
     expected_length = 0;
     recieved_length = 0;
-    memset(0, data_buffer, max_recieve_buf_size);
+    memset(data_buffer, 0, MAX_RECIEVE_BUF_SIZE);
   }
 };
 
@@ -60,26 +80,57 @@ public:
    * @returns true if successfully initialised, false if not
    */
   bool init(void);
+
   inline bool is_initialised(void) { return _is_initialised; }
+
   /**
-   * @brief write data from buffer
-   * @param data: u8 array
-   * @param len: length of data
+   * @brief blocks until host is connected through USB.
+   * @param timeout: timeout in microseconds, defaults to HOST_CONNECTION_TIMEOUT
+   * @returns true if host connection achieved, false if not
    */
-  static void write(const types::u8 *data, const types::u16 len);
+  bool wait_for_host_connection(types::u32 timeout = HOST_CONNECTION_TIMEOUT);
+
+  /**
+   * @brief blocks until CDC connection to host is established.
+   * @param timeout: timeout in microseconds, defaults to CDC_CONNECTION_TIMEOUT
+   * @returns true if host connection achieved, false if not
+   */
+  bool wait_for_CDC_connection(types::u32 timeout = CDC_CONNECTION_TIMEOUT);
+
   /**
    * @brief flush write buffer
    */
   static void flush(void);
+
   /**
-   * @brief sends data, formatted correctly, will flush buffer.
-   * @param idenfitier: identifier for the sent data
+   * @brief writes data, formatted correctly, will flush buffer.
+   * @param identifier: identifier for the sent data
    * @param data: u8 array
    * @param data_len: length of data
    * @returns true if successfully sent, false if not
    */
-  static bool send_data(const comms::SendIdentifiers identifier,
-                        const types::u8 *data, const types::u16 data_len);
+  static bool write(const comms::SendIdentifiers identifier,
+                    const types::u8 *data, const types::u16 data_len);
+
+  /**
+   * @brief adds data, formatted correctly, to an internal buffer, need to call interrupt_data_flush after all writes in an interrupt is done
+   * @brief WARN: NOT lossless! any interrupts that send data should only send data that is ok to be lost
+   * @brief WARN: data will be lost if not flushed before buffer (of size MAX_TRANSMIT_BUF_SIZE)
+   * @brief WARN: NOT thread safe! all interrupts that send data should only be on one core
+   * @param identifier: identifier for the sent data
+   * @param data: u8 array
+   * @param data_len: length of data
+   * @returns true if successfully written to buffer, false if not
+   */
+  static bool interrupt_write(const comms::SendIdentifiers identifier,
+                              const types::u8 *data, const types::u16 data_len);
+
+  /**
+   * @brief sets event flag that triggers event to process the interrupt buffer.
+   * @brief NOTE: this MUST be called at the end of a sequence of any interrupt_write() calls.
+   */
+  static void interrupt_flush(void);
+
   /**
    * @brief read data into buffer with some max length
    * @param data: u8 array
@@ -90,29 +141,44 @@ public:
    * @returns how many characters read
    */
   static types::u32 read(types::u8 *data, types::u32 len, types::u32 timeout);
-  /**
-   * @brief set callback to run when a command has been fully recieved.
-   * This should handle setting flags and triggering events, and should be a very short function.
-   * @param function: void function that takes in ptr to RawCommand and void ptr (parse inside the function)
-   * @param args: pointer to custom arguments to be passed to callback (struct ptr cast to void ptr)
-   */
-  static void _set_command_recv_callback(void (*function)(RawCommand *, void *),
-                                         void *args);
 
 private:
   /**
-   * @brief set callback to run when data is available (new data recieved)
-   * @param function: void function with only param as void pointer (parse inside the function).
-   * @param args: pointer to arguments to be passed to callback. (struct ptr cast to void ptr)
-   */
-  static void _set_data_avail_callback(void (*function)(void *), void *args);
-  /**
    * @brief callback that adds to data buffer while parsing length. Feeds command into command_recv_callback.
-   * @param args: ptr to CurrentRXState (is cast to void ptr due to the stdio callback hook being void ptr).
+   * @param interface: id of tusb cdc interface (probably wont use)
+   * @param args: ptr to CurrentRXState (is cast to void ptr for flexibility
    */
-  static void _data_avail_callback(void *args);
+  static void _rx_cb(types::u8 interface, void *args);
+
+  /**
+   * @brief callback to run on change of line coding settings from host.
+   * @brief used mainly for baud rate reset to bootloader hack
+   * @param interface: id of tusb cdc interface (probably wont use)
+   * @param coding: tusb cdc line coding settings
+   * @param args: custom args to pass into handler
+   */
+  static void _line_coding_cb(types::u8 interface,
+                              cdc_line_coding_t const *coding, void *args);
+
+  /**
+   * @brief callback to run on vendor control from host
+   * @brief used for picotool reset and reset to bootloader
+   * @brief not very sure how this works so not documenting the parameters
+   * @param args: custom args to pass into handler
+   */
+  static bool _vendor_control_xfer_cb(types::u8 rhport, types::u8 stage,
+                                      tusb_control_request_t const *request,
+                                      void *args);
+
+  inline static void _tud_task_caller(void) {
+    for (;;) {
+      tud_task();
+    }
+  }
+
   bool _is_initialised = false;
-  types::u8 _read_buffer[max_recieve_buf_size] = {0};
+  types::u8 _read_buffer[MAX_RECIEVE_BUF_SIZE] = {0};
+  types::u8 _interrupt_write_buffer[MAX_TRANSMIT_BUF_SIZE] = {0};
   CurrentRXState _current_recv_state;
 };
 
