@@ -4,3 +4,6 @@
 [submodule "software/bottom/external/freertos"]
 	path = software/bottom/external/freertos
 	url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git
+[submodule "picotool"]
+    path = picotool
+    url = https://github.com/raspberrypi/picotool.git
