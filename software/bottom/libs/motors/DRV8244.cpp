@@ -47,20 +47,24 @@ void MotorDriver::init(types::u8 id, types::u64 SPI_SPEED) {
 }
 
 void MotorDriver::init_spi(types::u64 SPI_SPEED) {
-  // Initialize SPI pins
+  // Initialize SPI pins (except CS)
   gpio_set_function(pinSelector.get_pin(SCK), GPIO_FUNC_SPI);
   gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
   gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
-  gpio_set_function(pinSelector.get_pin(CS), GPIO_FUNC_SPI);
 
-  // Set SPI format
-  spi_init(spi0, SPI_SPEED);
-  spi_set_format(spi0, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-
-  // Set CS pin as output
+  // Initialize CS pin as GPIO
   gpio_init(pinSelector.get_pin(CS));
   gpio_set_dir(pinSelector.get_pin(CS), GPIO_OUT);
   gpio_put(pinSelector.get_pin(CS), DEFAULT_CS);
+
+  // Initialize SPI with error checking
+  if (!spi_init(spi0, SPI_SPEED)) {
+      printf("Error: SPI initialization failed\n");
+      return;
+  }
+
+  // Set SPI format
+  spi_set_format(spi0, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 }
 
 void MotorDriver::init_pins() {
@@ -221,11 +225,11 @@ bool MotorDriver::command(types::u16 duty_cycle, bool direction) {
   uint in2_pin = pinSelector.get_pin(IN2);
 
   // Command motor by setting one channel to PWM and the other low
-  gpio_put(in2_pin, direction);
-  pwm_set_gpio_level(in1_pin, duty_cycle);
-  std::string debug =
-      "Motor command executed: Duty cycle = " + std::to_string(duty_cycle) +
-      ", Direction = " + std::to_string(direction);
-  printf("%s\n", debug.c_str());
+  // gpio_put(in2_pin, direction);
+  // pwm_set_gpio_level(in1_pin, duty_cycle);
+  // std::string debug =
+  //     "Motor command executed: Duty cycle = " + std::to_string(duty_cycle) +
+  //     ", Direction = " + std::to_string(direction);
+  // printf("%s\n", debug.c_str());
   return true;
 }
