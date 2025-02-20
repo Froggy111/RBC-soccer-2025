@@ -1,0 +1,6 @@
+[submodule "software/bottom/external/tinyusb"]
+	path = software/bottom/external/tinyusb
+	url = https://github.com/hathach/tinyusb.git
+[submodule "software/bottom/external/freertos"]
+	path = software/bottom/external/freertos
+	url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git
