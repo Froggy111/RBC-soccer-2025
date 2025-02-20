@@ -1,3 +1,4 @@
+#include <cstdint>
 extern "C" {
 #include <hardware/spi.h>
 #include <hardware/pwm.h>
@@ -21,8 +22,8 @@ extern "C" {
 
 #define COMMAND_REG_DEFAULT 0b00000000
 #define CONFIG3_REG_DEFAULT                                                    \
-  0b10000000 // Changed: Set to PH/EN mode (10 in bits 7-6)
-#define CONFIG3_REG_MASK 0b11000000
+  0b00000011 // Changed: Set to PH/EN mode (10 in bits 7-6)
+#define CONFIG3_REG_MASK 0b00000011
 
 // ! init
 // use -1 as driver_id for debug pins
@@ -53,14 +54,12 @@ void MotorDriver::init_spi(types::u64 SPI_SPEED) {
   gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
 
   // Initialize CS pin as GPIO
-  gpio_init(pinSelector.get_pin(CS));
-  gpio_set_dir(pinSelector.get_pin(CS), GPIO_OUT);
-  gpio_put(pinSelector.get_pin(CS), DEFAULT_CS);
+  inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS);
 
   // Initialize SPI with error checking
   if (!spi_init(spi0, SPI_SPEED)) {
-      printf("Error: SPI initialization failed\n");
-      return;
+    printf("Error: SPI initialization failed\n");
+    return;
   }
 
   // Set SPI format
@@ -87,39 +86,46 @@ void MotorDriver::init_pins() {
 
 //! register handling
 types::u8 MotorDriver::read8(types::u8 reg_addr) {
-  types::u8 tx[2];
-  types::u8 rx[2];
+  uint8_t tx[2];
+  uint8_t rx[2];
 
   // Set MSB to 1 to indicate a read operation.
   tx[0] = 0x80 | reg_addr;
   tx[1] = 0x00; // Dummy byte
 
-  gpio_put(pinSelector.get_pin(CS), 0); // Activate chip select
-  spi_write_read_blocking(spi0, tx, rx, 2);
-  gpio_put(pinSelector.get_pin(CS), 1); // Deactivate chip select
+  inputControl.write_digital(pinSelector.get_pin(CS),
+                             0); // Activate chip select
+  spi_read_blocking(spi0, *tx, rx, 2);
+  inputControl.write_digital(pinSelector.get_pin(CS),
+                             1); // Activate chip select
 
   // rx[1] contains the register value read back.
   return rx[1];
 }
 
-void MotorDriver::write8(types::u8 reg, types::u8 data, types::u8 mask) {
+bool MotorDriver::write8(types::u8 reg, types::u8 data, types::u8 mask) {
   // Read current register value to apply mask.
-  uint8_t current = read8(reg);
-  uint8_t new_value = (current & ~mask) | (data & mask);
+  types::u8 current = read8(reg);
+  types::u8 new_value = (current & mask) | (data & ~mask);
 
-  uint8_t tx[2];
-  // For write, ensure MSB is cleared.
-  tx[0] = reg & 0x7F;
+  types::u8 tx[2];
+
+  // Set MSB to 0 to indicate a write operation.
+  tx[0] = reg & 01111111;
   tx[1] = new_value;
 
-  gpio_put(pinSelector.get_pin(CS), 0); // Activate chip select
+  inputControl.write_digital(pinSelector.get_pin(CS),
+                             0); // Activate chip select
   spi_write_blocking(spi0, tx, 2);
-  gpio_put(pinSelector.get_pin(CS), 1);
+  inputControl.write_digital(pinSelector.get_pin(CS),
+                             1); // Activate chip select
 
   // verify the write
   if (read8(reg) != new_value) {
     printf("Write failed. Register %d not set to %d\n", reg, new_value);
+    return false;
   }
+  return true;
 }
 
 //! reading specific registers
@@ -130,7 +136,8 @@ void MotorDriver::set_registers() {
 
   //* CONFIG3 Register
   // change S_MODE to PH/EN
-  write8(0x0C, 0b10000011, CONFIG3_REG_MASK); // Only modify the first two bits (bits 7-6)
+  write8(0x0C, 0b10000011,
+         CONFIG3_REG_MASK); // Only modify the first two bits (bits 7-6)
 }
 
 bool MotorDriver::check_registers() {
