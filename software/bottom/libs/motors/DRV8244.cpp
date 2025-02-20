@@ -90,8 +90,8 @@ types::u8 MotorDriver::read8(types::u8 reg_addr) {
   uint8_t rx[2];
 
   // Set MSB to 1 to indicate a read operation.
-  tx[0] = 0x80 | reg_addr;
-  tx[1] = 0x00; // Dummy byte
+  tx[0] = 0b10000000 | reg_addr;
+  tx[1] = 0b00000000; // Dummy byte
 
   inputControl.write_digital(pinSelector.get_pin(CS),
                              0); // Activate chip select
@@ -111,7 +111,7 @@ bool MotorDriver::write8(types::u8 reg, types::u8 data, types::u8 mask) {
   types::u8 tx[2];
 
   // Set MSB to 0 to indicate a write operation.
-  tx[0] = reg & 01111111;
+  tx[0] = reg & 0b01111111;
   tx[1] = new_value;
 
   inputControl.write_digital(pinSelector.get_pin(CS),
