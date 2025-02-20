@@ -126,8 +126,7 @@ void MotorDriver::set_registers() {
 
   //* CONFIG3 Register
   // change S_MODE to PH/EN
-  write8(0x0C, CONFIG3_REG_DEFAULT,
-         CONFIG3_REG_MASK); // Only modify the first two bits (bits 7-6)
+  write8(0x0C, 0b10000011, CONFIG3_REG_MASK); // Only modify the first two bits (bits 7-6)
 }
 
 bool MotorDriver::check_registers() {
@@ -222,15 +221,8 @@ bool MotorDriver::command(types::u16 duty_cycle, bool direction) {
   uint in2_pin = pinSelector.get_pin(IN2);
 
   // Command motor by setting one channel to PWM and the other low
-  if (direction) {
-    // For one direction, apply PWM on IN1 and drive IN2 low
-    gpio_put(in2_pin, 0);
-    pwm_set_gpio_level(in1_pin, duty_cycle);
-  } else {
-    // For the reverse direction, apply PWM on IN2 and drive IN1 low
-    gpio_put(in1_pin, 0);
-    pwm_set_gpio_level(in2_pin, duty_cycle);
-  }
+  gpio_put(in2_pin, direction);
+  pwm_set_gpio_level(in1_pin, duty_cycle);
   std::string debug =
       "Motor command executed: Duty cycle = " + std::to_string(duty_cycle) +
       ", Direction = " + std::to_string(direction);
