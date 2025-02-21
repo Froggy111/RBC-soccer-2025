@@ -21,7 +21,7 @@ extern "C" {
 #define DEFAULT_CS 1     // CS high by default
 
 #define COMMAND_REG 0x08
-#define COMMAND_REG_DEFAULT 0b10001001 // CLR FLT, SPI_IN lock, REG unlock
+#define COMMAND_REG_DEFAULT 0x09 // CLR FLT, SPI_IN lock, REG unlock
 
 #define CONFIG1_REG_RESET 0x10
 #define CONFIG1_REG 0x0A
@@ -60,7 +60,10 @@ void MotorDriver::init(int id, types::u64 SPI_SPEED) {
   init_pins();
 
   printf("-> Configuring registers\n");
-  init_registers();
+  if (!init_registers()) {
+    printf("Error: Could not configure registers\n");
+    return;
+  }
 
   printf("---> DRV8244 initialized\n\n");
 }
@@ -104,20 +107,37 @@ void MotorDriver::init_pins() {
 
 //! register handling
 bool MotorDriver::write8(uint8_t reg, uint8_t value) {
+  //* prepare data
   uint16_t reg_value = 0;
+  uint16_t rx_data = 0;
   reg_value |= ((reg << SPI_ADDRESS_POS) & SPI_ADDRESS_MASK_WRITE); // Add register address
   reg_value |= ((value << SPI_DATA_POS) & SPI_DATA_MASK); // Add data value
 
-  // Pull CS low to begin transaction
+  //* Write & Read Feedback
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
-
-  uint16_t rx_data = 0;
   int bytes_written = spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
-
-  // Pull CS high to end transaction
   inputControl.write_digital(pinSelector.get_pin(CS), 1);
 
   printf("SPI Write - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
+
+  //* Check for no errors in received bytes
+  // First 2 MSBs bytes should be '1'
+  if ((rx_data & 0xC000) != 0xC000) {
+    printf("SPI Write - Error: Initial '1' MSB check bytes not found\n");
+    return false;
+  }
+
+  // following 6 bytes are from fault summary
+  if ((rx_data & 0x3F00) != 0x0000) {
+    printf("SPI Write - Error: Fault summary bytes indicating error, %d\n", rx_data & 0x3F00);
+    return false;
+  }
+
+  // Check remaining 8 bytes to match the sent data
+  if ((rx_data & 0x00FF) != value) {
+    printf("SPI Write - Error: Data bytes do not match\n");
+    return false;
+  }
   
   return bytes_written == 1;
 }
@@ -142,31 +162,37 @@ uint8_t MotorDriver::read8(uint8_t reg) {
 }
 
 //! reading specific registers
-void MotorDriver::init_registers() {
+bool MotorDriver::init_registers() {
   //* COMMAND register
   if (!write8(COMMAND_REG, COMMAND_REG_DEFAULT)) {
     printf("Error: Could not write to COMMAND register\n");
+    return false;
   }
 
   //* CONFIG1 register
   if (!write8(CONFIG1_REG, CONFIG1_REG_RESET)) {
     printf("Error: Could not write to CONFIG1 register\n");
+    return false;
   }
 
   //* CONFIG2 register
   if (!write8(CONFIG2_REG, CONFIG2_REG_RESET)) {
     printf("Error: Could not write to CONFIG2 register\n");
+    return false;
   }
 
   //* CONFIG3 register
   if (!write8(CONFIG3_REG, CONFIG3_REG_RESET)) {
     printf("Error: Could not write to CONFIG3 register\n");
+    return false;
   }
 
   //* CONFIG4 register
   if (!write8(CONFIG4_REG, CONFIG4_REG_RESET)) {
     printf("Error: Could not write to CONFIG4 register\n");
+    return false;
   }
+  return true;
 }
 
 bool MotorDriver::check_registers() {

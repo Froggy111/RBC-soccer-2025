@@ -29,7 +29,7 @@ private:
 
 public:
   void init(int id, types::u64 SPI_SPEED);
-  void init_registers();
+  bool init_registers();
 
   // command a speed and direction
   bool command(types::u16 speed, bool direction);
