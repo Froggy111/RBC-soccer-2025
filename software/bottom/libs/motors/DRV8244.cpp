@@ -20,10 +20,21 @@ extern "C" {
 #define DEFAULT_IN2 0    // IN2 off by default
 #define DEFAULT_CS 1     // CS high by default
 
-#define COMMAND_REG_DEFAULT 0b00000000
-#define CONFIG3_REG_DEFAULT                                                    \
-  0b00000011 // Changed: Set to PH/EN mode (10 in bits 7-6)
-#define CONFIG3_REG_MASK 0b00000011
+#define COMMAND_REG 0x08
+#define COMMAND_REG_DEFAULT 0b10001001 // CLR FLT, SPI_IN lock, REG unlock
+
+#define CONFIG1_REG_RESET 0x10
+#define CONFIG1_REG 0x0A
+
+#define CONFIG2_REG_RESET 0x00
+#define CONFIG2_REG 0x0B
+
+#define CONFIG3_REG_RESET 0x40
+#define CONFIG3_REG 0x0C
+#define CONFIG3_REG_DEFAULT 0b01000011
+
+#define CONFIG4_REG_RESET 0x04
+#define CONFIG4_REG 0x0D
 
 // ! init
 // use -1 as driver_id for debug pins
@@ -42,12 +53,18 @@ void MotorDriver::init(types::u8 id, types::u64 SPI_SPEED) {
   init_pins();
 
   printf("Configuring registers\n");
-  set_registers();
+  init_registers();
 
   printf("---> DRV8244 initialized\n");
 }
 
 void MotorDriver::init_spi(types::u64 SPI_SPEED) {
+  // Initialize SPI with error checking
+  if (!spi_init(spi0, SPI_SPEED)) {
+    printf("Error: SPI initialization failed\n");
+    return;
+  }
+
   // Initialize SPI pins (except CS)
   gpio_set_function(pinSelector.get_pin(SCK), GPIO_FUNC_SPI);
   gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
@@ -56,14 +73,8 @@ void MotorDriver::init_spi(types::u64 SPI_SPEED) {
   // Initialize CS pin as GPIO
   inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS);
 
-  // Initialize SPI with error checking
-  if (!spi_init(spi0, SPI_SPEED)) {
-    printf("Error: SPI initialization failed\n");
-    return;
-  }
-
   // Set SPI format
-  spi_set_format(spi0, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+  spi_set_format(spi0, 16, SPI_CPOL_0, SPI_CPHA_1, SPI_MSB_FIRST);
 }
 
 void MotorDriver::init_pins() {
@@ -86,8 +97,9 @@ void MotorDriver::init_pins() {
 
 //! register handling
 types::u8 MotorDriver::read8(types::u8 reg_addr) {
+  // TODO: FIX THIS
   uint8_t tx[2];
-  uint8_t rx[2];
+  uint16_t rx[1];
 
   // Set MSB to 1 to indicate a read operation.
   tx[0] = 0b10000000 | reg_addr;
@@ -95,7 +107,7 @@ types::u8 MotorDriver::read8(types::u8 reg_addr) {
 
   inputControl.write_digital(pinSelector.get_pin(CS),
                              0); // Activate chip select
-  spi_read_blocking(spi0, *tx, rx, 2);
+  spi_read16_blocking(spi0, *tx, rx, 2);
   inputControl.write_digital(pinSelector.get_pin(CS),
                              1); // Activate chip select
 
@@ -106,7 +118,7 @@ types::u8 MotorDriver::read8(types::u8 reg_addr) {
 bool MotorDriver::write8(types::u8 reg, types::u8 data, types::u8 mask) {
   // Read current register value to apply mask.
   types::u8 current = read8(reg);
-  types::u8 new_value = (current & mask) | (data & ~mask);
+  types::u8 new_value = data; // TODO: (current & ~mask) | (data & mask);
 
   types::u8 tx[2];
 
@@ -116,37 +128,63 @@ bool MotorDriver::write8(types::u8 reg, types::u8 data, types::u8 mask) {
 
   inputControl.write_digital(pinSelector.get_pin(CS),
                              0); // Activate chip select
+  printf("Sent SPI data frame: ");
+  for (int i = 7; i >= 0; i--) {
+      printf("%d", (tx[0] >> i) & 1);
+  }
+  for (int i = 7; i >= 0; i--) {
+      printf("%d", (tx[1] >> i) & 1);
+  }
+  printf("\n");
+
   spi_write_blocking(spi0, tx, 2);
   inputControl.write_digital(pinSelector.get_pin(CS),
                              1); // Activate chip select
 
-  // verify the write
-  if (read8(reg) != new_value) {
-    printf("Write failed. Register %d not set to %d\n", reg, new_value);
-    return false;
+  // read the spi data frame sent back
+  tx[0] = 0b10000000 | reg;
+  tx[1] = 0b00000000;
+  uint16_t rx[1];
+  spi_read16_blocking(spi0, *tx, rx, 2);
+
+  printf("SPI data frame sent back: ");
+  for (int i = 15; i >= 0; i--) {
+      printf("%d", (rx[0] >> i) & 1);
   }
+  printf("\n");
   return true;
 }
 
 //! reading specific registers
-void MotorDriver::set_registers() {
-  //* COMMAND Register
-  // reset CLR_FLT, lock SPI_IN, unlock CONFIG registers
-  write8(0x00, COMMAND_REG_DEFAULT);
+void MotorDriver::init_registers() {
+  //* COMMAND register
+  if (!write8(COMMAND_REG, COMMAND_REG_DEFAULT)) {
+    printf("Error: Could not write to COMMAND register\n");
+  }
 
-  //* CONFIG3 Register
-  // change S_MODE to PH/EN
-  write8(0x0C, 0b10000011,
-         CONFIG3_REG_MASK); // Only modify the first two bits (bits 7-6)
+  //* CONFIG1 register
+  if (!write8(CONFIG1_REG, CONFIG1_REG_RESET)) {
+    printf("Error: Could not write to CONFIG1 register\n");
+  }
+
+  //* CONFIG2 register
+  if (!write8(CONFIG2_REG, CONFIG2_REG_RESET)) {
+    printf("Error: Could not write to CONFIG2 register\n");
+  }
+
+  //* CONFIG3 register
+  if (!write8(CONFIG3_REG, CONFIG3_REG_DEFAULT)) {
+    printf("Error: Could not write to CONFIG3 register\n");
+  }
+
+  //* CONFIG4 register
+  if (write8(CONFIG4_REG, CONFIG4_REG_RESET)) {
+    printf("Error: Could not write to CONFIG4 register\n");
+  }
 }
 
 bool MotorDriver::check_registers() {
-  // Check the CONFIG3 register to ensure S_MODE is set to PH/EN
-  types::u8 config3 = read8(0x0C);
-  if ((config3 & CONFIG3_REG_MASK) != CONFIG3_REG_DEFAULT) {
-    printf("CONFIG3 register is not set to PH/EN mode.\n");
-    return false;
-  }
+  //TODO: implement register checking
 
   return true;
 }
@@ -218,6 +256,7 @@ bool MotorDriver::check_config() {
            "motor.\n");
     return false;
   }
+  return true;
 }
 
 bool MotorDriver::command(types::u16 duty_cycle, bool direction) {

@@ -74,7 +74,7 @@ enum class Driver4PinMap {
 
 enum class DriverDbgPinMap {
   CS = 1,
-  MOSI = 4,
+  MOSI = 3,
   MISO = 0,
   SCK = 2,
   NSLEEP = 9,

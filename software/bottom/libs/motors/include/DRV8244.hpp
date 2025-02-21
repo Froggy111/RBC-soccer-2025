@@ -29,9 +29,7 @@ private:
 
 public:
   void init(types::u8 id, types::u64 SPI_SPEED);
-
-  // activate the driver (nsleep to 1)
-  void set_activate(bool activate);
+  void init_registers();
 
   // command a speed and direction
   bool command(types::u16 speed, bool direction);
