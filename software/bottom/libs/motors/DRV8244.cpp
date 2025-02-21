@@ -31,10 +31,16 @@ extern "C" {
 
 #define CONFIG3_REG_RESET 0x40
 #define CONFIG3_REG 0x0C
-#define CONFIG3_REG_DEFAULT 0b01000011
 
 #define CONFIG4_REG_RESET 0x04
 #define CONFIG4_REG 0x0D
+
+#define SPI_ADDRESS_MASK_WRITE 0x3F00 // Mask for writing SPI register address bits
+#define SPI_ADDRESS_MASK_READ 0x7F00 // Mask for reading SPI register address bits
+#define SPI_ADDRESS_POS 8       // Position for SPI register address bits
+#define SPI_DATA_MASK 0x00FF    // Mask for SPI register data bits
+#define SPI_DATA_POS 0          // Position for SPI register data bits
+#define SPI_RW_BIT_MASK 0x4000  // Mask for SPI register read write indication bit
 
 // ! init
 // use -1 as driver_id for debug pins
@@ -96,63 +102,42 @@ void MotorDriver::init_pins() {
 }
 
 //! register handling
-types::u8 MotorDriver::read8(types::u8 reg_addr) {
-  // TODO: FIX THIS
-  uint8_t tx[2];
-  uint16_t rx[1];
+bool MotorDriver::write8(uint8_t reg, uint8_t value) {
+  uint16_t reg_value = 0;
+  reg_value |= ((reg << SPI_ADDRESS_POS) & SPI_ADDRESS_MASK_WRITE); // Add register address
+  reg_value |= ((value << SPI_DATA_POS) & SPI_DATA_MASK); // Add data value
 
-  // Set MSB to 1 to indicate a read operation.
-  tx[0] = 0b10000000 | reg_addr;
-  tx[1] = 0b00000000; // Dummy byte
+  // Pull CS low to begin transaction
+  inputControl.write_digital(pinSelector.get_pin(CS), 0);
 
-  inputControl.write_digital(pinSelector.get_pin(CS),
-                             0); // Activate chip select
-  spi_read16_blocking(spi0, *tx, rx, 2);
-  inputControl.write_digital(pinSelector.get_pin(CS),
-                             1); // Activate chip select
+  uint16_t rx_data = 0;
+  int bytes_written = spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
 
-  // rx[1] contains the register value read back.
-  return rx[1];
+  // Pull CS high to end transaction
+  inputControl.write_digital(pinSelector.get_pin(CS), 1);
+
+  printf("SPI Write - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
+  
+  return bytes_written == 1;
 }
 
-bool MotorDriver::write8(types::u8 reg, types::u8 data, types::u8 mask) {
-  // Read current register value to apply mask.
-  types::u8 current = read8(reg);
-  types::u8 new_value = data; // TODO: (current & ~mask) | (data & mask);
+uint8_t MotorDriver::read8(uint8_t reg) {
+  uint16_t reg_value = 0;
+  reg_value |= ((reg << SPI_ADDRESS_POS) & SPI_ADDRESS_MASK_READ);
+  reg_value |= SPI_RW_BIT_MASK;
 
-  types::u8 tx[2];
+  // Pull CS low to begin transaction
+  inputControl.set_digital(pinSelector.get_pin(CS), 0);
 
-  // Set MSB to 0 to indicate a write operation.
-  tx[0] = reg & 0b01111111;
-  tx[1] = new_value;
+  uint16_t rx_data = 0;
+  spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
 
-  inputControl.write_digital(pinSelector.get_pin(CS),
-                             0); // Activate chip select
-  printf("Sent SPI data frame: ");
-  for (int i = 7; i >= 0; i--) {
-      printf("%d", (tx[0] >> i) & 1);
-  }
-  for (int i = 7; i >= 0; i--) {
-      printf("%d", (tx[1] >> i) & 1);
-  }
-  printf("\n");
+  // Pull CS high to end transaction
+  inputControl.set_digital(pinSelector.get_pin(CS), 1);
 
-  spi_write_blocking(spi0, tx, 2);
-  inputControl.write_digital(pinSelector.get_pin(CS),
-                             1); // Activate chip select
-
-  // read the spi data frame sent back
-  tx[0] = 0b10000000 | reg;
-  tx[1] = 0b00000000;
-  uint16_t rx[1];
-  spi_read16_blocking(spi0, *tx, rx, 2);
-
-  printf("SPI data frame sent back: ");
-  for (int i = 15; i >= 0; i--) {
-      printf("%d", (rx[0] >> i) & 1);
-  }
-  printf("\n");
-  return true;
+  printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
+  
+  return rx_data & 0xFF;
 }
 
 //! reading specific registers
@@ -173,12 +158,12 @@ void MotorDriver::init_registers() {
   }
 
   //* CONFIG3 register
-  if (!write8(CONFIG3_REG, CONFIG3_REG_DEFAULT)) {
+  if (!write8(CONFIG3_REG, CONFIG3_REG_RESET)) {
     printf("Error: Could not write to CONFIG3 register\n");
   }
 
   //* CONFIG4 register
-  if (write8(CONFIG4_REG, CONFIG4_REG_RESET)) {
+  if (!write8(CONFIG4_REG, CONFIG4_REG_RESET)) {
     printf("Error: Could not write to CONFIG4 register\n");
   }
 }
