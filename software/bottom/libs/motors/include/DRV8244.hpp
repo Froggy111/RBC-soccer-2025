@@ -11,7 +11,7 @@ private:
 
   // * register reading
   types::u8 read8(types::u8 reg);
-  bool write8(types::u8 reg, types::u8 data, types::u8 mask = 0xFF);
+  bool write8(types::u8 reg, types::u8 data); // TODO: Add Mask
 
   // * specific registers
   void set_registers(); // setup the registers

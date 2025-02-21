@@ -127,13 +127,13 @@ uint8_t MotorDriver::read8(uint8_t reg) {
   reg_value |= SPI_RW_BIT_MASK;
 
   // Pull CS low to begin transaction
-  inputControl.set_digital(pinSelector.get_pin(CS), 0);
+  inputControl.write_digital(pinSelector.get_pin(CS), 0);
 
   uint16_t rx_data = 0;
   spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
 
   // Pull CS high to end transaction
-  inputControl.set_digital(pinSelector.get_pin(CS), 1);
+  inputControl.write_digital(pinSelector.get_pin(CS), 1);
 
   printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
   
@@ -203,7 +203,7 @@ void MotorDriver::handle_error(MotorDriver *driver) {
 
   // * try to clear the fault
   printf("Attempting to clear the fault...\n");
-  driver->write8(0x08, 0b0000001, 0b0000001);
+  // driver->write8(0x08, 0b0000001, 0b0000001); // TODO
 
   // * check if the fault was cleared
   if (driver->read8(0x01) == 0) {
