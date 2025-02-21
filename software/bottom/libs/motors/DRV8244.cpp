@@ -44,11 +44,12 @@ extern "C" {
 
 // ! init
 // use -1 as driver_id for debug pins
-void MotorDriver::init(types::u8 id, types::u64 SPI_SPEED) {
+void MotorDriver::init(int id, types::u64 SPI_SPEED) {
   printf("---> Initializing DRV8244\n");
-  if (id == (types::u8)-1) {
+  if (id == -1) {
     pinSelector.set_debug_mode(true);
   } else {
+    pinSelector.set_debug_mode(false);
     pinSelector.set_driver_id(id);
   }
 
@@ -77,6 +78,7 @@ void MotorDriver::init_spi(types::u64 SPI_SPEED) {
   gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
 
   // Initialize CS pin as GPIO
+  printf("Initializing CS pin%d\n", pinSelector.get_pin(NSLEEP));
   inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS);
 
   // Set SPI format

@@ -54,8 +54,9 @@ void PinOutputControl::init_analog(types::u8 pin) {
 }
 
 bool PinOutputControl::read_digital(types::u8 pin) {
-  return gpio_get(pin);
-  printf("%d has been read from pin %d\n", value, pin);
+  bool result = gpio_get(pin);
+  printf("%d has been read from pin %d\n", result, pin);
+  return result;
 }
 
 int PinOutputControl::read_analog(types::u8 pin) {

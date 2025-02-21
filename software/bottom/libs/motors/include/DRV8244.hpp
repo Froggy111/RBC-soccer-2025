@@ -28,7 +28,7 @@ private:
   PinSelector pinSelector;
 
 public:
-  void init(types::u8 id, types::u64 SPI_SPEED);
+  void init(int id, types::u64 SPI_SPEED);
   void init_registers();
 
   // command a speed and direction
