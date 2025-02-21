@@ -2,7 +2,6 @@
 extern "C" {
     #include "hardware/adc.h"
 }
-#include "hardware/gpio.h"
 #include "pin_selector.hpp"
 #include "types.hpp"
 #define LINE_SENSOR_HPP

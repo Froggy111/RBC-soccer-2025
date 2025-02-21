@@ -1,10 +1,8 @@
 #include "ALSPT19.hpp"
 extern "C" {
     #include "types.hpp"
-    #include "pico/stdlib.h"
-    #include "hardware/gpio.h"
     #include "hardware/adc.h"
-    #include <stdxio.h>
+    #include <pico/stdio.h>
 }
 
 void LineSensor::init(types::u8 id) {
