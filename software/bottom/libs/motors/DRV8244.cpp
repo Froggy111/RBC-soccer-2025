@@ -21,7 +21,7 @@ extern "C" {
 #define DEFAULT_CS 1     // CS high by default
 
 #define COMMAND_REG 0x08
-#define COMMAND_REG_DEFAULT 0x09 // CLR FLT, SPI_IN lock, REG unlock
+#define COMMAND_REG_RESET 0x09 // CLR FLT, SPI_IN lock, REG unlock
 
 #define CONFIG1_REG_RESET 0x10
 #define CONFIG1_REG 0x0A
@@ -36,12 +36,12 @@ extern "C" {
 #define CONFIG4_REG 0x0D
 
 #define SPI_ADDRESS_MASK_WRITE 0x3F00 // Mask for writing SPI register address bits
-#define SPI_ADDRESS_MASK_READ 0x7F00 // Mask for reading SPI register address bits
-#define SPI_ADDRESS_POS 8       // Position for SPI register address bits
-#define SPI_DATA_MASK 0x00FF    // Mask for SPI register data bits
-#define SPI_DATA_POS 0          // Position for SPI register data bits
-#define SPI_RW_BIT_MASK 0x4000  // Mask for SPI register read write indication bit
-
+#define SPI_ADDRESS_MASK_READ 0x7F00                     // Mask for reading SPI register address bits
+#define SPI_ADDRESS_POS 8    // Position for SPI register address bits
+#define SPI_DATA_MASK 0x00FF // Mask for SPI register data bits
+#define SPI_DATA_POS 0       // Position for SPI register data bits
+#define SPI_RW_BIT_MASK 0x4000 // Mask for SPI register read write indication bit
+0x0809
 // ! init
 // use -1 as driver_id for debug pins
 void MotorDriver::init(int id, types::u64 SPI_SPEED) {
@@ -110,12 +110,14 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value) {
   //* prepare data
   uint16_t reg_value = 0;
   uint16_t rx_data = 0;
-  reg_value |= ((reg << SPI_ADDRESS_POS) & SPI_ADDRESS_MASK_WRITE); // Add register address
+  reg_value |= ((reg << SPI_ADDRESS_POS) &
+                SPI_ADDRESS_MASK_WRITE); // Add register address
   reg_value |= ((value << SPI_DATA_POS) & SPI_DATA_MASK); // Add data value
 
   //* Write & Read Feedback
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
-  int bytes_written = spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
+  int bytes_written =
+      spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
   inputControl.write_digital(pinSelector.get_pin(CS), 1);
 
   printf("SPI Write - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
@@ -129,8 +131,17 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value) {
 
   // following 6 bytes are from fault summary
   if ((rx_data & 0x3F00) != 0x0000) {
-    printf("SPI Write - Error: Fault summary bytes indicating error, %d\n", rx_data & 0x3F00);
-    return false;
+    printf("SPI Write - Error: Fault summary bytes indicating error, %d\n",
+           rx_data & 0x3F00);
+    // get fault register
+    types::u8 fault = read8(0x01);
+
+    if (fault == 0) {
+      printf("SPI Write - No fault found in fault register, moving on...\n");
+    } else {
+      printf("SPI Write - %s\n", Fault::get_fault_description(fault).c_str());
+      return false;
+    }
   }
 
   // Check remaining 8 bytes to match the sent data
@@ -138,33 +149,30 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value) {
     printf("SPI Write - Error: Data bytes do not match\n");
     return false;
   }
-  
+
   return bytes_written == 1;
 }
 
 uint8_t MotorDriver::read8(uint8_t reg) {
   uint16_t reg_value = 0;
+  uint16_t rx_data = 0;
+
   reg_value |= ((reg << SPI_ADDRESS_POS) & SPI_ADDRESS_MASK_READ);
   reg_value |= SPI_RW_BIT_MASK;
 
-  // Pull CS low to begin transaction
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
-
-  uint16_t rx_data = 0;
   spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
-
-  // Pull CS high to end transaction
   inputControl.write_digital(pinSelector.get_pin(CS), 1);
 
   printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
-  
+
   return rx_data & 0xFF;
 }
 
 //! reading specific registers
 bool MotorDriver::init_registers() {
   //* COMMAND register
-  if (!write8(COMMAND_REG, COMMAND_REG_DEFAULT)) {
+  if (!write8(COMMAND_REG, COMMAND_REG_RESET)) {
     printf("Error: Could not write to COMMAND register\n");
     return false;
   }
