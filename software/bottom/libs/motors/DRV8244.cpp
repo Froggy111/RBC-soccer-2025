@@ -45,7 +45,7 @@ extern "C" {
 // ! init
 // use -1 as driver_id for debug pins
 void MotorDriver::init(int id, types::u64 SPI_SPEED) {
-  printf("---> Initializing DRV8244\n");
+  printf("---> Initializing DRV8244\n\n");
   if (id == -1) {
     pinSelector.set_debug_mode(true);
   } else {
@@ -53,16 +53,16 @@ void MotorDriver::init(int id, types::u64 SPI_SPEED) {
     pinSelector.set_driver_id(id);
   }
 
-  printf("Initializing SPI\n");
+  printf("-> Initializing SPI\n");
   init_spi(SPI_SPEED);
 
-  printf("Initializing pins\n");
+  printf("-> Initializing pins\n");
   init_pins();
 
-  printf("Configuring registers\n");
+  printf("-> Configuring registers\n");
   init_registers();
 
-  printf("---> DRV8244 initialized\n");
+  printf("---> DRV8244 initialized\n\n");
 }
 
 void MotorDriver::init_spi(types::u64 SPI_SPEED) {
@@ -192,7 +192,7 @@ std::string MotorDriver::read_status2() {
 
 //! on error
 void MotorDriver::handle_error(MotorDriver *driver) {
-  printf("---> DRV8244 Fault Detected!\n");
+  printf("---> DRV8244 Fault Detected!\n\n");
 
   // Read registers that provide diagnostic data during active operation.
   std::string fault_summary = "FAULT_SUMMARY: " + driver->read_fault_summary();

@@ -24,7 +24,7 @@ void PinInputControl::write_digital(types::u8 pin, bool value) {
     return;
   }
   gpio_put(pin, value);
-  printf("%d has been written to pin %d\n", value, pin);
+  // printf("%d has been written to pin %d\n", value, pin);
   this->digital_cache[pin] = value;
 }
 
@@ -55,7 +55,7 @@ void PinOutputControl::init_analog(types::u8 pin) {
 
 bool PinOutputControl::read_digital(types::u8 pin) {
   bool result = gpio_get(pin);
-  printf("%d has been read from pin %d\n", result, pin);
+  // printf("%d has been read from pin %d\n", result, pin);
   return result;
 }
 

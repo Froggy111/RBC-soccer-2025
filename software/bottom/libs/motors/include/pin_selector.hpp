@@ -85,7 +85,6 @@ constexpr types::u8 debug_pins[] = {
   6   // DRVOFF
 };
 
-0x0D04
 class PinSelector {
   public:
     types::u8 get_pin(DriverPinMap pin);
