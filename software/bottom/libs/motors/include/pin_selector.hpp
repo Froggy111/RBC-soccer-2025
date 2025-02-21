@@ -20,71 +20,72 @@ typedef enum DriverPinMap {
   DRVOFF
 } DriverPinMap;
 
-enum class Driver1PinMap {
-  CS = (types::u8)pinmap::DigitalPins::DRV1_SCS,
-  MOSI = (types::u8)pinmap::DigitalPins::SPI0_MOSI,
-  MISO = (types::u8)pinmap::DigitalPins::SPI0_MISO,
-  SCK = (types::u8)pinmap::DigitalPins::SPI0_SCLK,
-  NSLEEP = (types::u8)pinmap::DigitalPins::DRV1_NSLEEP,
-  NFAULT = (types::u8)pinmap::DigitalPins::DRV1_NFAULT,
-  IPROPI = (types::u8)pinmap::AnalogPins::DRV1_IPROPI,
-  IN2 = (types::u8)pinmap::DigitalPins::DRV1_IN2,
-  IN1 = (types::u8)pinmap::DigitalPins::DRV1_IN1,
-  DRVOFF = (types::u8)pinmap::DigitalPins::DRV1_OFF
+constexpr types::u8 driver1_pins[] = {
+  static_cast<types::u8>(pinmap::DigitalPins::DRV1_SCS),     // CS
+  static_cast<types::u8>(pinmap::DigitalPins::SPI0_MOSI),    // MOSI
+  static_cast<types::u8>(pinmap::DigitalPins::SPI0_MISO),    // MISO
+  static_cast<types::u8>(pinmap::DigitalPins::SPI0_SCLK),    // SCK
+  static_cast<types::u8>(pinmap::DigitalPins::DRV1_NSLEEP),  // NSLEEP
+  static_cast<types::u8>(pinmap::DigitalPins::DRV1_NFAULT),  // NFAULT
+  static_cast<types::u8>(pinmap::AnalogPins::DRV1_IPROPI),   // IPROPI
+  static_cast<types::u8>(pinmap::DigitalPins::DRV1_IN2),     // IN2
+  static_cast<types::u8>(pinmap::DigitalPins::DRV1_IN1),     // IN1
+  static_cast<types::u8>(pinmap::DigitalPins::DRV1_OFF)      // DRVOFF
 };
 
-enum class Driver2PinMap {
-  CS = (types::u8)pinmap::DigitalPins::DRV2_SCS,
-  MOSI = (types::u8)pinmap::DigitalPins::SPI0_MOSI,
-  MISO = (types::u8)pinmap::DigitalPins::SPI0_MISO,
-  SCK = (types::u8)pinmap::DigitalPins::SPI0_SCLK,
-  NSLEEP = (types::u8)pinmap::DigitalPins::DRV2_NSLEEP,
-  NFAULT = (types::u8)pinmap::DigitalPins::DRV2_NFAULT,
-  IPROPI = (types::u8)pinmap::AnalogPins::DRV2_IPROPI,
-  IN2 = (types::u8)pinmap::DigitalPins::DRV2_IN2,
-  IN1 = (types::u8)pinmap::DigitalPins::DRV2_IN1,
-  DRVOFF = (types::u8)pinmap::DigitalPins::DRV2_OFF
+constexpr types::u8 driver2_pins[] = {
+  static_cast<types::u8>(pinmap::DigitalPins::DRV2_SCS),     // CS
+  static_cast<types::u8>(pinmap::DigitalPins::SPI0_MOSI),    // MOSI
+  static_cast<types::u8>(pinmap::DigitalPins::SPI0_MISO),    // MISO
+  static_cast<types::u8>(pinmap::DigitalPins::SPI0_SCLK),    // SCK
+  static_cast<types::u8>(pinmap::DigitalPins::DRV2_NSLEEP),  // NSLEEP
+  static_cast<types::u8>(pinmap::DigitalPins::DRV2_NFAULT),  // NFAULT
+  static_cast<types::u8>(pinmap::AnalogPins::DRV2_IPROPI),   // IPROPI
+  static_cast<types::u8>(pinmap::DigitalPins::DRV2_IN2),     // IN2
+  static_cast<types::u8>(pinmap::DigitalPins::DRV2_IN1),     // IN1
+  static_cast<types::u8>(pinmap::DigitalPins::DRV2_OFF)      // DRVOFF
 };
 
-enum class Driver3PinMap {
-  CS = (types::u8)pinmap::DigitalPins::DRV3_SCS,
-  MOSI = (types::u8)pinmap::DigitalPins::SPI0_MOSI,
-  MISO = (types::u8)pinmap::DigitalPins::SPI0_MISO,
-  SCK = (types::u8)pinmap::DigitalPins::SPI0_SCLK,
-  NSLEEP = (types::u8)pinmap::DigitalPins::DRV3_NSLEEP,
-  NFAULT = (types::u8)pinmap::DigitalPins::DRV3_NFAULT,
-  IPROPI = (types::u8)pinmap::AnalogPins::DRV3_IPROPI,
-  IN2 = (types::u8)pinmap::DigitalPins::DRV3_IN2,
-  IN1 = (types::u8)pinmap::DigitalPins::DRV3_IN1,
-  DRVOFF = (types::u8)pinmap::DigitalPins::DRV3_OFF
+constexpr types::u8 driver3_pins[] = {
+  static_cast<types::u8>(pinmap::DigitalPins::DRV3_SCS),     // CS
+  static_cast<types::u8>(pinmap::DigitalPins::SPI0_MOSI),    // MOSI
+  static_cast<types::u8>(pinmap::DigitalPins::SPI0_MISO),    // MISO
+  static_cast<types::u8>(pinmap::DigitalPins::SPI0_SCLK),    // SCK
+  static_cast<types::u8>(pinmap::DigitalPins::DRV3_NSLEEP),  // NSLEEP
+  static_cast<types::u8>(pinmap::DigitalPins::DRV3_NFAULT),  // NFAULT
+  static_cast<types::u8>(pinmap::AnalogPins::DRV3_IPROPI),   // IPROPI
+  static_cast<types::u8>(pinmap::DigitalPins::DRV3_IN2),     // IN2
+  static_cast<types::u8>(pinmap::DigitalPins::DRV3_IN1),     // IN1
+  static_cast<types::u8>(pinmap::DigitalPins::DRV3_OFF)      // DRVOFF
 };
 
-enum class Driver4PinMap {
-  CS = (types::u8)pinmap::DigitalPins::DRV4_SCS,
-  MOSI = (types::u8)pinmap::DigitalPins::SPI0_MOSI,
-  MISO = (types::u8)pinmap::DigitalPins::SPI0_MISO,
-  SCK = (types::u8)pinmap::DigitalPins::SPI0_SCLK,
-  NSLEEP = (types::u8)pinmap::DigitalPins::DRV4_NSLEEP,
-  NFAULT = (types::u8)pinmap::DigitalPins::DRV4_NFAULT,
-  IPROPI = (types::u8)pinmap::AnalogPins::DRV4_IPROPI,
-  IN2 = (types::u8)pinmap::DigitalPins::DRV4_IN2,
-  IN1 = (types::u8)pinmap::DigitalPins::DRV4_IN1,
-  DRVOFF = (types::u8)pinmap::DigitalPins::DRV4_OFF
+constexpr types::u8 driver4_pins[] = {
+  static_cast<types::u8>(pinmap::DigitalPins::DRV4_SCS),     // CS
+  static_cast<types::u8>(pinmap::DigitalPins::SPI0_MOSI),    // MOSI
+  static_cast<types::u8>(pinmap::DigitalPins::SPI0_MISO),    // MISO
+  static_cast<types::u8>(pinmap::DigitalPins::SPI0_SCLK),    // SCK
+  static_cast<types::u8>(pinmap::DigitalPins::DRV4_NSLEEP),  // NSLEEP
+  static_cast<types::u8>(pinmap::DigitalPins::DRV4_NFAULT),  // NFAULT
+  static_cast<types::u8>(pinmap::AnalogPins::DRV4_IPROPI),   // IPROPI
+  static_cast<types::u8>(pinmap::DigitalPins::DRV4_IN2),     // IN2
+  static_cast<types::u8>(pinmap::DigitalPins::DRV4_IN1),     // IN1
+  static_cast<types::u8>(pinmap::DigitalPins::DRV4_OFF)      // DRVOFF
 };
 
-enum class DriverDbgPinMap {
-  CS = 1,
-  MOSI = 3,
-  MISO = 0,
-  SCK = 2,
-  NSLEEP = 9,
-  NFAULT = 7,
-  IPROPI = 8,
-  IN2 = 5,
-  IN1 = 4,
-  DRVOFF = 6
+constexpr types::u8 debug_pins[] = {
+  1,  // CS
+  3,  // MOSI
+  0,  // MISO
+  2,  // SCK
+  9,  // NSLEEP
+  7,  // NFAULT
+  8,  // IPROPI
+  5,  // IN2
+  4,  // IN1
+  6   // DRVOFF
 };
 
+0x0D04
 class PinSelector {
   public:
     types::u8 get_pin(DriverPinMap pin);

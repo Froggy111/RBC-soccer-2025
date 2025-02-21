@@ -78,7 +78,6 @@ void MotorDriver::init_spi(types::u64 SPI_SPEED) {
   gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
 
   // Initialize CS pin as GPIO
-  printf("Initializing CS pin%d\n", pinSelector.get_pin(NSLEEP));
   inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS);
 
   // Set SPI format

@@ -2,21 +2,20 @@
 
 types::u8 PinSelector::get_pin(DriverPinMap pin) {
   if (debugMode) {
-    return static_cast<types::u8>(static_cast<DriverDbgPinMap>(pin));
+    return debug_pins[static_cast<types::u8>(pin)];
   }
 
   switch (driverId) {
-  case 1:
-    return static_cast<types::u8>(static_cast<Driver1PinMap>(pin));
-  case 2:
-    return static_cast<types::u8>(static_cast<Driver2PinMap>(pin));
-  case 3:
-    return static_cast<types::u8>(static_cast<Driver3PinMap>(pin));
-  case 4:
-    return static_cast<types::u8>(static_cast<Driver4PinMap>(pin));
-  default:
-    // Handle error case or return a default value
-    return 0xFF;
+    case 1:
+      return driver1_pins[static_cast<types::u8>(pin)];
+    case 2:
+      return driver2_pins[static_cast<types::u8>(pin)];
+    case 3:
+      return driver3_pins[static_cast<types::u8>(pin)];
+    case 4:
+      return driver4_pins[static_cast<types::u8>(pin)];
+    default:
+      return 0;
   }
 }
 
