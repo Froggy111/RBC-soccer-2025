@@ -9,10 +9,12 @@ public:
   void init_analog(types::u8 pin, int value);
   void write_digital(types::u8 pin, bool value);
   void write_analog(types::u8 pin, int value);
-  bool get_last_value(types::u8 pin);
+  bool get_last_value_digital(types::u8 pin);
+  bool get_last_value_analog(types::u8 pin);
 
 private:
   std::map<types::u8, bool> digital_cache;
+  std::map<types::u8, bool> analog_cache;
 };
 
 class PinOutputControl {

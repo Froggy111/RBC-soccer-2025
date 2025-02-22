@@ -1,7 +1,6 @@
 #include <cstdint>
 extern "C" {
 #include <hardware/spi.h>
-#include <hardware/pwm.h>
 #include <hardware/gpio.h>
 #include <pico/stdlib.h>
 #include <pico/stdio.h>
@@ -21,7 +20,8 @@ extern "C" {
 #define DEFAULT_CS 1     // CS high by default
 
 #define COMMAND_REG 0x08
-#define COMMAND_REG_RESET 0x09 // CLR FLT, SPI_IN lock, REG unlock
+#define COMMAND_REG_RESET 0b10001001 // CLR FLT, SPI_IN lock, REG unlock
+#define COMMAND_REG_EXPECTED 0b00001001 // CLR FLT, SPI_IN lock, REG unlock
 
 #define CONFIG1_REG_RESET 0x10
 #define CONFIG1_REG 0x0A
@@ -41,7 +41,7 @@ extern "C" {
 #define SPI_DATA_MASK 0x00FF // Mask for SPI register data bits
 #define SPI_DATA_POS 0       // Position for SPI register data bits
 #define SPI_RW_BIT_MASK 0x4000 // Mask for SPI register read write indication bit
-0x0809
+
 // ! init
 // use -1 as driver_id for debug pins
 void MotorDriver::init(int id, types::u64 SPI_SPEED) {
@@ -99,14 +99,14 @@ void MotorDriver::init_pins() {
   inputControl.init_digital(pinSelector.get_pin(DRVOFF), DEFAULT_DRVOFF);
 
   // EN/IN1
-  inputControl.init_digital(pinSelector.get_pin(IN1), DEFAULT_IN1);
+  inputControl.init_analog(pinSelector.get_pin(IN1), DEFAULT_IN1);
 
   // PH/IN2
   inputControl.init_digital(pinSelector.get_pin(IN2), DEFAULT_IN2);
 }
 
 //! register handling
-bool MotorDriver::write8(uint8_t reg, uint8_t value) {
+bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   //* prepare data
   uint16_t reg_value = 0;
   uint16_t rx_data = 0;
@@ -144,10 +144,17 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value) {
     }
   }
 
-  // Check remaining 8 bytes to match the sent data
-  if ((rx_data & 0x00FF) != value) {
-    printf("SPI Write - Error: Data bytes do not match\n");
-    return false;
+  // Check remaining 8 bytes to match the sent data or expected return
+  if (expected == -1) {
+    if ((rx_data & 0x00FF) != value) {
+      printf("SPI Write - Error: Data bytes do not match\n");
+      return false;
+    }
+  } else {
+    if ((rx_data & 0x00FF) != expected) {
+      printf("SPI Write - Error: Data bytes do not match expected\n");
+      return false;
+    }
   }
 
   return bytes_written == 1;
@@ -172,7 +179,7 @@ uint8_t MotorDriver::read8(uint8_t reg) {
 //! reading specific registers
 bool MotorDriver::init_registers() {
   //* COMMAND register
-  if (!write8(COMMAND_REG, COMMAND_REG_RESET)) {
+  if (!write8(COMMAND_REG, COMMAND_REG_RESET, COMMAND_REG_EXPECTED)) {
     printf("Error: Could not write to COMMAND register\n");
     return false;
   }
@@ -253,13 +260,13 @@ void MotorDriver::handle_error(MotorDriver *driver) {
 
 bool MotorDriver::check_config() {
   // check if the driver is active
-  if (!inputControl.get_last_value(pinSelector.get_pin(NSLEEP))) {
+  if (!inputControl.get_last_value_digital(pinSelector.get_pin(NSLEEP))) {
     printf("Driver is not active. Cannot command motor.\n");
     return false;
   }
 
   // check if the driver is off
-  if (inputControl.get_last_value(pinSelector.get_pin(DRVOFF))) {
+  if (inputControl.get_last_value_digital(pinSelector.get_pin(DRVOFF))) {
     printf("Driver is off. Cannot command motor.\n");
     return false;
   }
@@ -279,7 +286,8 @@ bool MotorDriver::check_config() {
   return true;
 }
 
-bool MotorDriver::command(types::u16 duty_cycle, bool direction) {
+// negative if backwards, positive if forwards
+bool MotorDriver::command(types::i8 duty_cycle) {
   // Verify if the driver can accept commands
   if (!check_config()) {
     printf("Motor command aborted due to configuration error.\n");
@@ -290,12 +298,17 @@ bool MotorDriver::command(types::u16 duty_cycle, bool direction) {
   uint in1_pin = pinSelector.get_pin(IN1);
   uint in2_pin = pinSelector.get_pin(IN2);
 
+  // get direction and speed
+  bool direction = duty_cycle < 0;
+  duty_cycle = abs(duty_cycle);
+
   // Command motor by setting one channel to PWM and the other low
-  // gpio_put(in2_pin, direction);
-  // pwm_set_gpio_level(in1_pin, duty_cycle);
-  // std::string debug =
-  //     "Motor command executed: Duty cycle = " + std::to_string(duty_cycle) +
-  //     ", Direction = " + std::to_string(direction);
-  // printf("%s\n", debug.c_str());
+  inputControl.write_digital(in2_pin, direction);
+  inputControl.write_analog(in1_pin, duty_cycle);
+
+  std::string debug =
+      "Motor command executed: Duty cycle = " + std::to_string(duty_cycle) +
+      ", Direction = " + std::to_string(direction);
+  printf("%s\n", debug.c_str());
   return true;
 }

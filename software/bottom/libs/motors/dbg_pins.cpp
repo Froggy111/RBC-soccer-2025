@@ -4,6 +4,7 @@ extern "C" {
 #include <pico/stdlib.h>
 #include <pico/stdio.h>
 #include <stdio.h>
+#include <hardware/pwm.h>
 }
 
 // pins responsible for providing input to DRV8244
@@ -15,7 +16,17 @@ void PinInputControl::init_digital(types::u8 pin, bool value) {
 }
 
 void PinInputControl::init_analog(types::u8 pin, int value) {
-  // TODO
+  gpio_set_function(pin, GPIO_FUNC_PWM);
+  uint slice_num = pwm_gpio_to_slice_num(pin);
+  uint channel = pwm_gpio_to_channel(pin);
+
+  // Set PWM configuration
+  pwm_set_wrap(slice_num, 255); // set max value
+  pwm_set_enabled(slice_num, true); // enable PWM
+
+  // Set PWM level
+  this->analog_cache[pin] = value;
+  write_analog(pin, value);
 }
 
 void PinInputControl::write_digital(types::u8 pin, bool value) {
@@ -29,10 +40,17 @@ void PinInputControl::write_digital(types::u8 pin, bool value) {
 }
 
 void PinInputControl::write_analog(types::u8 pin, int value) {
-  // TODO: Implement
+  if (this->analog_cache.find(pin) == this->analog_cache.end()) {
+    printf("Pin not initialized! pin %d\n", pin);
+    return;
+  }
+  uint slice_num = pwm_gpio_to_slice_num(pin);
+  uint channel = pwm_gpio_to_channel(pin);
+  // printf("%d has been written to pin %d\n", value, pin);
+  pwm_set_chan_level(slice_num, channel, value);
 }
 
-bool PinInputControl::get_last_value(types::u8 pin) {
+bool PinInputControl::get_last_value_digital(types::u8 pin) {
   if (this->digital_cache.find(pin) == this->digital_cache.end()) {
     printf("Pin not initialized! pin %d\n", pin);
     // TODO: Fix return value
@@ -40,6 +58,16 @@ bool PinInputControl::get_last_value(types::u8 pin) {
   }
 
   return this->digital_cache[pin];
+}
+
+bool PinInputControl::get_last_value_analog(types::u8 pin) {
+  if (this->analog_cache.find(pin) == this->analog_cache.end()) {
+    printf("Pin not initialized! pin %d\n", pin);
+    // TODO: Fix return value
+    return false;
+  }
+
+  return this->analog_cache[pin];
 }
 
 // pins responsible for providing output to DRV8244
