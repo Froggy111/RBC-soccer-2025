@@ -33,7 +33,7 @@ public:
   bool init_registers();
 
   // command a speed and direction
-  bool command(types::i8 speed);
+  bool command(types::i16 duty_cycle);
 
   // handle error
   static void handle_error(MotorDriver *driver);

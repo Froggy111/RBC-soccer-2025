@@ -283,11 +283,12 @@ bool MotorDriver::check_config() {
            "motor.\n");
     return false;
   }
+  printf("Config OK\n");
   return true;
 }
 
 // negative if backwards, positive if forwards
-bool MotorDriver::command(types::i8 duty_cycle) {
+bool MotorDriver::command(types::i16 duty_cycle) {
   // Verify if the driver can accept commands
   if (!check_config()) {
     printf("Motor command aborted due to configuration error.\n");

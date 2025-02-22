@@ -21,12 +21,15 @@ void PinInputControl::init_analog(types::u8 pin, int value) {
   uint channel = pwm_gpio_to_channel(pin);
 
   // Set PWM configuration
-  pwm_set_wrap(slice_num, 255); // set max value
-  pwm_set_enabled(slice_num, true); // enable PWM
+  pwm_set_clkdiv(slice_num, 4.0);
+  pwm_set_wrap(slice_num, 12500); // set max value
 
   // Set PWM level
   this->analog_cache[pin] = value;
   write_analog(pin, value);
+
+  // enable PWM
+  pwm_set_enabled(slice_num, true);
 }
 
 void PinInputControl::write_digital(types::u8 pin, bool value) {
@@ -43,10 +46,10 @@ void PinInputControl::write_analog(types::u8 pin, int value) {
   if (this->analog_cache.find(pin) == this->analog_cache.end()) {
     printf("Pin not initialized! pin %d\n", pin);
     return;
-  }
+  }   
   uint slice_num = pwm_gpio_to_slice_num(pin);
   uint channel = pwm_gpio_to_channel(pin);
-  // printf("%d has been written to pin %d\n", value, pin);
+  printf("%d has been written to pin %d\n", value, pin);
   pwm_set_chan_level(slice_num, channel, value);
 }
 
