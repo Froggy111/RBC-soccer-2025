@@ -14,5 +14,11 @@ enum class Fault : types::u8 {
   OLA = (1 << 0)        // Open load condition detected in ACTIVE state
 };
 
+/**
+ * @brief Returns a string with a description of the fault, based on the register values provided in the fault param.
+ * 
+ * @param fault 
+ * @return std::string 
+ */
 std::string get_fault_description(types::u8 fault);
 }

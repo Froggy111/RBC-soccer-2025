@@ -7,34 +7,120 @@
 
 class MotorDriver {
 private:
+  /**
+   * @brief Initialize all SPI pins and SPI interface
+   * 
+   * @param SPI_SPEED 
+   */
   void init_spi(types::u64 SPI_SPEED);
+
+  /**
+   * @brief Initialize all GPIO and analog pins
+   * 
+   */
   void init_pins();
 
   // * register reading
+
+  /**
+   * @brief Read 8 bits from a register on the DRV8244
+   * 
+   * @param reg 
+   * @return types::u8 
+   */
   types::u8 read8(types::u8 reg);
+
+  /**
+   * If expected is -1, then it will ensure that the value returned by the DRV8244 via SPI is the same as what is written.
+   * Else, it will check if the value returned by the DRV8244 via SPI is the same as the expected value.
+   * @brief Write 8 bits to a register on the DRV8244
+   * 
+   * @param reg 
+   * @param data 
+   * @param expected 
+   * @return true 
+   * @return false 
+   */
   bool write8(types::u8 reg, types::u8 data, int8_t expected = -1); // TODO: Add Mask
 
-  // * specific registers
-  void set_registers(); // setup the registers
+  // * register handling
+
+  /**
+   * @brief Initialize the registers to their default values
+   * 
+   * @return true 
+   * @return false 
+   */
+  bool init_registers();
+
+  /**
+   * @brief Check the registers to see if they are configured correctly to command the motor
+   * 
+   * @return true 
+   * @return false 
+   */
   bool check_registers(); // check if the registers are configured correctly
+
+  /**
+   * @brief Read the FAULT_SUMMARY register, and return a string of the faults
+   * 
+   * @return std::string 
+   */
   std::string read_fault_summary();
+
+  /**
+   * @brief Read the STATUS1 register, and return a string of the status
+   * 
+   * @return std::string 
+   */
   std::string read_status1();
+
+  /**
+   * @brief Read the STATUS2 register, and return a string of the status
+   * 
+   * @return std::string 
+   */
   std::string read_status2();
 
   //* others
+
+  /**
+   * @brief Check that the pins are configured correctly
+   * 
+   * @return true 
+   * @return false 
+   */
   bool check_config();
 
+  
   PinInputControl inputControl;
   PinOutputControl outputControl;
   PinSelector pinSelector;
 
 public:
+  /**
+   * @brief Init the GPIO & Analog Pins, the SPI interface and Registers
+   * 
+   * @param id 
+   * @param SPI_SPEED 
+   */
   void init(int id, types::u64 SPI_SPEED);
-  bool init_registers();
 
-  // command a speed and direction
+  /**
+   * Checks are implemented to ensure that the driver's registers, pins are all in the right state.
+   * Acceleration and deceleration safeguards are implemented.
+   * @brief Command the motor with a duty cycle. 
+   * 
+   * @param duty_cycle 
+   * @return true 
+   * @return false 
+   */
   bool command(types::i16 duty_cycle);
 
-  // handle error
+  /**
+   * @brief Callback function to handle errors, to be called when NFAULT pin is high
+   * 
+   * @param driver 
+   */
   static void handle_error(MotorDriver *driver);
 };
