@@ -2,7 +2,7 @@
 #define DEFAULT_USB_CONFIG_H
 
 #ifndef USB_MAX_PACKET_SIZE
-#define USB_MAX_PACKET_SIZE 1024
+#define USB_MAX_PACKET_SIZE 256
 #endif
 
 #ifndef USB_TX_BUFSIZE

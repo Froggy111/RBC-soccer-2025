@@ -37,16 +37,16 @@
 #define configUSE_TICKLESS_IDLE 0
 #define configCPU_CLOCK_HZ 133000000 // 133MHz for RP2040
 #define configTICK_RATE_HZ 1000      // FreeRTOS beats per second
-#define configMAX_PRIORITIES 5       // Max number of priority values (0-24)
+#define configMAX_PRIORITIES 24      // Max number of priority values (0-24)
 #define configMINIMAL_STACK_SIZE 128
 #define configMAX_TASK_NAME_LEN 16
 #define configUSE_16_BIT_TICKS 0
 #define configIDLE_SHOULD_YIELD 1
 #define configUSE_TASK_NOTIFICATIONS 1
 #define configTASK_NOTIFICATION_ARRAY_ENTRIES 3
-#define configUSE_MUTEXES 0
+#define configUSE_MUTEXES 1
 #define configUSE_RECURSIVE_MUTEXES 0
-#define configUSE_COUNTING_SEMAPHORES 0
+#define configUSE_COUNTING_SEMAPHORES 1
 #define configQUEUE_REGISTRY_SIZE 10
 #define configUSE_QUEUE_SETS 0
 #define configUSE_NEWLIB_REENTRANT 0
@@ -108,6 +108,7 @@
 #define INCLUDE_xTaskAbortDelay 0
 #define INCLUDE_xTaskGetHandle 0
 #define INCLUDE_xTaskResumeFromISR 1
+// #define INCLUDE_xSemaphoreCreateMutex 1
 
 /* A header file that defines trace macro can be included here. */
 

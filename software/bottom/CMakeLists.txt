@@ -67,7 +67,8 @@ pico_sdk_init()
 # ====================================================================================
 
 # ===================================== FREERTOS =====================================
-# event driven tusb tasks (this is hacky as picosdk injects -DCFG_TUSB_OS=OPT_OS_PICO to compilation commands)
+# event driven tusb tasks
+# HACK: picosdk injects -DCFG_TUSB_OS=OPT_OS_PICO to compilation commands, thus this is needed
 add_compile_options(-DCFG_TUSB_OS=OPT_OS_FREERTOS)
 
 # FreeRTOS

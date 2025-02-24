@@ -1,11 +1,9 @@
 #include "comms/usb.hpp"
-#include "class/cdc/cdc_device.h"
 #include "comms/errors.hpp"
 #include "comms/identifiers.hpp"
-#include "device/usbd.h"
 #include "types.hpp"
-#include <hardware/timer.h>
 extern "C" {
+#include <FreeRTOS.h>
 #include <hardware/gpio.h>
 #include <pico/stdlib.h>
 #include <tusb.h>
@@ -19,16 +17,38 @@ namespace usb {
 
 CurrentRXState state;
 
-CDC::CDC() {}
+CDC::CDC() {
+  // mostly stuff that should be set up before initialising tinyusb
+  // set tusb callback handlers
+  usb::vendor_control_xfer_cb_fn = _vendor_control_xfer_cb;
+  usb::vendor_control_xfer_cb_user_args = nullptr;
+  usb::CDC_line_coding_cb_fn = _line_coding_cb;
+  usb::CDC_line_coding_cb_user_args = nullptr;
+  usb::CDC_rx_cb_fn = _rx_cb;
+  usb::CDC_rx_cb_user_args = &_current_rx_state;
+
+  // setup buffers
+  _current_rx_state.data_buffer = _read_buffer;
+  _current_rx_state.reset();
+
+  // create some tasks
+}
 
 bool CDC::init(void) {
   if (tusb_init()) {
     return false; // some error, idk
   }
-  // usb-cdc initialised, proceed
-  _current_recv_state.reset();
-  _current_recv_state.data_buffer = _read_buffer;
-  _is_initialised = true;
+  while (!tusb_inited()) {
+    tud_task();
+    sleep_us(TUSB_INIT_SLEEP_LOOP_TIME);
+  }
+
+  // tinyusb initialised, proceed
+  _initialised = true;
+
+  // create tud_task() caller
+  xTaskCreate(_tud_task_caller, "usb::CDC::_tud_task_caller", 4096, NULL, 20,
+              NULL);
 }
 
 bool CDC::wait_for_host_connection(u32 timeout) {
@@ -55,7 +75,7 @@ bool CDC::write(const comms::SendIdentifiers identifier, const u8 *data,
                 const u16 data_len) {
   u16 reported_len = data_len + sizeof(identifier);
   u16 packet_len = sizeof(reported_len) + reported_len;
-  if (packet_len > MAX_TRANSMIT_BUF_SIZE) {
+  if (packet_len > MAX_TX_BUF_SIZE) {
     return false;
   }
   if (tud_cdc_available() < packet_len) {
@@ -109,51 +129,53 @@ bool CDC::_vendor_control_xfer_cb(u8 rhport, u8 stage,
 
   return false;
 }
+void CDC::_rx_cb(u8 interface, void *args) {
+  CDC *_this = (CDC *)args;
+  CurrentRXState &state = _this->_current_rx_state;
+  CurrentRawCommand &command = _this->_current_command;
 
-void CDC::_rx_cb(u8 interface, void *args) {}
+  // prevention from missing out a command
+  while (true) {
+    // length bytes
+    if (!state.length_bytes_recieved) {
+      // wait until there are enough length bytes
+      if (tud_cdc_available() < N_LENGTH_BYTES) {
+        return;
+      }
+      // WARN: this assumes both systems have the same endianness. In the case of RPi and RP2040, both are little endian, so this is fine.
+      tud_cdc_read(&state.expected_length, N_LENGTH_BYTES);
+      if (state.expected_length > MAX_RX_BUF_SIZE) {
+        comms::CommsErrors err = comms::CommsErrors::PACKET_RECV_TOO_LONG;
+        interrupt_write(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err,
+                        sizeof(err));
+        interrupt_flush();
+        state.reset();
+        // WARN: after this, behavior becomes undefined
+        // WARN: as we need to exit the cb for the error message to send, we cannot restart here.
+        return;
+      }
+    }
 
-void CDC::_data_avail_callback(void *args) {
-  CurrentRecvState *crs = (CurrentRecvState *)args;
-  u8 newbyte = stdio_getchar();
-  // length bytes
-  if (crs->length_bytes_recieved < 2) {
-    crs->expected_length =
-        newbyte << (8 * crs->length_bytes_recieved); // assuming little endian
-    crs->length_bytes_recieved++;
-    // sent command is too long, report error
-    if (crs->expected_length > max_recieve_buf_size) {
-      comms::Errors err = comms::Errors::PACKET_RECV_TOO_LONG;
-      // FIXME: This will not work, stdio cannot be used in this callback
-      send_data(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err, sizeof(err));
-      crs->reset();
-      // NOTE: after this, behavior becomes undefined
+    // data bytes
+    if (!state.recieved) {
+      // wait until there are enough data bytes
+      if (tud_cdc_available() < state.expected_length) {
+        return;
+      }
+      // WARN: this assumes both systems have the same endianness. In the case of RPi and RP2040, both are little endian, so this is fine.
+      tud_cdc_read(state.data_buffer, state.expected_length);
+      // NOTE: here we have a full command in CurrentRXState.
+      // this needs to be quickly copied into a command buffer.
+      state.reset();
+      return;
     }
-    return;
   }
-  // data bytes
-  if (crs->recieved_length < crs->expected_length) {
-    crs->data_buffer[crs->recieved_length] = newbyte;
-    crs->recieved_length++;
-    crs->parity_byte ^= newbyte;
-    return;
-  }
-  // last byte (parity byte)
-  else if (crs->recieved_length == crs->expected_length) {
-    // check parity
-    if (crs->parity_byte != newbyte) {
-      // raise PARITY_FAILED
-      comms::Errors err = comms::Errors::PARITY_FAILED;
-      // FIXME: This will not work, stdio cannot be used in this callback
-      send_data(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err, sizeof(err));
-    }
-    RawCommand raw_command = {crs->recieved_length, crs->data_buffer};
-    crs->reset();
-  }
-  // NOTE: SOMETHING REALLY WENT WRONG
-  else {
-    comms::Errors err = comms::Errors::RECIEVED_MORE_THAN_EXPECTED;
-    // FIXME: This will not work, stdio cannot be used in this callback
-    send_data(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err, sizeof(err));
+}
+
+void CDC::_rx_command_process_task(void *args) {
+  BaseType_t task_notification_result;
+  for (;;) {
+    task_notification_result = xTaskNotifyWait(pdFALSE, ULONG_MAX,
   }
 }
 

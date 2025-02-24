@@ -11,6 +11,7 @@
 #include "class/cdc/cdc.h"
 #include "comms/default_usb_config.h"
 #include "identifiers.hpp"
+#include "osal/osal_freertos.h"
 #include "types.hpp"
 extern "C" {
 #include <pico/bootrom.h>
@@ -24,7 +25,7 @@ extern "C" {
  * INFO:
  * Communication format is defined as such, in both directions:
  * Byte 1 & 2: Length (least significant byte first) (excludes length bytes)
- * (pico will check that length <= MAX_RECIEVE_BUF_SIZE)
+ * (pico will check that length <= MAX_RX_BUF_SIZE)
  * WARNING: LENGTH INCLUDES IDENTIFIER BYTE. This is done for convenience in the recieving state.
  * INFO:
  * Byte 3: Identifier (u8 enum)
@@ -36,8 +37,14 @@ static const types::u32 HOST_CONNECTION_TIMEOUT =
     1000 * 1000;                                              // in microseconds
 static const types::u32 CDC_CONNECTION_TIMEOUT = 1000 * 1000; // in microseconds
 
-static const types::u16 MAX_RECIEVE_BUF_SIZE = USB_RX_BUFSIZE;
-static const types::u16 MAX_TRANSMIT_BUF_SIZE = USB_TX_BUFSIZE;
+static const types::u16 MAX_RX_BUF_SIZE = USB_RX_BUFSIZE;
+static const types::u16 MAX_TX_BUF_SIZE = USB_TX_BUFSIZE;
+
+static const types::u8 N_LENGTH_BYTES = 2;
+static const types::u16 MAX_RX_PACKET_LENGTH = MAX_RX_BUF_SIZE;
+static const types::u16 MAX_TX_PACKET_LENGTH = MAX_TX_BUF_SIZE;
+
+static const types::u8 TUSB_INIT_SLEEP_LOOP_TIME = 100; // in microseconds
 
 using CDCLineCodingCB = void (*)(types::u8, const cdc_line_coding_t *, void *);
 using VendorControlXferCB = bool (*)(types::u8, types::u8,
@@ -54,21 +61,16 @@ extern CDCRxCB CDC_rx_cb_fn;
 extern void *CDC_rx_cb_user_args;
 
 struct CurrentRXState {
-  types::u8 length_bytes_recieved = 0;
+  bool length_bytes_recieved = false;
   types::u16 expected_length = 0;
-  types::u16 recieved_length = 0;
+  bool recieved = false;
   types::u8 *data_buffer = nullptr;
   inline void reset(void) {
-    length_bytes_recieved = 0;
+    length_bytes_recieved = false;
     expected_length = 0;
-    recieved_length = 0;
-    memset(data_buffer, 0, MAX_RECIEVE_BUF_SIZE);
+    recieved = false;
+    memset(data_buffer, 0, MAX_RX_BUF_SIZE);
   }
-};
-
-struct RawCommand {
-  types::u16 command_length = 0;
-  types::u8 *data_buffer = nullptr;
 };
 
 class CDC {
@@ -81,7 +83,7 @@ public:
    */
   bool init(void);
 
-  inline bool is_initialised(void) { return _is_initialised; }
+  inline bool initialised(void) { return _initialised; }
 
   /**
    * @brief blocks until host is connected through USB.
@@ -115,7 +117,7 @@ public:
   /**
    * @brief adds data, formatted correctly, to an internal buffer, need to call interrupt_data_flush after all writes in an interrupt is done
    * @brief WARN: NOT lossless! any interrupts that send data should only send data that is ok to be lost
-   * @brief WARN: data will be lost if not flushed before buffer (of size MAX_TRANSMIT_BUF_SIZE)
+   * @brief WARN: data will be lost if not flushed before buffer (of size MAX_TX_BUF_SIZE)
    * @brief WARN: NOT thread safe! all interrupts that send data should only be on one core
    * @param identifier: identifier for the sent data
    * @param data: u8 array
@@ -146,7 +148,7 @@ private:
   /**
    * @brief callback that adds to data buffer while parsing length. Feeds command into command_recv_callback.
    * @param interface: id of tusb cdc interface (probably wont use)
-   * @param args: ptr to CurrentRXState (is cast to void ptr for flexibility
+   * @param args: ptr to CurrentRXState (is cast to void ptr for flexibility)
    */
   static void _rx_cb(types::u8 interface, void *args);
 
@@ -170,16 +172,24 @@ private:
                                       tusb_control_request_t const *request,
                                       void *args);
 
-  inline static void _tud_task_caller(void) {
+  inline static void _tud_task_caller(void *args) {
     for (;;) {
       tud_task();
     }
   }
 
-  bool _is_initialised = false;
-  types::u8 _read_buffer[MAX_RECIEVE_BUF_SIZE] = {0};
-  types::u8 _interrupt_write_buffer[MAX_TRANSMIT_BUF_SIZE] = {0};
-  CurrentRXState _current_recv_state;
+  bool _initialised = false;
+  bool _host_connected = false;
+  bool _cdc_connected = false;
+
+  types::u8 _read_buffer[MAX_RX_BUF_SIZE] = {0};
+  types::u8 _cmd_buffer[MAX_RX_BUF_SIZE] = {0};
+  types::u8 _interrupt_write_buffer[MAX_TX_BUF_SIZE] = {0};
+
+  // hooks for commands
+
+  TaskHandle_t *tud_task_handle = nullptr;
+  static CurrentRXState _current_rx_state;
 };
 
 } // namespace usb
