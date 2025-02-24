@@ -13,14 +13,14 @@ int main() {
     continue;
 
   // digital_pins.init();
-  driver.init(-1, 1000000);
+  driver.init(-1, 1000000); 
 
   // digital_pins.attach_interrupt(DriverDbgPinMap::NFAULT, Pins::DigitalPinInterruptState::EDGE_FALL, driver.handle_error , &driver);
   // digital_pins.enable_interrupt(DriverDbgPinMap::NFAULT);
 
-  while (true) {
-    driver.command(0, 1);
-    sleep_ms(1000);
+  for (int i = 0; i <= 625; i++) {
+    driver.command(i * 10);
+    sleep_ms(100);
   }
   return 0;
 }

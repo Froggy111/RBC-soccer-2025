@@ -1,10 +1,10 @@
 add_library(ALSPT19)
-target_sources(ALSPT19)
+target_sources(ALSPT19
   PRIVATE
     ALSPT19.cpp
-
   PUBLIC
     include/ALSPT19.hpp
+)
 
 pico_enable_stdio_usb(ALSPT19 1)
 pico_enable_stdio_uart(ALSPT19 0)

@@ -2,6 +2,7 @@
 #include "types.hpp"
 #include "dbg_pins.hpp"
 #include "pin_selector.hpp"
+#include <pico/types.h>
 #include <string>
 
 class MotorDriver {
@@ -11,7 +12,7 @@ private:
 
   // * register reading
   types::u8 read8(types::u8 reg);
-  void write8(types::u8 reg, types::u8 data, types::u8 mask = 0xFF);
+  bool write8(types::u8 reg, types::u8 data, int8_t expected = -1); // TODO: Add Mask
 
   // * specific registers
   void set_registers(); // setup the registers
@@ -28,13 +29,11 @@ private:
   PinSelector pinSelector;
 
 public:
-  void init(types::u8 id, types::u64 SPI_SPEED);
-
-  // activate the driver (nsleep to 1)
-  void set_activate(bool activate);
+  void init(int id, types::u64 SPI_SPEED);
+  bool init_registers();
 
   // command a speed and direction
-  bool command(types::u16 speed, bool direction);
+  bool command(types::i16 duty_cycle);
 
   // handle error
   static void handle_error(MotorDriver *driver);
