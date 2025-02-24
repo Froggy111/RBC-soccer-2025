@@ -97,6 +97,8 @@ private:
   PinOutputControl outputControl;
   PinSelector pinSelector;
 
+  types::i16 duty_cycle_cache;
+
 public:
   /**
    * @brief Init the GPIO & Analog Pins, the SPI interface and Registers
@@ -107,9 +109,17 @@ public:
   void init(int id, types::u64 SPI_SPEED);
 
   /**
+   * TRUE = Sleeping, FALSE = Not Sleeping
+   * @brief Set the NSLEEP pin, causing the motor to change between Standby and Active modes.
+   * 
+   * @param sleep 
+   */
+  void set_sleep(bool sleep);
+
+  /**
    * Checks are implemented to ensure that the driver's registers, pins are all in the right state.
    * Acceleration and deceleration safeguards are implemented.
-   * @brief Command the motor with a duty cycle. 
+   * @brief Command the motor with a duty cycle. Negative For Backwards, Positive for Forwards
    * 
    * @param duty_cycle 
    * @return true 

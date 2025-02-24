@@ -13,14 +13,14 @@ extern "C" {
 #include "faults.hpp"
 #include "status.hpp"
 
-#define DEFAULT_NSLEEP 1 // sleep by default
+#define DEFAULT_NSLEEP 1 // not sleeping by default
 #define DEFAULT_DRVOFF 0 // driver on by default
 #define DEFAULT_IN1 0    // IN1 off by default
 #define DEFAULT_IN2 0    // IN2 off by default
 #define DEFAULT_CS 1     // CS high by default
 
 #define COMMAND_REG 0x08
-#define COMMAND_REG_RESET 0b10001001 // CLR FLT, SPI_IN lock, REG unlock
+#define COMMAND_REG_RESET 0b10001001    // CLR FLT, SPI_IN lock, REG unlock
 #define COMMAND_REG_EXPECTED 0b00001001 // CLR FLT, SPI_IN lock, REG unlock
 
 #define CONFIG1_REG_RESET 0x10
@@ -43,12 +43,15 @@ extern "C" {
 
 #define FAULT_SUMMARY_REG 0x01
 
-#define SPI_ADDRESS_MASK_WRITE 0x3F00 // Mask for writing SPI register address bits
-#define SPI_ADDRESS_MASK_READ 0x7F00                     // Mask for reading SPI register address bits
+#define SPI_ADDRESS_MASK_WRITE                                                 \
+  0x3F00 // Mask for writing SPI register address bits
+#define SPI_ADDRESS_MASK_READ                                                  \
+  0x7F00                     // Mask for reading SPI register address bits
 #define SPI_ADDRESS_POS 8    // Position for SPI register address bits
 #define SPI_DATA_MASK 0x00FF // Mask for SPI register data bits
 #define SPI_DATA_POS 0       // Position for SPI register data bits
-#define SPI_RW_BIT_MASK 0x4000 // Mask for SPI register read write indication bit
+#define SPI_RW_BIT_MASK                                                        \
+  0x4000 // Mask for SPI register read write indication bit
 
 // ! init
 // use -1 as driver_id for debug pins
@@ -60,6 +63,7 @@ void MotorDriver::init(int id, types::u64 SPI_SPEED) {
     pinSelector.set_debug_mode(false);
     pinSelector.set_driver_id(id);
   }
+  duty_cycle_cache = 0;
 
   printf("-> Initializing SPI\n");
   init_spi(SPI_SPEED);
@@ -202,7 +206,7 @@ uint8_t MotorDriver::read8(uint8_t reg) {
       return false;
     }
   }
-  
+
   return rx_data & 0xFF;
 }
 
@@ -242,7 +246,7 @@ bool MotorDriver::init_registers() {
 
 bool MotorDriver::check_registers() {
   //* FAULT_SUMMARY register
-  types::u8 faultSummary = read8(FAULT_S);
+  types::u8 faultSummary = read8(FAULT_SUMMARY_REG);
   if (faultSummary != 0) {
     printf("Error: FAULT_SUMMARY: %s\n",
            Fault::get_fault_description(faultSummary).c_str());
@@ -269,7 +273,8 @@ bool MotorDriver::check_registers() {
 }
 
 std::string MotorDriver::read_fault_summary() {
-  types::u8 faultSummary = read8(FAULT_SUMMARY_REG); // e.g., FAULT_SUMMARY register
+  types::u8 faultSummary =
+      read8(FAULT_SUMMARY_REG); // e.g., FAULT_SUMMARY register
   return Fault::get_fault_description(faultSummary);
 }
 
@@ -297,10 +302,10 @@ void MotorDriver::handle_error(MotorDriver *driver) {
 
   // * try to clear the fault
   printf("Attempting to clear the fault...\n");
-  // driver->write8(0x08, 0b0000001, 0b0000001); // TODO
+  driver->write8(COMMAND_REG, COMMAND_REG_RESET, COMMAND_REG_EXPECTED);
 
   // * check if the fault was cleared
-  if (driver->read8(0x01) == 0) {
+  if (driver->read8(FAULT_SUMMARY_REG) == 0) {
     printf("Fault cleared successfully.\n");
   } else {
     printf("Fault could not be cleared.\n");
@@ -339,8 +344,15 @@ bool MotorDriver::check_config() {
   return true;
 }
 
-// negative if backwards, positive if forwards
+void MotorDriver::set_sleep(bool sleep) {
+  // Set the sleep pin
+  inputControl.write_digital(pinSelector.get_pin(NSLEEP), !sleep);
+  printf("Motor sleep set to %d\n", !sleep);
+}
+
+
 bool MotorDriver::command(types::i16 duty_cycle) {
+  // TODO: Implement Accel Safeguards
   // Verify if the driver can accept commands
   if (!check_config()) {
     printf("Motor command aborted due to configuration error.\n");
@@ -359,9 +371,7 @@ bool MotorDriver::command(types::i16 duty_cycle) {
   inputControl.write_digital(in2_pin, direction);
   inputControl.write_analog(in1_pin, duty_cycle);
 
-  std::string debug =
-      "Motor command executed: Duty cycle = " + std::to_string(duty_cycle) +
-      ", Direction = " + std::to_string(direction);
-  printf("%s\n", debug.c_str());
+  printf("Motor command executed: Duty cycle = %d, Direction = %d\n",
+         duty_cycle, direction);
   return true;
 }
