@@ -35,6 +35,14 @@ extern "C" {
 #define CONFIG4_REG_RESET 0x04
 #define CONFIG4_REG 0x0D
 
+#define STATUS1_REG_EXPECTED 0b00001000
+#define STATUS1_REG 0x02
+
+#define STATUS2_REG_EXPECTED 0b10001000
+#define STATUS2_REG 0x03
+
+#define FAULT_SUMMARY_REG 0x01
+
 #define SPI_ADDRESS_MASK_WRITE 0x3F00 // Mask for writing SPI register address bits
 #define SPI_ADDRESS_MASK_READ 0x7F00                     // Mask for reading SPI register address bits
 #define SPI_ADDRESS_POS 8    // Position for SPI register address bits
@@ -173,6 +181,28 @@ uint8_t MotorDriver::read8(uint8_t reg) {
 
   printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
 
+  //* Check for no errors in received bytes
+  // First 2 MSBs bytes should be '1'
+  if ((rx_data & 0xC000) != 0xC000) {
+    printf("SPI Write - Error: Initial '1' MSB check bytes not found\n");
+    return false;
+  }
+
+  // following 6 bytes are from fault summary
+  if ((rx_data & 0x3F00) != 0x0000) {
+    printf("SPI Write - Error: Fault summary bytes indicating error, %d\n",
+           rx_data & 0x3F00);
+    // get fault register
+    types::u8 fault = read8(FAULT_SUMMARY_REG);
+
+    if (fault == 0) {
+      printf("SPI Write - No fault found in fault register, moving on...\n");
+    } else {
+      printf("SPI Write - %s\n", Fault::get_fault_description(fault).c_str());
+      return false;
+    }
+  }
+  
   return rx_data & 0xFF;
 }
 
@@ -211,13 +241,35 @@ bool MotorDriver::init_registers() {
 }
 
 bool MotorDriver::check_registers() {
-  //TODO: implement register checking
+  //* FAULT_SUMMARY register
+  types::u8 faultSummary = read8(FAULT_S);
+  if (faultSummary != 0) {
+    printf("Error: FAULT_SUMMARY: %s\n",
+           Fault::get_fault_description(faultSummary).c_str());
+    return false;
+  }
+
+  //* STATUS1 register
+  types::u8 status1 = read8(STATUS1_REG);
+  if (status1 != STATUS1_REG_EXPECTED) {
+    printf("Error: STATUS1: %s\n",
+           Status::get_status1_description(status1).c_str());
+    return false;
+  }
+
+  //* STATUS2 register
+  types::u8 status2 = read8(STATUS2_REG);
+  if (status2 != STATUS2_REG_EXPECTED) {
+    printf("Error: STATUS2: %s\n",
+           Status::get_status2_description(status2).c_str());
+    return false;
+  }
 
   return true;
 }
 
 std::string MotorDriver::read_fault_summary() {
-  types::u8 faultSummary = read8(0x01); // e.g., FAULT_SUMMARY register
+  types::u8 faultSummary = read8(FAULT_SUMMARY_REG); // e.g., FAULT_SUMMARY register
   return Fault::get_fault_description(faultSummary);
 }
 
