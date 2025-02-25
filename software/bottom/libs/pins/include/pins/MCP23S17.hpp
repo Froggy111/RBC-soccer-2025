@@ -2,6 +2,7 @@
 
 #include "pinmap.hpp"
 #include "types.hpp"
+#include <cstdint>
 #include <pico/stdlib.h>
 
 class MCP23S17 {
@@ -12,8 +13,8 @@ private:
   void init_spi(types::u32 baudrate);
   void init_pins();
 
-  uint8_t read8(uint8_t reg_address);
-  void write8(uint8_t reg_address, uint8_t data);
+  uint8_t read8(uint8_t device_address, uint8_t reg_address);
+  void write8(uint8_t device_address, uint8_t reg_address, uint8_t data, uint8_t mask = 0xFF);
 
 public:
   void init(types::u8 device_id, types::u32 baudrate);
