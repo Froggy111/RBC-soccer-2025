@@ -1,14 +1,15 @@
 #include "pins/MCP23S17.hpp"
 #include "pinmap.hpp"
 #include "types.hpp"
-#include <pico/time.h>
 
 extern "C" {
 #include <hardware/spi.h>
 #include <hardware/gpio.h>
 #include <pico/stdlib.h>
 #include <pico/stdio.h>
+#include <pico/time.h>
 #include <stdio.h>
+#include <string.h>
 }
 
 // addresses of the MCP23S17
@@ -18,30 +19,28 @@ extern "C" {
 // default values for pins
 #define DEFAULT_CS 1 // CS high by default
 
-// register addresses
+// register addresses (we default to BANK = 0)
 #define IODIRA 0x00
-#define IPOLA 0x01
-#define GPINTENA 0x02
-#define DEFVALA 0x03
-#define INTCONA 0x04
-#define IOCONA 0x05
-#define GPPUA 0x06
-#define INTFA 0x07
-#define INTCAPA 0x08
-#define GPIOA 0x09
-#define OLATA 0x0A
-
-#define IODIRB 0x10
-#define IPOLB 0x11
-#define GPINTENB 0x12
-#define DEFVALB 0x13
-#define INTCONB 0x14
-#define IOCONB 0x15
-#define GPPUB 0x16
-#define INTFB 0x17
-#define INTCAPB 0x18
-#define GPIOB 0x19
-#define OLATB 0x1A
+#define IODIRB 0x01
+#define IPOLA 0x02 // NOT USING
+#define IPOLB 0x03 // NOT USING
+#define GPINTENA 0x04
+#define GPINTENB 0x05
+#define DEFVALA 0x06
+#define DEFVALB 0x07
+#define INTCONA 0x08
+#define INTCONB 0x09
+#define IOCON 0x0A
+#define GPPUA 0x0C
+#define GPPUB 0x0D
+#define INTFA 0x0E
+#define INTFB 0x0F
+#define INTCAPA 0x10
+#define INTCAPB 0x11
+#define GPIOA 0x12
+#define GPIOB 0x13
+#define OLATA 0x14
+#define OLATB 0x15
 
 void MCP23S17::init(types::u8 device_id, types::u32 baudrate) {
   printf("---> Initializing MCP23S17\n\n");
@@ -50,6 +49,8 @@ void MCP23S17::init(types::u8 device_id, types::u32 baudrate) {
     return;
   }
   id = device_id;
+
+  memset(pin_state, 0, sizeof(pin_state));
 
   // init gpio pins
   printf("-> Initializing pins\n");
@@ -95,12 +96,14 @@ void MCP23S17::init_spi(types::u32 baudrate) {
 }
 
 void MCP23S17::write8(uint8_t reg_address, uint8_t data){
+  // TODO
     gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 0);
 
     gpio_put((uint) pinmap::DigitalPins::DMUX_SCS, 1);
 }
 
 uint8_t MCP23S17::read8(uint8_t reg_address) {
+  // TODO
   gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 0);
 
   gpio_put((uint) pinmap::DigitalPins::DMUX_SCS, 1);
@@ -112,13 +115,56 @@ void MCP23S17::reset() {
   gpio_put((uint)pinmap::DigitalPins::DMUX_RESET, 1);
 }
 
-void MCP23S17::init_gpio(uint8_t pin, bool is_output) {
-  // set the direction of the pin
-  uint8_t reg = 0x00;
-  if (is_output) {
-    reg = 0x00;
-  } else {
-    reg = 0xFF;
+void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
+  if (pin < 0 || pin > 7) {
+    printf("Error: Invalid pin number\n");
+    return;
   }
-  write8(pin, reg);
+
+  // configure direction
+  if (on_A) {
+    write8(IODIRA, !is_output << pin);
+    pin_state[pin] = is_output;
+  } else {
+    write8(IODIRB, !is_output << pin);
+    pin_state[pin + 8] = is_output;
+  }
+}
+
+void MCP23S17::write_gpio(uint8_t pin, bool on_A, bool value) {
+  if (pin < 0 || pin > 7) {
+    printf("Error: Invalid pin number\n");
+    return;
+  }
+
+  if (pin_state[pin] != 1) {
+    printf("Error: Pin is not configured as output\n");
+    return;
+  }
+
+  // write to the pin
+  if (on_A) {
+    write8(GPIOA, value << pin);
+  } else {
+    write8(GPIOB, value << pin);
+  }
+}
+
+bool MCP23S17::read_gpio(uint8_t pin, bool on_A) {
+  if (pin < 0 || pin > 7) {
+    printf("Error: Invalid pin number\n");
+    return false;
+  }
+
+  if (pin_state[pin] != 0) {
+    printf("Error: Pin is not configured as input\n");
+    return false;
+  }
+
+  // read the pin
+  if (on_A) {
+    return read8(GPIOA) & (1 << pin);
+  } else {
+    return read8(GPIOB) & (1 << pin);
+  }
 }
