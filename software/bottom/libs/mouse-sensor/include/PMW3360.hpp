@@ -21,7 +21,9 @@ public:
 
     void init(int id, types::u64 SPI_SPEED);
 
-
+    types::u8 motion_burst_buffer[12] = {0}; //Stores data read from data burst 
     
-
+    void read_motion_burst();
+    types::u16 read_X_motion();
+    types::u16 read_Y_motion();
 };

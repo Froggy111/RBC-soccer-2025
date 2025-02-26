@@ -223,7 +223,7 @@ uint8_t MouseSensor::read8(uint8_t reg) {
 
 //read_motion_burst return 12 bytes (description in datasheet)
 //The data is written into the array whose pointer is passed into the function as a parameter 
-void MouseSensor::read_motion_burst(types::u16 *rx_buffer){
+void MouseSensor::read_motion_burst(){
     uint8_t reg = MOTION_BURST;
     uint16_t reg_value = 0;
 
@@ -231,7 +231,7 @@ void MouseSensor::read_motion_burst(types::u16 *rx_buffer){
     reg_value |= SPI_RW_BIT_MASK;
 
     inputControl.write_digital(pinSelector.get_pin(CS), 0);
-    spi_write16_read16_blocking(spi0, &reg_value, rx_buffer, 12);
+    spi_write16_read16_blocking(spi0, &reg_value, &mouse_sensor_buffer, 12);
     inputControl.write_digital(pinSelector.get_pin(CS), 1);
 
     //printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
