@@ -1,6 +1,8 @@
 #pragma once
+#include <cstdint>
 extern "C" {
     #include "hardware/adc.h"
+
 }
 #include "pin_selector.hpp"
 #include "types.hpp"
@@ -11,6 +13,9 @@ class LineSensor {
         LineSensor();
         bool begin();
         void read();
+        void init(types::u8 id);
+        uint16_t read_raw();
+        float read_voltage();
         void set_integration_time(uint16_t time);
         void set_gain(uint8_t gain);
     private:
@@ -22,9 +27,8 @@ class LineSensor {
         void write_register(uint8_t reg, uint8_t val);
         uint8_t read_register(uint8_t reg);
         PinSelector pinSelector;
+        uint8_t sensor_pin = 20;
 };
-
-
 
 
 
