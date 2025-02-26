@@ -1,6 +1,4 @@
 #include "pin_selector.hpp"
-#include <map>
-#include <utility>
 
 extern "C" {
 #include <pico/stdlib.h>

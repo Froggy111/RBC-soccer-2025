@@ -5,8 +5,6 @@
 #include <cstdint>
 extern "C" {
 #include <pico/stdlib.h>
-#include <map>
-#include <utility>
 }
 
 // driver pinmap for DRV8244

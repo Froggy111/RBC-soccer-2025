@@ -62,7 +62,7 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
     pinSelector.set_debug_mode(false);
     pinSelector.set_driver_id(id);
   }
-  inputControl.init(id == 12, spi_obj_touse);
+  inputControl.init(id == -1, spi_obj_touse);
   duty_cycle_cache = 0;
 
   printf("-> Initializing SPI\n");
@@ -72,7 +72,7 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
   gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
 
   // Initialize CS pin as GPIO
-  inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS);
+  inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS, pinSelector.get_On_A(CS), pinSelector.get_On_Board1(CS));
 
   spi_obj = spi_obj_touse;
   configure_spi();
@@ -92,19 +92,19 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
 void MotorDriver::init_pins() {
   // Initialize pins
   // nFault
-  outputControl.init_digital(pinSelector.get_pin(NFAULT));
+  outputControl.init_digital(pinSelector.get_pin(NFAULT), pinSelector.get_On_Board1(NFAULT), pinSelector.get_On_A(NFAULT));
 
   // nSleep
-  inputControl.init_digital(pinSelector.get_pin(NSLEEP), DEFAULT_NSLEEP);
+  inputControl.init_digital(pinSelector.get_pin(NSLEEP), DEFAULT_NSLEEP, pinSelector.get_On_Board1(NSLEEP), pinSelector.get_On_A(NSLEEP));
 
   // DRVOFF
-  inputControl.init_digital(pinSelector.get_pin(DRVOFF), DEFAULT_DRVOFF);
+  inputControl.init_digital(pinSelector.get_pin(DRVOFF), DEFAULT_DRVOFF, pinSelector.get_On_Board1(DRVOFF), pinSelector.get_On_A(DRVOFF));
 
   // EN/IN1
   inputControl.init_analog(pinSelector.get_pin(IN1), DEFAULT_IN1);
 
   // PH/IN2
-  inputControl.init_digital(pinSelector.get_pin(IN2), DEFAULT_IN2);
+  inputControl.init_digital(pinSelector.get_pin(IN2), DEFAULT_IN2, pinSelector.get_On_Board1(IN2), pinSelector.get_On_A(IN2));
 }
 
 //! spi/register handling
@@ -124,10 +124,10 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   reg_value |= ((value << SPI_DATA_POS) & SPI_DATA_MASK); // Add data value
 
   //* Write & Read Feedback
-  inputControl.write_digital(pinSelector.get_pin(CS), 0);
+  inputControl.write_digital(pinSelector.get_pin(CS), 0, pinSelector.get_On_Board1(CS), pinSelector.get_On_A(CS));
   int bytes_written =
       spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
-  inputControl.write_digital(pinSelector.get_pin(CS), 1);
+  inputControl.write_digital(pinSelector.get_pin(CS), 1, pinSelector.get_On_Board1(CS), pinSelector.get_On_A(CS));
 
   printf("SPI Write - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
 
@@ -178,9 +178,9 @@ uint8_t MotorDriver::read8(uint8_t reg) {
   reg_value |= ((reg << SPI_ADDRESS_POS) & SPI_ADDRESS_MASK_READ);
   reg_value |= SPI_RW_BIT_MASK;
 
-  inputControl.write_digital(pinSelector.get_pin(CS), 0);
+  inputControl.write_digital(pinSelector.get_pin(CS), 0, pinSelector.get_On_Board1(CS), pinSelector.get_On_A(CS));
   spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
-  inputControl.write_digital(pinSelector.get_pin(CS), 1);
+  inputControl.write_digital(pinSelector.get_pin(CS), 1, pinSelector.get_On_Board1(CS), pinSelector.get_On_A(CS));
 
   printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
 
@@ -328,7 +328,7 @@ bool MotorDriver::check_config() {
   }
 
   // check if the driver is in fault
-  if (outputControl.read_digital(pinSelector.get_pin(NFAULT))) {
+  if (outputControl.read_digital(pinSelector.get_pin(NFAULT), pinSelector.get_On_Board1(NFAULT), pinSelector.get_On_A(NFAULT))) {
     printf("Driver has faulted. Cannot command motor.\n");
     return false;
   }
@@ -345,7 +345,7 @@ bool MotorDriver::check_config() {
 
 void MotorDriver::set_sleep(bool sleep) {
   // Set the sleep pin
-  inputControl.write_digital(pinSelector.get_pin(NSLEEP), !sleep);
+  inputControl.write_digital(pinSelector.get_pin(NSLEEP), !sleep, pinSelector.get_On_Board1(NSLEEP), pinSelector.get_On_A(NSLEEP));
   printf("Motor sleep set to %d\n", !sleep);
 }
 
@@ -367,7 +367,7 @@ bool MotorDriver::command(types::i16 duty_cycle) {
   duty_cycle = abs(duty_cycle);
 
   // Command motor by setting one channel to PWM and the other low
-  inputControl.write_digital(in2_pin, direction);
+  inputControl.write_digital(in2_pin, direction, pinSelector.get_On_Board1(IN2), pinSelector.get_On_A(IN2));
   inputControl.write_analog(in1_pin, duty_cycle);
 
   printf("Motor command executed: Duty cycle = %d, Direction = %d\n",

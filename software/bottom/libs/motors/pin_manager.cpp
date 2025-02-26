@@ -27,7 +27,7 @@ void PinInputControl::init_digital(types::u8 pin, bool value, bool on_device_1, 
   }
 
   this->digital_cache[pin] = value;
-  write_digital(pin, value);
+  write_digital(pin, value, on_device_1, on_A);
 }
 
 void PinInputControl::init_analog(types::u8 pin, int value) {
