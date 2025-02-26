@@ -2,17 +2,17 @@
 #include "types.hpp"
 #include "dbg_pins.hpp"
 #include "pin_selector.hpp"
+#include <hardware/spi.h>
 #include <pico/types.h>
 #include <string>
 
 class MotorDriver {
 private:
   /**
-   * @brief Initialize all SPI pins and SPI interface
+   * @brief Initialize all SPI pins and set SPI interface modes
    * 
-   * @param SPI_SPEED 
    */
-  void init_spi(types::u64 SPI_SPEED);
+  void configure_spi();
 
   /**
    * @brief Initialize all GPIO and analog pins
@@ -98,6 +98,7 @@ private:
   PinSelector pinSelector;
 
   types::i16 duty_cycle_cache;
+  spi_inst_t *spi_obj;
 
 public:
   /**
@@ -106,7 +107,7 @@ public:
    * @param id 
    * @param SPI_SPEED 
    */
-  void init(int id, types::u64 SPI_SPEED);
+  void init(int id, spi_inst_t *spi_obj_touse);
 
   /**
    * TRUE = Sleeping, FALSE = Not Sleeping

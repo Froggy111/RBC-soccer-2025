@@ -55,7 +55,7 @@ extern "C" {
 
 // ! init
 // use -1 as driver_id for debug pins
-void MotorDriver::init(int id, types::u64 SPI_SPEED) {
+void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
   printf("---> Initializing DRV8244\n\n");
   if (id == -1) {
     pinSelector.set_debug_mode(true);
@@ -66,7 +66,8 @@ void MotorDriver::init(int id, types::u64 SPI_SPEED) {
   duty_cycle_cache = 0;
 
   printf("-> Initializing SPI\n");
-  init_spi(SPI_SPEED);
+  spi_obj = spi_obj_touse;
+  init_spi();
 
   printf("-> Initializing pins\n");
   init_pins();
@@ -78,25 +79,6 @@ void MotorDriver::init(int id, types::u64 SPI_SPEED) {
   }
 
   printf("---> DRV8244 initialized\n\n");
-}
-
-void MotorDriver::init_spi(types::u64 SPI_SPEED) {
-  // Initialize SPI with error checking
-  if (!spi_init(spi0, SPI_SPEED)) {
-    printf("Error: SPI initialization failed\n");
-    return;
-  }
-
-  // Initialize SPI pins (except CS)
-  gpio_set_function(pinSelector.get_pin(SCK), GPIO_FUNC_SPI);
-  gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
-  gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
-
-  // Initialize CS pin as GPIO
-  inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS);
-
-  // Set SPI format
-  spi_set_format(spi0, 16, SPI_CPOL_0, SPI_CPHA_1, SPI_MSB_FIRST);
 }
 
 void MotorDriver::init_pins() {
@@ -117,8 +99,23 @@ void MotorDriver::init_pins() {
   inputControl.init_digital(pinSelector.get_pin(IN2), DEFAULT_IN2);
 }
 
-//! register handling
+//! spi/register handling
+void MotorDriver::configure_spi() {
+  // Initialize SPI pins (except CS)
+  gpio_set_function(pinSelector.get_pin(SCK), GPIO_FUNC_SPI);
+  gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
+  gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
+
+  // Initialize CS pin as GPIO
+  inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS);
+
+  // Set SPI format
+  spi_set_format(spi_obj, 16, SPI_CPOL_0, SPI_CPHA_1, SPI_MSB_FIRST);
+}
+
 bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
+  configure_spi();
+  
   //* prepare data
   uint16_t reg_value = 0;
   uint16_t rx_data = 0;
@@ -173,6 +170,8 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
 }
 
 uint8_t MotorDriver::read8(uint8_t reg) {
+  configure_spi();
+  
   uint16_t reg_value = 0;
   uint16_t rx_data = 0;
 
