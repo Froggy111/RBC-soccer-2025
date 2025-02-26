@@ -55,7 +55,9 @@ extern "C" {
 // ! init
 // use -1 as driver_id for debug pins
 void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
-  printf("---> Initializing DRV8244\n\n");
+  printf("---> Initializing DRV8244\n");
+  duty_cycle_cache = 0;
+
   if (id == -1) {
     pinSelector.set_debug_mode(true);
   } else {
@@ -63,7 +65,7 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
     pinSelector.set_driver_id(id);
   }
   inputControl.init(id == -1, spi_obj_touse);
-  duty_cycle_cache = 0;
+  outputControl.init(id == -1, spi_obj_touse);
 
   printf("-> Initializing SPI\n");
   // Initialize SPI pins (except CS)
@@ -104,7 +106,7 @@ void MotorDriver::init_pins() {
   inputControl.init_analog(pinSelector.get_pin(IN1), DEFAULT_IN1);
 
   // PH/IN2
-  inputControl.init_digital(pinSelector.get_pin(IN2), DEFAULT_IN2, pinSelector.get_On_Board1(IN2), pinSelector.get_On_A(IN2));
+  inputControl.init_digital(pinSelector.get_pin(IN2), DEFAULT_IN2);
 }
 
 //! spi/register handling

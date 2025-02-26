@@ -18,8 +18,11 @@ int main() {
     continue;
 
   // digital_pins.init();
-  if (!spi_init(spi0, 1000000)) {
-    printf("SPI Initialization Failed!\n");
+  bool result = spi_init(spi0, 1000000);
+  printf("SPI init: %d\n", result);
+  if (!result) {
+    printf("SPI init failed\n");
+    return 0;
   }
     
   driver.init(1, spi0);
@@ -27,9 +30,9 @@ int main() {
   // digital_pins.attach_interrupt(DriverDbgPinMap::NFAULT, Pins::DigitalPinInterruptState::EDGE_FALL, driver.handle_error , &driver);
   // digital_pins.enable_interrupt(DriverDbgPinMap::NFAULT);
 
-  for (int i = 0; i <= 625; i++) {
-    if (!driver.command(i * 10)) break;
-    sleep_ms(100);
-  }
+  // for (int i = 0; i <= 625; i++) {
+  //   if (!driver.command(i * 10)) break;
+  //   sleep_ms(100);
+  // }
   return 0;
 }

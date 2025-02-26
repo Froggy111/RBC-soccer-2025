@@ -51,7 +51,7 @@ extern "C" {
 #define SPI_CMD_DEFAULT 0b01000000
 
 void MCP23S17::init(types::u8 device_id, spi_inst_t *spi_obj_touse) {
-  printf("---> Initializing MCP23S17\n\n");
+  printf("-> Initializing MCP23S17\n");
   if (device_id != 1 && device_id != 2) {
     printf("Error: Invalid device ID\n");
     return;
@@ -61,14 +61,14 @@ void MCP23S17::init(types::u8 device_id, spi_inst_t *spi_obj_touse) {
   memset(pin_state, 0, sizeof(pin_state));
 
   // init gpio pins
-  printf("-> Initializing pins\n");
+  printf("Initializing pins\n");
   init_pins();
 
   // reset using the reset pin
   reset();
 
   // init spi
-  printf("-> Initializing SPI\n");
+  printf("Initializing SPI\n");
   spi_obj = spi_obj_touse;
   init_spi();
 }
@@ -144,6 +144,7 @@ void MCP23S17::reset() {
 }
 
 void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
+  printf("Pin: %d, on_A: %d, is_output: %d\n", pin, on_A, is_output);
   if (pin < 0 || pin > 7) {
     printf("Error: Invalid pin number\n");
     return;
@@ -160,7 +161,7 @@ void MCP23S17::write_gpio(uint8_t pin, bool on_A, bool value) {
     return;
   }
 
-  if (pin_state[pin] != 1) {
+  if (pin_state[pin + (on_A ? 0 : 8)] != 1) {
     printf("Error: Pin is not configured as output\n");
     return;
   }
@@ -175,7 +176,7 @@ bool MCP23S17::read_gpio(uint8_t pin, bool on_A) {
     return false;
   }
 
-  if (pin_state[pin] != 0) {
+  if (pin_state[pin + (on_A ? 0 : 8)] != 0) {
     printf("Error: Pin is not configured as input\n");
     return false;
   }
