@@ -35,10 +35,10 @@ extern "C" {
 #define CONFIG4_REG_RESET 0x04
 #define CONFIG4_REG 0x0D
 
-#define STATUS1_REG_EXPECTED 0b00001000
+#define STATUS1_REG_EXPECTED 0b00010000
 #define STATUS1_REG 0x02
 
-#define STATUS2_REG_EXPECTED 0b10001000
+#define STATUS2_REG_EXPECTED 0b00010000
 #define STATUS2_REG 0x03
 
 #define FAULT_SUMMARY_REG 0x01
@@ -66,8 +66,16 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
   duty_cycle_cache = 0;
 
   printf("-> Initializing SPI\n");
+  // Initialize SPI pins (except CS)
+  gpio_set_function(pinSelector.get_pin(SCK), GPIO_FUNC_SPI);
+  gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
+  gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
+
+  // Initialize CS pin as GPIO
+  inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS);
+
   spi_obj = spi_obj_touse;
-  init_spi();
+  configure_spi();
 
   printf("-> Initializing pins\n");
   init_pins();
@@ -101,14 +109,6 @@ void MotorDriver::init_pins() {
 
 //! spi/register handling
 void MotorDriver::configure_spi() {
-  // Initialize SPI pins (except CS)
-  gpio_set_function(pinSelector.get_pin(SCK), GPIO_FUNC_SPI);
-  gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
-  gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
-
-  // Initialize CS pin as GPIO
-  inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS);
-
   // Set SPI format
   spi_set_format(spi_obj, 16, SPI_CPOL_0, SPI_CPHA_1, SPI_MSB_FIRST);
 }
