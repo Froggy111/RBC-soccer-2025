@@ -15,8 +15,8 @@ extern "C" {
 }
 
 // addresses of the MCP23S17
-#define ADDRESS_A 0b000
-#define ADDRESS_B 0b001
+#define ADDRESS_1 0b000
+#define ADDRESS_2 0b001
 
 // default values for pins
 #define DEFAULT_CS 1 // CS high by default
@@ -150,13 +150,8 @@ void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
   }
 
   // configure direction
-  if (on_A) {
-    write8(ADDRESS_A, IODIRA, !is_output << pin, 0b1 << pin);
-    pin_state[pin] = is_output;
-  } else {
-    write8(ADDRESS_B, IODIRB, !is_output << pin, 0b1 << pin);
-    pin_state[pin + 8] = is_output;
-  }
+  write8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? IODIRA : IODIRB, !is_output << pin, 0b1 << pin);
+  pin_state[pin + (on_A ? 0 : 8)] = is_output;
 }
 
 void MCP23S17::write_gpio(uint8_t pin, bool on_A, bool value) {
@@ -171,11 +166,7 @@ void MCP23S17::write_gpio(uint8_t pin, bool on_A, bool value) {
   }
 
   // write to the pin
-  if (on_A) {
-    write8(ADDRESS_A, GPIOA, value << pin, 0b1 << pin);
-  } else {
-    write8(ADDRESS_B, GPIOB, value << pin, 0b1 << pin);
-  }
+  write8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? GPIOA : GPIOB,  value << pin, 0b1 << pin);
 }
 
 bool MCP23S17::read_gpio(uint8_t pin, bool on_A) {
@@ -190,9 +181,5 @@ bool MCP23S17::read_gpio(uint8_t pin, bool on_A) {
   }
 
   // read the pin
-  if (on_A) {
-    return read8(ADDRESS_A, GPIOA) & (1 << pin);
-  } else {
-    return read8(ADDRESS_B, GPIOB) & (1 << pin);
-  }
+  return read8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? GPIOA : GPIOB) & (1 << pin);
 }

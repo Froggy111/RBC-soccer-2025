@@ -1,6 +1,6 @@
 #pragma once
 #include "types.hpp"
-#include "dbg_pins.hpp"
+#include "pin_manager.hpp"
 #include "pin_selector.hpp"
 #include <hardware/spi.h>
 #include <pico/types.h>
@@ -41,7 +41,7 @@ private:
    * @return true 
    * @return false 
    */
-  bool write8(types::u8 reg, types::u8 data, int8_t expected = -1); // TODO: Add Mask
+  bool write8(types::u8 reg, types::u8 data, int8_t expected = -1);
 
   // * register handling
 
@@ -92,7 +92,6 @@ private:
    */
   bool check_config();
 
-  
   PinInputControl inputControl;
   PinOutputControl outputControl;
   PinSelector pinSelector;

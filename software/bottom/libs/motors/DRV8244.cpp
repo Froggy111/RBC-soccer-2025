@@ -1,4 +1,3 @@
-#include <cstdint>
 extern "C" {
 #include <hardware/spi.h>
 #include <hardware/gpio.h>
@@ -9,7 +8,7 @@ extern "C" {
 #include "DRV8244.hpp"
 #include "types.hpp"
 #include "pin_selector.hpp"
-#include "dbg_pins.hpp"
+#include "pin_manager.hpp"
 #include "faults.hpp"
 #include "status.hpp"
 
@@ -63,6 +62,7 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
     pinSelector.set_debug_mode(false);
     pinSelector.set_driver_id(id);
   }
+  inputControl.init(id == 12, spi_obj_touse);
   duty_cycle_cache = 0;
 
   printf("-> Initializing SPI\n");
