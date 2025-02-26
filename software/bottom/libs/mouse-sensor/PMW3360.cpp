@@ -1,4 +1,3 @@
-#include "PMW3360_ref.hpp"
 #include <cstdint>
 extern "C" {
 #include <hardware/spi.h>
@@ -10,6 +9,7 @@ extern "C" {
 #include "PMW3360.hpp"
 #include "types.hpp"
 #include "pin_selector.hpp"
+#include "faults.hpp"
 
 #define DEFAULT_CS 1     // CS high by default
 
@@ -98,9 +98,9 @@ extern "C" {
 #define SPI_RW_BIT_MASK                                                        \
   0x4000 // Mask for SPI register read write indication bit
 
+#define FAULT_SUMMARY_REG 0x01
 
-
-void MouseSensor::init_spi(types::u64 SPI_SPEED) {
+void MouseSensor::init(int id, types::u64 SPI_SPEED) {
     // Initialize SPI with error checking
     if (!spi_init(spi0, SPI_SPEED)) {
         printf("Error: SPI initialization failed\n");
@@ -108,7 +108,7 @@ void MouseSensor::init_spi(types::u64 SPI_SPEED) {
     }
 
     // Initialize SPI pins (except CS)
-    gpio_set_function(pinSelector.get_pin(SCK), GPIO_FUNC_SPI);
+    gpio_set_function(pinSelector.get_pin(SCLK), GPIO_FUNC_SPI);
     gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
     gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
 
@@ -125,7 +125,7 @@ void MouseSensor::init_pins() {
     outputControl.init_digital(pinSelector.get_pin(MOT));
   
     // RST
-    inputControl.init_digital(pinSelector.get_pin(RST));
+    inputControl.init_digital(pinSelector.get_pin(RST), true);
 }
 
 bool MouseSensor::write8(uint8_t reg, uint8_t value, int8_t expected) {
@@ -229,10 +229,15 @@ void MouseSensor::read_motion_burst(){
 
     reg_value |= ((reg << SPI_ADDRESS_POS) & SPI_ADDRESS_MASK_READ);
     reg_value |= SPI_RW_BIT_MASK;
-
+    types::u16 temp_buffer[12] = {0};
     inputControl.write_digital(pinSelector.get_pin(CS), 0);
-    spi_write16_read16_blocking(spi0, &reg_value, &mouse_sensor_buffer, 12);
+    spi_write16_blocking(spi0, &reg_value, 1);
+    spi_read16_blocking(spi0, reg_value, temp_buffer, (uint) 12);
     inputControl.write_digital(pinSelector.get_pin(CS), 1);
+
+    for(int i = 0; i < 12; i++){
+        motion_burst_buffer[i] = temp_buffer[i] & 0x00FF;
+    }
 
     //printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
 

@@ -34,7 +34,7 @@ int main() {
     printf("Raw Data Sum: %d \n", sensor.motion_burst_buffer[7]);
     printf("Minimum Raw Data: %d | Maximum Raw Data: %d \n", sensor.motion_burst_buffer[8], sensor.motion_burst_buffer[9]);
     
-    prinf("Shutter Lower: %d | Shutter Upper %d \n", sensor.motion_burst_buffer[10], sensor.motion_burst_buffer[11]);
+    printf("Shutter Lower: %d | Shutter Upper %d \n", sensor.motion_burst_buffer[10], sensor.motion_burst_buffer[11]);
 
     shutter = ((sensor.motion_burst_buffer[10]<<8) & sensor.motion_burst_buffer[11]);
 

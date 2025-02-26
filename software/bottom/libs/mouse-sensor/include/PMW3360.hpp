@@ -17,6 +17,10 @@ private:
 
     bool check_config();
 
+    PinInputControl inputControl;
+    PinOutputControl outputControl;
+    PinSelector pinSelector;
+
 public:
 
     void init(int id, types::u64 SPI_SPEED);
@@ -26,4 +30,6 @@ public:
     void read_motion_burst();
     types::u16 read_X_motion();
     types::u16 read_Y_motion();
+    types::u16 read_squal();
+    bool init_registers();
 };
