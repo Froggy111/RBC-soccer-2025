@@ -22,9 +22,9 @@ void PinInputControl::init_digital(types::u8 pin, bool value, PinInterface inter
     gpio_set_dir(pin, GPIO_OUT);
   } else {
     if (interface == MUX1A || interface == MUX1B)
-      dmux1.init_gpio(pin, interface == MUX1A || interface == MUX2A, true);
+      dmux1.init_gpio(pin, interface == MUX1A, true);
     else
-      dmux2.init_gpio(pin, interface == MUX1A || interface == MUX2A, true);
+      dmux2.init_gpio(pin, interface == MUX2A, true);
   }
 
   this->digital_cache[pin] = value;
@@ -58,9 +58,9 @@ void PinInputControl::write_digital(types::u8 pin, bool value, PinInterface inte
     gpio_put(pin, value);
   } else {
     if (interface == MUX1A || interface == MUX1B)
-      dmux1.write_gpio(pin, interface == MUX1A || interface == MUX2A, true);
+      dmux1.write_gpio(pin, interface == MUX1A, value);
     else
-      dmux2.write_gpio(pin, interface == MUX1A || interface == MUX2A, true);
+      dmux2.write_gpio(pin, interface == MUX2A, value);
   }
 
   // printf("%d has been written to pin %d\n", value, pin);
@@ -111,9 +111,9 @@ void PinOutputControl::init_digital(types::u8 pin, PinInterface interface) {
     gpio_set_dir(pin, GPIO_IN);
   } else {
     if (interface == MUX1A || interface == MUX1B)
-      dmux1.init_gpio(pin, interface == MUX1A || interface == MUX2A, false);
+      dmux1.init_gpio(pin, interface == MUX1A, false);
     else
-      dmux2.init_gpio(pin, interface == MUX1A || interface == MUX2A, false);
+      dmux2.init_gpio(pin, interface == MUX2A, false);
   }
 }
 
@@ -124,8 +124,8 @@ bool PinOutputControl::read_digital(types::u8 pin, PinInterface interface) {
     return result;
   } else {
     if (interface == MUX1A || interface == MUX1B)
-      dmux1.read_gpio(pin, interface == MUX1A || interface == MUX2A);
+      return dmux1.read_gpio(pin, interface == MUX1A);
     else
-      dmux2.read_gpio(pin, interface == MUX1A || interface == MUX2A);
+      return dmux2.read_gpio(pin, interface == MUX2A);
   }
 }

@@ -86,7 +86,7 @@ void MCP23S17::init_pins() {
 }
 
 void MCP23S17::init_spi() {
-  configure_spi(spi_obj);
+  configure_spi();
   
   // Enable Addressing via Address Pins
   // Since all resetted MCPs will have HAEN = 0, sending with a random address
@@ -96,33 +96,41 @@ void MCP23S17::init_spi() {
 
 void MCP23S17::write8(uint8_t device_address, uint8_t reg_address, uint8_t data,
                       uint8_t mask) {
-  configure_spi(spi_obj);
   uint8_t current = read8(device_address, reg_address);
-
   uint8_t tx_data[3] = {(uint8_t)(SPI_CMD_DEFAULT | (device_address << 1)),
                         reg_address,
                         (uint8_t)((current & ~mask) | (data & mask))};
 
+  // print tx_data in binary
+  for (int i = 0; i < 3; i++) {
+    for (int j = 7; j >= 0; j--) {
+      printf("%d", (tx_data[i] >> j) & 1);
+    }
+    printf(" ");
+  }
+  printf("Writing to device %d, register %d, data %d, current %d\n", device_address, reg_address, data, current);
+
   gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 0);
-  spi_write_blocking(spi0, tx_data, 3);
+  spi_write_blocking(spi_obj, tx_data, 3);
   gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 1);
 }
 
 uint8_t MCP23S17::read8(uint8_t device_address, uint8_t reg_address) {
-  configure_spi(spi_obj);
-  uint8_t tx_data[3] = {
-      (uint8_t)(SPI_CMD_DEFAULT | (device_address << 1) | 0b1), reg_address, 0};
+  uint8_t tx_data[2] = {
+      (uint8_t)(SPI_CMD_DEFAULT | (device_address << 1) | 0b1), reg_address};
 
-  uint8_t rx_data;
+
+  uint8_t rx_data; 
 
   gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 0);
-  spi_write_read_blocking(spi0, tx_data, &rx_data, 3);
+  spi_write_blocking(spi_obj, tx_data, 2);
+  spi_read_blocking(spi_obj, 0xFF, &rx_data, 1);
   gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 1);
 
   return rx_data;
 }
 
-void MCP23S17::configure_spi(spi_inst_t *spi_obj) {
+void MCP23S17::configure_spi() {
   // Initialize SPI pins (except CS)
   gpio_set_function((uint)pinmap::DigitalPins::SPI0_SCLK, GPIO_FUNC_SPI);
   gpio_set_function((uint)pinmap::DigitalPins::SPI0_MOSI, GPIO_FUNC_SPI);
@@ -134,7 +142,7 @@ void MCP23S17::configure_spi(spi_inst_t *spi_obj) {
   gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, DEFAULT_CS);
 
   // Set SPI format
-  spi_set_format(spi_obj, 16, SPI_CPOL_0, SPI_CPHA_1, SPI_MSB_FIRST);
+  spi_set_format(spi_obj, 8, SPI_CPOL_0, SPI_CPHA_1, SPI_MSB_FIRST);
 }
 
 void MCP23S17::reset() {
@@ -144,7 +152,6 @@ void MCP23S17::reset() {
 }
 
 void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
-  printf("Pin: %d, ID: %d, A: %d, is_output: %d\n", pin, id, on_A, is_output);
   if (pin < 0 || pin > 7) {
     printf("Error: Invalid pin number\n");
     return;
@@ -167,7 +174,17 @@ void MCP23S17::write_gpio(uint8_t pin, bool on_A, bool value) {
   }
 
   // write to the pin
-  write8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? GPIOA : GPIOB,  value << pin, 0b1 << pin);
+  write8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? GPIOA : GPIOB, value << pin,
+         0b1 << pin);
+
+  // printf("Driver ID: %d, A: %d, Wrote to pin %d with value %d\n", id, on_A, pin, value);
+
+  // check that OUTPUT_LATCH has the written bit
+  uint8_t res = read8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? OLATA : OLATB);
+
+  if ((res & (1 << pin)) != (value << pin)) {
+    printf("Error: Write failed.\n");
+  }
 }
 
 bool MCP23S17::read_gpio(uint8_t pin, bool on_A) {

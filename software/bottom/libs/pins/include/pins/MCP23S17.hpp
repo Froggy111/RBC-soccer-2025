@@ -14,7 +14,7 @@ private:
   void init_spi();
   void init_pins();
 
-  void configure_spi(spi_inst_t* spi_obj);
+  void configure_spi();
   uint8_t read8(uint8_t device_address, uint8_t reg_address);
   void write8(uint8_t device_address, uint8_t reg_address, uint8_t data, uint8_t mask = 0xFF);
 
