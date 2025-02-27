@@ -120,9 +120,6 @@ void MCP23S17::write8(uint8_t device_address, uint8_t reg_address, uint8_t data,
   if (res != ((current & ~mask) | (data & mask))) {
     printf("ERROR: Write failed. Expected %d, got %d\n",
            ((current & ~mask) | (data & mask)), res);
-  } else {
-    printf("OOH: Write successful. Expected %d, got %d\n",
-           ((current & ~mask) | (data & mask)), res);
   }
 }
 

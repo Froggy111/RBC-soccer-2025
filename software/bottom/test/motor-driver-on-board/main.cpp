@@ -2,11 +2,11 @@
 // #include "pin_selector.hpp"
 // #include "pins/digital_pins.hpp"
 extern "C" {
-  #include <pico/stdlib.h>
-  #include <pico/stdio_usb.h>
-  #include <hardware/spi.h>
-  #include <pico/stdio.h>
-  #include <stdio.h>
+#include <pico/stdlib.h>
+#include <pico/stdio_usb.h>
+#include <hardware/spi.h>
+#include <pico/stdio.h>
+#include <stdio.h>
 }
 
 MotorDriver driver;
@@ -24,7 +24,7 @@ int main() {
     printf("SPI init failed\n");
     return 0;
   }
-    
+
   driver.init(3, spi0);
 
   // digital_pins.attach_interrupt(DriverDbgPinMap::NFAULT, Pins::DigitalPinInterruptState::EDGE_FALL, driver.handle_error , &driver);

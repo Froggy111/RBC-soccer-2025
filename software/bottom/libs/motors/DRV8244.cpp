@@ -115,9 +115,7 @@ void MotorDriver::configure_spi() {
   spi_set_format(spi_obj, 16, SPI_CPOL_0, SPI_CPHA_1, SPI_MSB_FIRST);
 }
 
-bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
-  configure_spi();
-  
+bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {  
   //* prepare data
   uint16_t reg_value = 0;
   uint16_t rx_data = 0;
@@ -126,7 +124,10 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   reg_value |= ((value << SPI_DATA_POS) & SPI_DATA_MASK); // Add data value
 
   //* Write & Read Feedback
-  inputControl.write_digital(pinSelector.get_pin(CS), 0, pinSelector.get_pin_interface(CS));
+  printf("Pin: %d, Interface: %d\n", pinSelector.get_pin(CS), pinSelector.get_pin_interface(CS));
+  inputControl.write_digital(pinSelector.get_pin(CS), 0,
+                             pinSelector.get_pin_interface(CS));
+  configure_spi();
   int bytes_written =
       spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
   inputControl.write_digital(pinSelector.get_pin(CS), 1, pinSelector.get_pin_interface(CS));
@@ -171,16 +172,16 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   return bytes_written == 1;
 }
 
-uint8_t MotorDriver::read8(uint8_t reg) {
-  configure_spi();
-  
+uint8_t MotorDriver::read8(uint8_t reg) {  
   uint16_t reg_value = 0;
   uint16_t rx_data = 0;
 
   reg_value |= ((reg << SPI_ADDRESS_POS) & SPI_ADDRESS_MASK_READ);
   reg_value |= SPI_RW_BIT_MASK;
 
-  inputControl.write_digital(pinSelector.get_pin(CS), 0, pinSelector.get_pin_interface(CS));
+  inputControl.write_digital(pinSelector.get_pin(CS), 0,
+                             pinSelector.get_pin_interface(CS));
+  configure_spi();
   spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
   inputControl.write_digital(pinSelector.get_pin(CS), 1, pinSelector.get_pin_interface(CS));
 
