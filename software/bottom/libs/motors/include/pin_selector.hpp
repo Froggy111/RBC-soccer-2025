@@ -7,6 +7,15 @@ extern "C" {
 #include <pico/stdlib.h>
 }
 
+// enum for which interface to use to write/read from the pin
+typedef enum PinInterface {
+  GPIO,
+  MUX1A,
+  MUX1B,
+  MUX2A,
+  MUX2B
+} PinInterface;
+
 // driver pinmap for DRV8244
 typedef enum DriverPinMap {
   CS,
@@ -34,10 +43,18 @@ constexpr types::u8 driver1_pins[] = {
     static_cast<types::u8>(pinmap::Mux1B::DRV1_OFF)         // DRVOFF
 };
 
-inline bool driver1_mux_addr[][2] = {
-    // on board 1, on bank A
-    {true, false},  {0, 0}, {0, 0}, {0, 0}, {true, false},
-    {false, false}, {0, 0}, {0, 0}, {0, 0}, {true, false}};
+inline PinInterface driver1_mux_addr[] = {
+    PinInterface::MUX1B, // CS
+    PinInterface::GPIO,  // MOSI
+    PinInterface::GPIO,  // MISO
+    PinInterface::GPIO,  // SCK
+    PinInterface::MUX1B, // NSLEEP
+    PinInterface::MUX2B, // NFAULT
+    PinInterface::GPIO,  // IPROPI
+    PinInterface::GPIO,  // IN2
+    PinInterface::GPIO,  // IN1
+    PinInterface::MUX1B  // DRVOFF
+};
 
 constexpr types::u8 driver2_pins[] = {
     static_cast<types::u8>(pinmap::Mux2B::DRV2_SCS),        // CS
@@ -107,15 +124,7 @@ public:
    * @param pin 
    * @return pair<bool, bool> 
    */
-  bool get_On_A(DriverPinMap pin);
-
-  /**
-   * @brief Get the on_board_1 based on the driver ID and debug mode, using the maps above
-   * 
-   * @param pin 
-   * @return pair<bool, bool> 
-   */
-  bool get_On_Board1(DriverPinMap pin);
+  PinInterface get_pin_interface(DriverPinMap pin);
 
   /**
    * @brief Set the driver ID

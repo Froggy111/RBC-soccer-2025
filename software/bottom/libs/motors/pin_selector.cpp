@@ -23,41 +23,22 @@ types::u8 PinSelector::get_pin(DriverPinMap pin) {
   }
 }
 
-bool PinSelector::get_On_A(DriverPinMap pin) {
+PinInterface PinSelector::get_pin_interface(DriverPinMap pin) {
   if (debugMode) {
-    return false;
+    return GPIO;
   }
 
   switch (driverId) {
   case 1:
-    return driver1_mux_addr[static_cast<types::u8>(pin)][1];
+    return driver1_mux_addr[pin];
   case 2:
-    return false;
+    return GPIO;
   case 3:
-    return false;
+    return GPIO;
   case 4:
-    return false;
+    return GPIO;
   default:
-    return false;
-  }
-}
-
-bool PinSelector::get_On_Board1(DriverPinMap pin) {
-  if (debugMode) {
-    return false;
-  }
-
-  switch (driverId) {
-  case 1:
-    return driver1_mux_addr[static_cast<types::u8>(pin)][0];
-  case 2:
-    return false;
-  case 3:
-    return false;
-  case 4:
-    return false;
-  default:
-    return false;
+    return GPIO;
   }
 }
 

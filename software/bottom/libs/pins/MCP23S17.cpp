@@ -144,7 +144,7 @@ void MCP23S17::reset() {
 }
 
 void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
-  printf("Pin: %d, on_A: %d, is_output: %d\n", pin, on_A, is_output);
+  printf("Pin: %d, ID: %d, A: %d, is_output: %d\n", pin, id, on_A, is_output);
   if (pin < 0 || pin > 7) {
     printf("Error: Invalid pin number\n");
     return;

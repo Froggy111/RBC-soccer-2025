@@ -3,13 +3,14 @@
 #include "pins/MCP23S17.hpp"
 #include "pinmap.hpp"
 #include "types.hpp"
+#include "pin_selector.hpp"
 
 class PinInputControl {
 public:
   void init(bool dbg, spi_inst_t* spi_obj);
-  void init_digital(types::u8 pin, bool value, bool on_device_1 = false, bool on_A = false);
+  void init_digital(types::u8 pin, bool value, PinInterface interface = GPIO);
   void init_analog(types::u8 pin, int value);
-  void write_digital(types::u8 pin, bool value, bool on_device_1 = false, bool on_A = false);
+  void write_digital(types::u8 pin, bool value, PinInterface interface = GPIO);
   void write_analog(types::u8 pin, int value);
   bool get_last_value_digital(types::u8 pin);
   bool get_last_value_analog(types::u8 pin);
@@ -25,9 +26,9 @@ private:
 class PinOutputControl {
 public:
   void init(bool dbg, spi_inst_t* spi_obj);
-  void init_digital(types::u8 pin, bool on_device_1 = false, bool on_A = false);
+  void init_digital(types::u8 pin, PinInterface interface = GPIO);
   void init_analog(types::u8 pin);
-  bool read_digital(types::u8 pin, bool on_device_1 = false, bool on_A = false);
+  bool read_digital(types::u8 pin, PinInterface interface = GPIO);
   int read_analog(types::u8 pin);
 
 private:

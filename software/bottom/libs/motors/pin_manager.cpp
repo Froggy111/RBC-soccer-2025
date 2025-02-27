@@ -1,5 +1,6 @@
 #include "pin_manager.hpp"
 #include "pins/MCP23S17.hpp"
+#include "pin_selector.hpp"
 extern "C" {
 #include <hardware/gpio.h>
 #include <pico/stdlib.h>
@@ -15,19 +16,19 @@ void PinInputControl::init(bool dbg, spi_inst_t *spi_obj) {
 }
 
 // pins responsible for providing input to DRV8244
-void PinInputControl::init_digital(types::u8 pin, bool value, bool on_device_1, bool on_A) {
-  if (debug) {
+void PinInputControl::init_digital(types::u8 pin, bool value, PinInterface interface) {
+  if (debug || interface == GPIO) {
     gpio_init(pin);
     gpio_set_dir(pin, GPIO_OUT);
   } else {
-    if (on_device_1)
-      dmux1.init_gpio(pin, on_A, true);
+    if (interface == MUX1A || interface == MUX1B)
+      dmux1.init_gpio(pin, interface == MUX1A || interface == MUX2A, true);
     else
-      dmux2.init_gpio(pin, on_A, true);
+      dmux2.init_gpio(pin, interface == MUX1A || interface == MUX2A, true);
   }
 
   this->digital_cache[pin] = value;
-  write_digital(pin, value, on_device_1, on_A);
+  write_digital(pin, value, interface);
 }
 
 void PinInputControl::init_analog(types::u8 pin, int value) {
@@ -47,17 +48,19 @@ void PinInputControl::init_analog(types::u8 pin, int value) {
   pwm_set_enabled(slice_num, true);
 }
 
-void PinInputControl::write_digital(types::u8 pin, bool value, bool on_device_1, bool on_A) {
+void PinInputControl::write_digital(types::u8 pin, bool value, PinInterface interface) {
   if (this->digital_cache.find(pin) == this->digital_cache.end()) {
     printf("Pin not initialized! pin %d\n", pin);
     return;
   }
 
-  if (debug) {
+  if (debug || interface == GPIO) {
     gpio_put(pin, value);
   } else {
-    if (on_device_1) dmux1.write_gpio(pin, on_A, value);
-    else dmux2.write_gpio(pin, on_A, value);
+    if (interface == MUX1A || interface == MUX1B)
+      dmux1.write_gpio(pin, interface == MUX1A || interface == MUX2A, true);
+    else
+      dmux2.write_gpio(pin, interface == MUX1A || interface == MUX2A, true);
   }
 
   // printf("%d has been written to pin %d\n", value, pin);
@@ -71,7 +74,7 @@ void PinInputControl::write_analog(types::u8 pin, int value) {
   }
   uint slice_num = pwm_gpio_to_slice_num(pin);
   uint channel = pwm_gpio_to_channel(pin);
-  printf("%d has been written to pin %d\n", value, pin);
+  // printf("%d has been written to pin %d\n", value, pin);
   pwm_set_chan_level(slice_num, channel, value);
 }
 
@@ -102,27 +105,27 @@ void PinOutputControl::init(bool dbg, spi_inst_t *spi_obj) {
 }
 
 // pins responsible for providing output to DRV8244
-void PinOutputControl::init_digital(types::u8 pin, bool on_device_1, bool on_A) {
+void PinOutputControl::init_digital(types::u8 pin, PinInterface interface) {
   if (debug) {
     gpio_init(pin);
     gpio_set_dir(pin, GPIO_IN);
   } else {
-    if (on_device_1)
-      dmux1.init_gpio(pin, on_A, false);
+    if (interface == MUX1A || interface == MUX1B)
+      dmux1.init_gpio(pin, interface == MUX1A || interface == MUX2A, false);
     else
-      dmux2.init_gpio(pin, on_A, false);
+      dmux2.init_gpio(pin, interface == MUX1A || interface == MUX2A, false);
   }
 }
 
-bool PinOutputControl::read_digital(types::u8 pin, bool on_device_1, bool on_A) {
+bool PinOutputControl::read_digital(types::u8 pin, PinInterface interface) {
   if (debug) {
     bool result = gpio_get(pin);
     // printf("%d has been read from pin %d\n", result, pin);
     return result;
   } else {
-    if (on_device_1)
-      return dmux1.read_gpio(pin, on_A);
+    if (interface == MUX1A || interface == MUX1B)
+      dmux1.read_gpio(pin, interface == MUX1A || interface == MUX2A);
     else
-      return dmux2.read_gpio(pin, on_A);
+      dmux2.read_gpio(pin, interface == MUX1A || interface == MUX2A);
   }
 }

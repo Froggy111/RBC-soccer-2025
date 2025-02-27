@@ -49,7 +49,7 @@ void PinInputControl::write_analog(types::u8 pin, int value) {
   }   
   uint slice_num = pwm_gpio_to_slice_num(pin);
   uint channel = pwm_gpio_to_channel(pin);
-  printf("%d has been written to pin %d\n", value, pin);
+  // printf("%d has been written to pin %d\n", value, pin);
   pwm_set_chan_level(slice_num, channel, value);
 }
 
