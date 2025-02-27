@@ -22,7 +22,7 @@ public:
   void init(types::u8 device_id, spi_inst_t* spi_obj);
   void reset();
 
-  // if "output" is set, the MCP23S17 will write to the pin, otherwise it will read from the pin
+  // if "output" is set to true, the MCP23S17 will write to the pin, otherwise it will read from the pin
   void init_gpio(uint8_t pin, bool on_A, bool is_output);
   void write_gpio(uint8_t pin, bool on_A, bool value);
   bool read_gpio(uint8_t pin, bool on_A);

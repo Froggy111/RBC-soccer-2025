@@ -32,11 +32,11 @@ PinInterface PinSelector::get_pin_interface(DriverPinMap pin) {
   case 1:
     return driver1_mux_addr[pin];
   case 2:
-    return GPIO;
+    return driver2_mux_addr[pin];
   case 3:
-    return GPIO;
+    return driver3_mux_addr[pin];
   case 4:
-    return GPIO;
+    return driver4_mux_addr[pin];
   default:
     return GPIO;
   }

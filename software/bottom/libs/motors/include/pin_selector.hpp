@@ -69,6 +69,19 @@ constexpr types::u8 driver2_pins[] = {
     static_cast<types::u8>(pinmap::Mux2B::DRV2_OFF)         // DRVOFF
 };
 
+inline PinInterface driver2_mux_addr[] = {
+    PinInterface::MUX2B, // CS
+    PinInterface::GPIO,  // MOSI
+    PinInterface::GPIO,  // MISO
+    PinInterface::GPIO,  // SCK
+    PinInterface::MUX2A, // NSLEEP
+    PinInterface::MUX2A, // NFAULT
+    PinInterface::GPIO,  // IPROPI
+    PinInterface::GPIO,  // IN2
+    PinInterface::GPIO,  // IN1
+    PinInterface::MUX2B  // DRVOFF
+};
+
 constexpr types::u8 driver3_pins[] = {
     static_cast<types::u8>(pinmap::Mux2A::DRV3_SCS),        // CS
     static_cast<types::u8>(pinmap::DigitalPins::SPI0_MOSI), // MOSI
@@ -82,6 +95,19 @@ constexpr types::u8 driver3_pins[] = {
     static_cast<types::u8>(pinmap::Mux2A::DRV3_OFF)         // DRVOFF
 };
 
+inline PinInterface driver3_mux_addr[] = {
+    PinInterface::MUX2A, // CS
+    PinInterface::GPIO,  // MOSI
+    PinInterface::GPIO,  // MISO
+    PinInterface::GPIO,  // SCK
+    PinInterface::MUX2A, // NSLEEP
+    PinInterface::MUX2A, // NFAULT
+    PinInterface::GPIO,  // IPROPI
+    PinInterface::GPIO,  // IN2
+    PinInterface::GPIO,  // IN1
+    PinInterface::MUX2A  // DRVOFF
+};
+
 constexpr types::u8 driver4_pins[] = {
     static_cast<types::u8>(pinmap::Mux1B::DRV4_SCS),        // CS
     static_cast<types::u8>(pinmap::DigitalPins::SPI0_MOSI), // MOSI
@@ -93,6 +119,19 @@ constexpr types::u8 driver4_pins[] = {
     static_cast<types::u8>(pinmap::DigitalPins::DRV4_IN2),  // IN2
     static_cast<types::u8>(pinmap::DigitalPins::DRV4_IN1),  // IN1
     static_cast<types::u8>(pinmap::Mux1A::DRV4_OFF)         // DRVOFF
+};
+
+inline PinInterface driver4_mux_addr[] = {
+    PinInterface::MUX1B, // CS
+    PinInterface::GPIO,  // MOSI
+    PinInterface::GPIO,  // MISO
+    PinInterface::GPIO,  // SCK
+    PinInterface::MUX1B, // NSLEEP
+    PinInterface::MUX2B, // NFAULT
+    PinInterface::GPIO,  // IPROPI
+    PinInterface::GPIO,  // IN2
+    PinInterface::GPIO,  // IN1
+    PinInterface::MUX1A  // DRVOFF
 };
 
 constexpr types::u8 debug_pins[] = {

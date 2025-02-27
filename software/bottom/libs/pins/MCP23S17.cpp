@@ -96,6 +96,7 @@ void MCP23S17::init_spi() {
 
 void MCP23S17::write8(uint8_t device_address, uint8_t reg_address, uint8_t data,
                       uint8_t mask) {
+  configure_spi();
   uint8_t current = read8(device_address, reg_address);
   uint8_t tx_data[3] = {(uint8_t)(SPI_CMD_DEFAULT | (device_address << 1)),
                         reg_address,
@@ -108,14 +109,25 @@ void MCP23S17::write8(uint8_t device_address, uint8_t reg_address, uint8_t data,
     }
     printf(" ");
   }
-  printf("Writing to device %d, register %d, data %d, current %d\n", device_address, reg_address, data, current);
+  printf("\n");
 
   gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 0);
   spi_write_blocking(spi_obj, tx_data, 3);
   gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 1);
+
+  // read register and check if it was written
+  uint8_t res = read8(device_address, reg_address);
+  if (res != ((current & ~mask) | (data & mask))) {
+    printf("ERROR: Write failed. Expected %d, got %d\n",
+           ((current & ~mask) | (data & mask)), res);
+  } else {
+    printf("OOH: Write successful. Expected %d, got %d\n",
+           ((current & ~mask) | (data & mask)), res);
+  }
 }
 
 uint8_t MCP23S17::read8(uint8_t device_address, uint8_t reg_address) {
+  configure_spi();
   uint8_t tx_data[2] = {
       (uint8_t)(SPI_CMD_DEFAULT | (device_address << 1) | 0b1), reg_address};
 
@@ -142,7 +154,7 @@ void MCP23S17::configure_spi() {
   gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, DEFAULT_CS);
 
   // Set SPI format
-  spi_set_format(spi_obj, 8, SPI_CPOL_0, SPI_CPHA_1, SPI_MSB_FIRST);
+  spi_set_format(spi_obj, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 }
 
 void MCP23S17::reset() {
@@ -181,10 +193,6 @@ void MCP23S17::write_gpio(uint8_t pin, bool on_A, bool value) {
 
   // check that OUTPUT_LATCH has the written bit
   uint8_t res = read8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? OLATA : OLATB);
-
-  if ((res & (1 << pin)) != (value << pin)) {
-    printf("Error: Write failed.\n");
-  }
 }
 
 bool MCP23S17::read_gpio(uint8_t pin, bool on_A) {
