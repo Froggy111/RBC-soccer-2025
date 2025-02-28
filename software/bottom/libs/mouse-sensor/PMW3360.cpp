@@ -11,7 +11,7 @@ extern "C" {
 #include "pin_selector.hpp"
 #include "faults.hpp"
 
-#define DEFAULT_CS 1     // CS high by default
+#define DEFAULT_CS 1 // CS high by default
 
 #define PRODUCT_ID 0x00
 #define MOTION 0x02
@@ -23,7 +23,6 @@ extern "C" {
 #define DELTA_Y_L 0x05
 #define DELTA_Y_H 0x06 //must be read after DELTA_Y_L
 
-
 #define SQUAL 0x07
 #define RAW_DATA_SUM 0x08
 #define MAXIMUM_RAW_DATA 0x09
@@ -31,7 +30,8 @@ extern "C" {
 #define SHUTTER_LOWER 0x0B
 #define SHUTTER_UPPER 0x0C
 
-#define CONTROL 0x0D //programmable invert of XY register scheme (inverts axes basically)
+#define CONTROL                                                                \
+  0x0D //programmable invert of XY register scheme (inverts axes basically)
 
 #define CONFIG1 0x0F
 #define CONFIG1_RESET 0x31
@@ -101,199 +101,167 @@ extern "C" {
 #define FAULT_SUMMARY_REG 0x01
 
 void MouseSensor::init(int id, types::u64 SPI_SPEED) {
-    // Initialize SPI with error checking
-    if (!spi_init(spi0, SPI_SPEED)) {
-        printf("Error: SPI initialization failed\n");
-        return;
-    }
+  // Initialize SPI with error checking
+  if (!spi_init(spi0, SPI_SPEED)) {
+    printf("Error: SPI initialization failed\n");
+    return;
+  }
 
-    // Initialize SPI pins (except CS)
-    gpio_set_function(pinSelector.get_pin(SCLK), GPIO_FUNC_SPI);
-    gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
-    gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
+  // Initialize SPI pins (except CS)
+  gpio_set_function(pinSelector.get_pin(SCLK), GPIO_FUNC_SPI);
+  gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
+  gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
 
-    // Initialize CS pin as GPIO
-    inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS);
+  // Initialize CS pin as GPIO
+  inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS);
 
-    // Set SPI format
-    spi_set_format(spi0, 16, SPI_CPOL_1, SPI_CPHA_1, SPI_MSB_FIRST);
+  // Set SPI format
+  spi_set_format(spi0, 16, SPI_CPOL_1, SPI_CPHA_1, SPI_MSB_FIRST);
+  init_registers();
 }
 
 void MouseSensor::init_pins() {
-    // Initialize pins
-    // MOT
-    outputControl.init_digital(pinSelector.get_pin(MOT));
-  
-    // RST
-    inputControl.init_digital(pinSelector.get_pin(RST), true);
+  // Initialize pins
+  // MOT
+  outputControl.init_digital(pinSelector.get_pin(MOT));
+
+  // RST
+  inputControl.init_digital(pinSelector.get_pin(RST), true);
 }
 
-bool MouseSensor::write8(uint8_t reg, uint8_t value, int8_t expected) {
-    //* prepare data
-    uint16_t reg_value = 0;
-    uint16_t rx_data = 0;
-    reg_value |= ((reg << SPI_ADDRESS_POS) &
-                  SPI_ADDRESS_MASK_WRITE); // Add register address
-    reg_value |= ((value << SPI_DATA_POS) & SPI_DATA_MASK); // Add data value
-  
-    //* Write & Read Feedback
+void MouseSensor::write8(uint8_t reg, uint8_t value, int8_t expected) {
+    types::u8 buffer[2] = {(types::u8)(reg | 0x80),value};
+
     inputControl.write_digital(pinSelector.get_pin(CS), 0);
-    int bytes_written =
-        spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
+    sleep_us(1);
+    spi_write_blocking(spi0, buffer, 2);
     inputControl.write_digital(pinSelector.get_pin(CS), 1);
-  
-    printf("SPI Write - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
-  
-    //* Check for no errors in received bytes
-    // First 2 MSBs bytes should be '1'
-    if ((rx_data & 0xC000) != 0xC000) {
-      printf("SPI Write - Error: Initial '1' MSB check bytes not found\n");
-      return false;
-    }
-  
-    // following 6 bytes are from fault summary
-    if ((rx_data & 0x3F00) != 0x0000) {
-      printf("SPI Write - Error: Fault summary bytes indicating error, %d\n",
-             rx_data & 0x3F00);
-      // get fault register
-      types::u8 fault = read8(0x01);
-  
-      if (fault == 0) {
-        printf("SPI Write - No fault found in fault register, moving on...\n");
-      } else {
-        printf("SPI Write - %s\n", Fault::get_fault_description(fault).c_str());
-        return false;
-      }
-    }
-  
-    // Check remaining 8 bytes to match the sent data or expected return
-    if (expected == -1) {
-      if ((rx_data & 0x00FF) != value) {
-        printf("SPI Write - Error: Data bytes do not match\n");
-        return false;
-      }
-    } else {
-      if ((rx_data & 0x00FF) != expected) {
-        printf("SPI Write - Error: Data bytes do not match expected\n");
-        return false;
-      }
-    }
-  
-    return bytes_written == 1;
-  }
+
+    sleep_us(180);
+}
 
 uint8_t MouseSensor::read8(uint8_t reg) {
-    uint16_t reg_value = 0;
-    uint16_t rx_data = 0;
-
-    reg_value |= ((reg << SPI_ADDRESS_POS) & SPI_ADDRESS_MASK_READ);
-    reg_value |= SPI_RW_BIT_MASK;
+    types::u8 buffer[2] = {(types::u8)(reg & 0x7F), 0x00};
+    types::u8 response = 0;
 
     inputControl.write_digital(pinSelector.get_pin(CS), 0);
-    spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
+    sleep_us(1);
+    spi_write_blocking(spi0, buffer, 1);
+    sleep_us(160);
+    spi_read_blocking(spi0, 0x00, &response, 1);
     inputControl.write_digital(pinSelector.get_pin(CS), 1);
 
-    printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
-
-    //* Check for no errors in received bytes
-    // First 2 MSBs bytes should be '1'
-    if ((rx_data & 0xC000) != 0xC000) {
-        printf("SPI Write - Error: Initial '1' MSB check bytes not found\n");
-        return false;
-    }
-
-    // following 6 bytes are from fault summary
-    if ((rx_data & 0x3F00) != 0x0000) {
-        printf("SPI Write - Error: Fault summary bytes indicating error, %d\n",
-                rx_data & 0x3F00);
-        // get fault register
-        types::u8 fault = read8(FAULT_SUMMARY_REG);
-
-        if (fault == 0) {
-        printf("SPI Write - No fault found in fault register, moving on...\n");
-        } else {
-        printf("SPI Write - %s\n", Fault::get_fault_description(fault).c_str());
-        return false;
-        }
-    }
-
-    return rx_data & 0xFF;
+    return response;
 }
 
-
 //read_motion_burst return 12 bytes (description in datasheet)
-//The data is written into the array whose pointer is passed into the function as a parameter 
-void MouseSensor::read_motion_burst(){
-    uint8_t reg = MOTION_BURST;
-    uint16_t reg_value = 0;
+//The data is written into the array whose pointer is passed into the function as a parameter
+void MouseSensor::read_motion_burst() {
+  uint8_t reg = MOTION_BURST;
 
-    reg_value |= ((reg << SPI_ADDRESS_POS) & SPI_ADDRESS_MASK_READ);
-    reg_value |= SPI_RW_BIT_MASK;
-    types::u16 temp_buffer[12] = {0};
-    inputControl.write_digital(pinSelector.get_pin(CS), 0);
-    spi_write16_blocking(spi0, &reg_value, 1);
-    spi_read16_blocking(spi0, reg_value, temp_buffer, (uint) 12);
-    inputControl.write_digital(pinSelector.get_pin(CS), 1);
+  // Start burst mode - use 8-bit commands
+  inputControl.write_digital(pinSelector.get_pin(CS), 0);
+  spi_write_blocking(spi0, &reg, 1); // 8-bit write
 
-    for(int i = 0; i < 12; i++){
-        motion_burst_buffer[i] = temp_buffer[i] & 0x00FF;
-    }
+  // T_SRAD delay (at least 35μs)
+  sleep_us(50);
 
-    //printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
+  // Read burst data (12 bytes total)
+  uint8_t temp_buffer[12];
+  spi_read_blocking(spi0, 0, temp_buffer, 12); // 8-bit reads
 
+  // Copy to buffer (assuming motion_burst_buffer is uint16_t[])
+  for (int i = 0; i < 12; i++) {
+    motion_burst_buffer[i] = temp_buffer[i];
+  }
+
+  inputControl.write_digital(pinSelector.get_pin(CS), 1); // Release CS pin
 }
 
 //Return X_Delta Values
-types::u16 MouseSensor::read_X_motion(){
-    types::u8 X_L = read8(DELTA_X_L); //Important: DELTA_X_L Must be read first before DELTA_X_H
-    types::u8 X_H = read8(DELTA_X_H);
+types::u16 MouseSensor::read_X_motion() {
+  types::u8 X_L = read8(
+      DELTA_X_L); //Important: DELTA_X_L Must be read first before DELTA_X_H
+  types::u8 X_H = read8(DELTA_X_H);
 
-    types::u16 X_Val = ((X_L << SPI_ADDRESS_POS) & X_H);
+  types::u16 X_Val = ((X_L << SPI_ADDRESS_POS) & X_H);
 
-    return X_Val;
+  return X_Val;
 }
 
-types::u16 MouseSensor::read_Y_motion(){
-    types::u8 Y_L = read8(DELTA_Y_L); //Important: DELTA_Y_L Must be read first before DELTA_Y_H
-    types::u8 Y_H = read8(DELTA_Y_H);
+types::u16 MouseSensor::read_Y_motion() {
+  types::u8 Y_L = read8(
+      DELTA_Y_L); //Important: DELTA_Y_L Must be read first before DELTA_Y_H
+  types::u8 Y_H = read8(DELTA_Y_H);
 
-    types::u16 Y_Val = ((Y_L << SPI_ADDRESS_POS) & Y_H);
+  types::u16 Y_Val = ((Y_L << SPI_ADDRESS_POS) & Y_H);
 
-    return Y_Val;
+  return Y_Val;
 }
 
-types::u16 MouseSensor::read_squal(){
-    types::u8 squal = read8(SQUAL);
-    types::u16 num_features = (squal<<3); //Number of features = SQUAL Register value * 8 (2^3)
+types::u16 MouseSensor::read_squal() {
+  types::u8 squal = read8(SQUAL);
+  types::u16 num_features =
+      (squal << 3); //Number of features = SQUAL Register value * 8 (2^3)
 
-    return num_features;
+  return num_features;
 }
-
-
 
 //! reading specific registers
 bool MouseSensor::init_registers() {
-  
-    //* CONFIG1 register
-    if (!write8(CONFIG1, CONFIG1_RESET)) {
-      printf("Error: Could not write to CONFIG1 register\n");
-      return false;
-    }
-  
-    //* CONFIG2 register
-    if (!write8(CONFIG2, CONFIG2_RESET)) {
-      printf("Error: Could not write to CONFIG2 register\n");
-      return false;
-    }
-  
-  
-    //* CONFIG5 register
-    if (!write8(CONFIG5, CONFIG5_RESET)) {
-      printf("Error: Could not write to CONFIG5 register\n");
-      return false;
-    }
+  // Step 1: Power-up reset
+  write8(POWER_UP_RESET, 0x5A, 0);
 
+  // Delay at least 50ms
+  sleep_ms(50);
 
-    return true;
+  // Step 2: Read motion register to clear it
+  read8(MOTION);
+
+  // Step 3: SROM download sequence
+  // First disable REST mode and prepare for SROM download
+  write8(CONFIG2, 0x00, 0);
+  write8(SROM_ENABLE, 0x1D, 0);
+  write8(SROM_ENABLE, 0x18, 0);
+
+  
+
+  // Wait 10ms
+  sleep_ms(10);
+
+  // Load the SROM firmware (this depends on the firmware - consult PMW3360 datasheet)
+  // Usually involves writing multiple bytes to SROM_LOAD_BURST register
+
+  // After preparing for SROM download (which you've already done)
+  // Write to the SROM_LOAD_BURST register and send firmware bytes
+  const uint16_t firmware_length = 4094; // Check exact length in datasheet
+  uint8_t
+      firmware_data[firmware_length]; // This would contain the firmware bytes
+
+  // Fill firmware_data with the actual SROM bytes from the datasheet
+
+  // Begin SROM load
+  uint8_t burst_cmd = SROM_LOAD_BURST;
+  inputControl.write_digital(pinSelector.get_pin(CS), 0);
+  spi_write_blocking(spi0, &burst_cmd, 1);
+
+  // Send all firmware bytes
+  for (int i = 0; i < firmware_length; i++) {
+    spi_write_blocking(spi0, &firmware_data[i], 1);
+    // Short delay between bytes if required
+    sleep_us(15); // Check datasheet for exact timing
+  }
+  inputControl.write_digital(pinSelector.get_pin(CS), 1);
+
+  // Wait for the SROM to load
+  sleep_ms(10);
+
+  // Step 4: Configure sensor settings
+  // Set CPI (counts per inch)
+  write8(CONFIG5, 0x00, 0);
+  write8(CONFIG1, CONFIG1_RESET, 0);
+  
+
+  printf("Sensor initialization successful\n");
+  return true;
 }
-  
