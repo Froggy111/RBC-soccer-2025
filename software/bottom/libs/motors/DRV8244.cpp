@@ -72,8 +72,6 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
   configure_spi();
 
   printf("-> Initializing pins\n");
-  inputControl.init_digital(pinSelector.get_pin(CS), 1,
-                            pinSelector.get_pin_interface(CS));
   init_pins();
 
   printf("-> Configuring registers\n");
@@ -104,15 +102,14 @@ void MotorDriver::init_pins() {
 
   // PH/IN2
   inputControl.init_digital(pinSelector.get_pin(IN2), DEFAULT_IN2);
+
+  // CS
+  inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS,
+                            pinSelector.get_pin_interface(CS));
 }
 
 //! spi/register handling
 void MotorDriver::configure_spi() {
-  printf("Pin: %d, Interface: %d\n", pinSelector.get_pin(CS),
-         pinSelector.get_pin_interface(CS));
-  printf("SCK: %d, MOSI: %d, MISO: %d\n", pinSelector.get_pin(SCK),
-         pinSelector.get_pin(MOSI), pinSelector.get_pin(MISO));
-
   // Initialize SPI pins (except CS)
   gpio_set_function(pinSelector.get_pin(SCK), GPIO_FUNC_SPI);
   gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
@@ -120,8 +117,6 @@ void MotorDriver::configure_spi() {
 
   // Set SPI format
   spi_set_format(spi_obj, 16, SPI_CPOL_0, SPI_CPHA_1, SPI_MSB_FIRST);
-
-  sleep_ms(1);
 }
 
 bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
@@ -136,14 +131,14 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   // Initialize CS pin as GPIO
 
   inputControl.write_digital(pinSelector.get_pin(CS), 0,
-                            pinSelector.get_pin_interface(CS));
+                             pinSelector.get_pin_interface(CS));
 
   configure_spi();
   int bytes_written =
-      spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
+      spi_write16_read16_blocking(spi_obj, &reg_value, &rx_data, 1);
 
   inputControl.write_digital(pinSelector.get_pin(CS), 1,
-                            pinSelector.get_pin_interface(CS));
+                             pinSelector.get_pin_interface(CS));
 
   printf("SPI Write - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
 
@@ -192,13 +187,13 @@ uint8_t MotorDriver::read8(uint8_t reg) {
   reg_value |= ((reg << SPI_ADDRESS_POS) & SPI_ADDRESS_MASK_READ);
   reg_value |= SPI_RW_BIT_MASK;
 
-  inputControl.init_digital(pinSelector.get_pin(CS), 0,
+  inputControl.write_digital(pinSelector.get_pin(CS), 0,
                             pinSelector.get_pin_interface(CS));
 
   configure_spi();
-  spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
+  spi_write16_read16_blocking(spi_obj, &reg_value, &rx_data, 1);
 
-  inputControl.init_digital(pinSelector.get_pin(CS), 1,
+  inputControl.write_digital(pinSelector.get_pin(CS), 1,
                             pinSelector.get_pin_interface(CS));
 
   printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);

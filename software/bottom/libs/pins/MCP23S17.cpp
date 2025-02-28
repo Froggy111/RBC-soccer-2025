@@ -78,11 +78,7 @@ void MCP23S17::init_pins() {
   gpio_init((uint)pinmap::DigitalPins::DMUX_RESET);
   gpio_set_dir((uint)pinmap::DigitalPins::DMUX_RESET, GPIO_OUT);
 
-  // initialize INTA
-  if (id == 2) {
-    gpio_init((uint)pinmap::DigitalPins::DMUX2_INT);
-    gpio_set_dir((uint)pinmap::DigitalPins::DMUX2_INT, GPIO_IN);
-  }
+  // TODO: initialize INTA
 }
 
 void MCP23S17::init_spi() {
@@ -102,13 +98,14 @@ void MCP23S17::write8(uint8_t device_address, uint8_t reg_address, uint8_t data,
                         reg_address,
                         (uint8_t)((current & ~mask) | (data & mask))};
 
+  
   gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 0);
   spi_write_blocking(spi_obj, tx_data, 3);
   gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 1);
 
   // read register and check if it was written
   uint8_t res = read8(device_address, reg_address);
-  if (res != ((current & ~mask) | (data & mask))) {
+  if (res != tx_data[2]) {
     // print tx_data in binary
     for (int i = 0; i < 3; i++) {
       for (int j = 7; j >= 0; j--) {
@@ -116,8 +113,8 @@ void MCP23S17::write8(uint8_t device_address, uint8_t reg_address, uint8_t data,
       }
       printf(" ");
     }
-    printf("ERROR: Write failed. Expected %d, got %d\n",
-           ((current & ~mask) | (data & mask)), res);
+    printf("ERROR: MCP23S17 write8 to register failed. Expected %d, got %d\n",
+           tx_data[2], res);
   }
 }
 
@@ -188,6 +185,10 @@ void MCP23S17::write_gpio(uint8_t pin, bool on_A, bool value) {
 
   // check that OUTPUT_LATCH has the written bit
   uint8_t res = read8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? OLATA : OLATB);
+
+  if ((res & (1 << pin)) != (value << pin)) {
+    printf("ERROR: Write to MCP23S17 GPIO failed. Expected %d, got %d\n", value << pin, res);
+  }
 }
 
 bool MCP23S17::read_gpio(uint8_t pin, bool on_A) {
