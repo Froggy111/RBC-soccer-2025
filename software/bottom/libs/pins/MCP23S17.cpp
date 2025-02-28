@@ -87,7 +87,7 @@ void MCP23S17::init_pins() {
 
 void MCP23S17::init_spi() {
   configure_spi();
-  
+
   // Enable Addressing via Address Pins
   // Since all resetted MCPs will have HAEN = 0, sending with a random address
   // will cause it to affect all HAEN = 0 MCPs
@@ -102,15 +102,6 @@ void MCP23S17::write8(uint8_t device_address, uint8_t reg_address, uint8_t data,
                         reg_address,
                         (uint8_t)((current & ~mask) | (data & mask))};
 
-  // print tx_data in binary
-  for (int i = 0; i < 3; i++) {
-    for (int j = 7; j >= 0; j--) {
-      printf("%d", (tx_data[i] >> j) & 1);
-    }
-    printf(" ");
-  }
-  printf("\n");
-
   gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 0);
   spi_write_blocking(spi_obj, tx_data, 3);
   gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 1);
@@ -118,6 +109,13 @@ void MCP23S17::write8(uint8_t device_address, uint8_t reg_address, uint8_t data,
   // read register and check if it was written
   uint8_t res = read8(device_address, reg_address);
   if (res != ((current & ~mask) | (data & mask))) {
+    // print tx_data in binary
+    for (int i = 0; i < 3; i++) {
+      for (int j = 7; j >= 0; j--) {
+        printf("%d", (tx_data[i] >> j) & 1);
+      }
+      printf(" ");
+    }
     printf("ERROR: Write failed. Expected %d, got %d\n",
            ((current & ~mask) | (data & mask)), res);
   }
@@ -128,8 +126,7 @@ uint8_t MCP23S17::read8(uint8_t device_address, uint8_t reg_address) {
   uint8_t tx_data[2] = {
       (uint8_t)(SPI_CMD_DEFAULT | (device_address << 1) | 0b1), reg_address};
 
-
-  uint8_t rx_data; 
+  uint8_t rx_data;
 
   gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 0);
   spi_write_blocking(spi_obj, tx_data, 2);
@@ -144,7 +141,7 @@ void MCP23S17::configure_spi() {
   gpio_set_function((uint)pinmap::DigitalPins::SPI0_SCLK, GPIO_FUNC_SPI);
   gpio_set_function((uint)pinmap::DigitalPins::SPI0_MOSI, GPIO_FUNC_SPI);
   gpio_set_function((uint)pinmap::DigitalPins::SPI0_MISO, GPIO_FUNC_SPI);
-    
+
   // Initialize CS pin as GPIO
   gpio_init((uint)pinmap::DigitalPins::DMUX_SCS);
   gpio_set_dir((uint)pinmap::DigitalPins::DMUX_SCS, GPIO_OUT);
@@ -167,7 +164,8 @@ void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
   }
 
   // configure direction
-  write8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? IODIRA : IODIRB, !is_output << pin, 0b1 << pin);
+  write8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? IODIRA : IODIRB,
+         !is_output << pin, 0b1 << pin);
   pin_state[pin + (on_A ? 0 : 8)] = is_output;
 }
 
@@ -204,5 +202,6 @@ bool MCP23S17::read_gpio(uint8_t pin, bool on_A) {
   }
 
   // read the pin
-  return read8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? GPIOA : GPIOB) & (1 << pin);
+  return read8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? GPIOA : GPIOB) &
+         (1 << pin);
 }

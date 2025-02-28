@@ -68,14 +68,6 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
   outputControl.init(id == -1, spi_obj_touse);
 
   printf("-> Initializing SPI\n");
-  // Initialize SPI pins (except CS)
-  gpio_set_function(pinSelector.get_pin(SCK), GPIO_FUNC_SPI);
-  gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
-  gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
-
-  // Initialize CS pin as GPIO
-  inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS, pinSelector.get_pin_interface(CS));
-
   spi_obj = spi_obj_touse;
   configure_spi();
 
@@ -94,13 +86,16 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
 void MotorDriver::init_pins() {
   // Initialize pins
   // nFault
-  outputControl.init_digital(pinSelector.get_pin(NFAULT), pinSelector.get_pin_interface(NFAULT));
+  outputControl.init_digital(pinSelector.get_pin(NFAULT),
+                             pinSelector.get_pin_interface(NFAULT));
 
   // nSleep
-  inputControl.init_digital(pinSelector.get_pin(NSLEEP), DEFAULT_NSLEEP, pinSelector.get_pin_interface(NSLEEP));
+  inputControl.init_digital(pinSelector.get_pin(NSLEEP), DEFAULT_NSLEEP,
+                            pinSelector.get_pin_interface(NSLEEP));
 
   // DRVOFF
-  inputControl.init_digital(pinSelector.get_pin(DRVOFF), DEFAULT_DRVOFF, pinSelector.get_pin_interface(DRVOFF));
+  inputControl.init_digital(pinSelector.get_pin(DRVOFF), DEFAULT_DRVOFF,
+                            pinSelector.get_pin_interface(DRVOFF));
 
   // EN/IN1
   inputControl.init_analog(pinSelector.get_pin(IN1), DEFAULT_IN1);
@@ -111,11 +106,23 @@ void MotorDriver::init_pins() {
 
 //! spi/register handling
 void MotorDriver::configure_spi() {
+  printf("Pin: %d, Interface: %d\n", pinSelector.get_pin(CS),
+         pinSelector.get_pin_interface(CS));
+  printf("SCK: %d, MOSI: %d, MISO: %d\n", pinSelector.get_pin(SCK),
+         pinSelector.get_pin(MOSI), pinSelector.get_pin(MISO));
+
+  // Initialize SPI pins (except CS)
+  gpio_set_function(pinSelector.get_pin(SCK), GPIO_FUNC_SPI);
+  gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
+  gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
+
   // Set SPI format
   spi_set_format(spi_obj, 16, SPI_CPOL_0, SPI_CPHA_1, SPI_MSB_FIRST);
+
+  sleep_ms(1);
 }
 
-bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {  
+bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   //* prepare data
   uint16_t reg_value = 0;
   uint16_t rx_data = 0;
@@ -124,13 +131,17 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   reg_value |= ((value << SPI_DATA_POS) & SPI_DATA_MASK); // Add data value
 
   //* Write & Read Feedback
-  printf("Pin: %d, Interface: %d\n", pinSelector.get_pin(CS), pinSelector.get_pin_interface(CS));
-  inputControl.write_digital(pinSelector.get_pin(CS), 0,
-                             pinSelector.get_pin_interface(CS));
+  // Initialize CS pin as GPIO
+
+  inputControl.init_digital(pinSelector.get_pin(CS), 0,
+                            pinSelector.get_pin_interface(CS));
+
   configure_spi();
   int bytes_written =
       spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
-  inputControl.write_digital(pinSelector.get_pin(CS), 1, pinSelector.get_pin_interface(CS));
+
+  inputControl.init_digital(pinSelector.get_pin(CS), 1,
+                            pinSelector.get_pin_interface(CS));
 
   printf("SPI Write - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
 
@@ -172,18 +183,21 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   return bytes_written == 1;
 }
 
-uint8_t MotorDriver::read8(uint8_t reg) {  
+uint8_t MotorDriver::read8(uint8_t reg) {
   uint16_t reg_value = 0;
   uint16_t rx_data = 0;
 
   reg_value |= ((reg << SPI_ADDRESS_POS) & SPI_ADDRESS_MASK_READ);
   reg_value |= SPI_RW_BIT_MASK;
 
-  inputControl.write_digital(pinSelector.get_pin(CS), 0,
-                             pinSelector.get_pin_interface(CS));
+  inputControl.init_digital(pinSelector.get_pin(CS), 0,
+                            pinSelector.get_pin_interface(CS));
+
   configure_spi();
   spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
-  inputControl.write_digital(pinSelector.get_pin(CS), 1, pinSelector.get_pin_interface(CS));
+
+  inputControl.init_digital(pinSelector.get_pin(CS), 1,
+                            pinSelector.get_pin_interface(CS));
 
   printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
 
@@ -331,7 +345,8 @@ bool MotorDriver::check_config() {
   }
 
   // check if the driver is in fault
-  if (outputControl.read_digital(pinSelector.get_pin(NFAULT), pinSelector.get_pin_interface(NFAULT))) {
+  if (outputControl.read_digital(pinSelector.get_pin(NFAULT),
+                                 pinSelector.get_pin_interface(NFAULT))) {
     printf("Driver has faulted. Cannot command motor.\n");
     return false;
   }
@@ -348,10 +363,10 @@ bool MotorDriver::check_config() {
 
 void MotorDriver::set_sleep(bool sleep) {
   // Set the sleep pin
-  inputControl.write_digital(pinSelector.get_pin(NSLEEP), !sleep, pinSelector.get_pin_interface(NSLEEP));
+  inputControl.write_digital(pinSelector.get_pin(NSLEEP), !sleep,
+                             pinSelector.get_pin_interface(NSLEEP));
   printf("Motor sleep set to %d\n", !sleep);
 }
-
 
 bool MotorDriver::command(types::i16 duty_cycle) {
   // TODO: Implement Accel Safeguards
@@ -370,7 +385,8 @@ bool MotorDriver::command(types::i16 duty_cycle) {
   duty_cycle = abs(duty_cycle);
 
   // Command motor by setting one channel to PWM and the other low
-  inputControl.write_digital(in2_pin, direction, pinSelector.get_pin_interface(IN2));
+  inputControl.write_digital(in2_pin, direction,
+                             pinSelector.get_pin_interface(IN2));
   inputControl.write_analog(in1_pin, duty_cycle);
 
   printf("Motor command executed: Duty cycle = %d, Direction = %d\n",

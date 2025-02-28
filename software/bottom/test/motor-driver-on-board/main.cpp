@@ -25,7 +25,7 @@ int main() {
     return 0;
   }
 
-  driver.init(3, spi0);
+  driver.init(1, spi0);
 
   // digital_pins.attach_interrupt(DriverDbgPinMap::NFAULT, Pins::DigitalPinInterruptState::EDGE_FALL, driver.handle_error , &driver);
   // digital_pins.enable_interrupt(DriverDbgPinMap::NFAULT);
