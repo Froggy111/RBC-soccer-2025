@@ -72,6 +72,8 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
   configure_spi();
 
   printf("-> Initializing pins\n");
+  inputControl.init_digital(pinSelector.get_pin(CS), 1,
+                            pinSelector.get_pin_interface(CS));
   init_pins();
 
   printf("-> Configuring registers\n");
@@ -133,14 +135,14 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   //* Write & Read Feedback
   // Initialize CS pin as GPIO
 
-  inputControl.init_digital(pinSelector.get_pin(CS), 0,
+  inputControl.write_digital(pinSelector.get_pin(CS), 0,
                             pinSelector.get_pin_interface(CS));
 
   configure_spi();
   int bytes_written =
       spi_write16_read16_blocking(spi0, &reg_value, &rx_data, 1);
 
-  inputControl.init_digital(pinSelector.get_pin(CS), 1,
+  inputControl.write_digital(pinSelector.get_pin(CS), 1,
                             pinSelector.get_pin_interface(CS));
 
   printf("SPI Write - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
