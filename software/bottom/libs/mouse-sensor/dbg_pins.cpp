@@ -49,7 +49,7 @@ void PinInputControl::write_analog(types::u8 pin, int value) {
   }   
   uint slice_num = pwm_gpio_to_slice_num(pin);
   uint channel = pwm_gpio_to_channel(pin);
-  printf("%d has been written to pin %d\n", value, pin);
+  // printf("%d has been written to pin %d\n", value, pin);
   pwm_set_chan_level(slice_num, channel, value);
 }
 
@@ -80,17 +80,8 @@ void PinOutputControl::init_digital(types::u8 pin) {
   read_digital(pin);
 }
 
-void PinOutputControl::init_analog(types::u8 pin) {
-  // TODO
-}
-
 bool PinOutputControl::read_digital(types::u8 pin) {
   bool result = gpio_get(pin);
   // printf("%d has been read from pin %d\n", result, pin);
   return result;
-}
-
-int PinOutputControl::read_analog(types::u8 pin) {
-  // TODO
-  return 0;
 }

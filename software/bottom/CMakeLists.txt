@@ -70,18 +70,18 @@ pico_sdk_init()
 # ===================================== FREERTOS =====================================
 # event driven tusb tasks
 # HACK: picosdk injects -DCFG_TUSB_OS=OPT_OS_PICO to compilation commands, thus this is needed
-add_compile_options(-DCFG_TUSB_OS=OPT_OS_FREERTOS)
+#add_compile_options(-DCFG_TUSB_OS=OPT_OS_FREERTOS)
 
 # FreeRTOS
-if(NOT DEFINED FREERTOS_KERNEL_PATH)
-  set(FREERTOS_KERNEL_PATH ${CMAKE_SOURCE_DIR}/external/freertos)
-endif()
-include(${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2040/FreeRTOS_Kernel_import.cmake)
+# if(NOT DEFINED FREERTOS_KERNEL_PATH)
+#   set(FREERTOS_KERNEL_PATH ${CMAKE_SOURCE_DIR}/external/freertos)
+# endif()
+# include(${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2040/FreeRTOS_Kernel_import.cmake)
 # ====================================================================================
 
 add_global_library(pico_stdlib)
 # add_global_library(pico_stdio_usb) # only include this for testing without using our own comms lib
-add_global_library(FreeRTOS-Kernel-Heap4)
+#add_global_library(FreeRTOS-Kernel-Heap4)
 
 # add tinyusb
 add_subdirectory(${PICO_TINYUSB_PATH}/src/ ${CMAKE_BINARY_DIR}/tinyusb)

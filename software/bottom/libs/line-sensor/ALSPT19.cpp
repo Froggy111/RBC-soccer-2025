@@ -2,7 +2,9 @@
 extern "C" {
     #include "types.hpp"
     #include "hardware/adc.h"
+    #include <pico/stdlib.h>
     #include <pico/stdio.h>
+    #include <stdio.h>
 }
 
 void LineSensor::init(types::u8 id) {
