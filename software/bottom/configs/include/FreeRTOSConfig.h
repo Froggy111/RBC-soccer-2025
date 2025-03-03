@@ -31,6 +31,10 @@
 #define xPortPendSVHandler isr_pendsv
 #define xPortSysTickHandler isr_systick
 
+// disable SMP for now
+#define configNUMBER_OF_CORES 1
+#define RUN_FREE_RTOS_ON_CORE 0
+
 #define configUSE_PREEMPTION 1   // Allow tasks to be pre-empted
 #define configUSE_TIME_SLICING 1 // Allow FreeRTOS to switch tasks at each tick
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
@@ -45,7 +49,7 @@
 #define configUSE_TASK_NOTIFICATIONS 1
 #define configTASK_NOTIFICATION_ARRAY_ENTRIES 3
 #define configUSE_MUTEXES 1
-#define configUSE_RECURSIVE_MUTEXES 0
+#define configUSE_RECURSIVE_MUTEXES 1
 #define configUSE_COUNTING_SEMAPHORES 1
 #define configQUEUE_REGISTRY_SIZE 10
 #define configUSE_QUEUE_SETS 0
@@ -63,7 +67,8 @@
 #define configSUPPORT_STATIC_ALLOCATION 0
 #define configSUPPORT_DYNAMIC_ALLOCATION                                       \
   1 // Get FreeRTOS to allocation task memory
-#define configAPPLICATION_ALLOCATED_HEAP 1
+#define configAPPLICATION_ALLOCATED_HEAP 0
+#define configTOTAL_HEAP_SIZE (128 * 1024) // 128 KB
 
 /* Hook function related definitions. */
 #define configUSE_IDLE_HOOK 0
@@ -104,11 +109,12 @@
 #define INCLUDE_xTaskGetIdleTaskHandle 0
 #define INCLUDE_eTaskGetState 0
 #define INCLUDE_xEventGroupSetBitFromISR 1
-#define INCLUDE_xTimerPendFunctionCall 0
+#define INCLUDE_xTimerPendFunctionCall 1
 #define INCLUDE_xTaskAbortDelay 0
 #define INCLUDE_xTaskGetHandle 0
 #define INCLUDE_xTaskResumeFromISR 1
-// #define INCLUDE_xSemaphoreCreateMutex 1
+#define INCLUDE_xSemaphoreGetMutexHolder 1
+#define INCLUDE_xSemaphoreCreateMutex 1
 
 /* A header file that defines trace macro can be included here. */
 

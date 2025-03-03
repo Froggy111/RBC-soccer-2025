@@ -5,6 +5,8 @@
 #include "types.hpp"
 extern "C" {
 #include <FreeRTOS.h>
+#include <semphr.h>
+#include <task.h>
 #include <pico/bootrom.h>
 #include <pico/stdio.h>
 #include <pico/stdlib.h>
@@ -200,7 +202,6 @@ private:
   static types::u16 _interrupt_write_buffer_index;
   static SemaphoreHandle_t _interrupt_write_buffer_mutex;
   static TaskHandle_t _interrupt_write_task_handle;
-  TaskHandle_t _write_flusher_task_handle = nullptr;
 
   // hooks for other command handlers
   // these are indexed with the identifier

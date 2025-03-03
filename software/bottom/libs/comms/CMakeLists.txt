@@ -1,5 +1,3 @@
-include_directories(include/tusb)
-
 add_library(comms)
 target_sources(comms
   PRIVATE

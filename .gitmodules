@@ -3,7 +3,7 @@
 	url = https://github.com/hathach/tinyusb.git
 [submodule "software/bottom/external/freertos"]
 	path = software/bottom/external/freertos
-	url = https://github.com/raspberrypi/FreeRTOS-Kernel
+	url = https://github.com/raspberrypi/FreeRTOS-Kernel.git
 [submodule "picotool"]
     path = picotool
     url = https://github.com/raspberrypi/picotool.git

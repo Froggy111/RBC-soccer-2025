@@ -4,6 +4,8 @@
 #include "types.hpp"
 extern "C" {
 #include <FreeRTOS.h>
+#include <semphr.h>
+#include <task.h>
 #include <hardware/gpio.h>
 #include <pico/stdlib.h>
 #include <tusb.h>
@@ -14,6 +16,23 @@ extern "C" {
 using namespace types;
 
 namespace usb {
+
+SemaphoreHandle_t CDC::_write_mutex = nullptr;
+
+types::u8 CDC::_interrupt_write_buffer[MAX_INTERRUPT_TX_BUF_SIZE] = {0};
+types::u16 CDC::_interrupt_write_buffer_index = 0;
+SemaphoreHandle_t CDC::_interrupt_write_buffer_mutex = nullptr;
+TaskHandle_t CDC::_interrupt_write_task_handle = nullptr;
+
+// hooks for other command handlers
+// these are indexed with the identifier
+TaskHandle_t CDC::_command_task_handles[comms::identifier_arr_len] = {nullptr};
+SemaphoreHandle_t CDC::_command_task_buffer_mutexes[comms::identifier_arr_len] =
+    {nullptr};
+types::u8 *CDC::_command_task_buffers[comms::identifier_arr_len] = {nullptr};
+types::u8 CDC::_command_task_buffer_lengths[comms::identifier_arr_len] = {0};
+
+CurrentRXState CDC::_current_rx_state = {};
 
 CDC::CDC() {
   // mostly stuff that should be set up before initialising tinyusb
@@ -28,19 +47,9 @@ CDC::CDC() {
   // setup buffers
   _current_rx_state.data_buffer = _read_buffer;
   _current_rx_state.reset();
-  // write mutex
+  // mutexes
   _write_mutex = xSemaphoreCreateMutex();
-  // interrupt writing
-  memset(_interrupt_write_buffer, 0, sizeof(_interrupt_write_buffer));
-  _interrupt_write_buffer_index = 0;
   _interrupt_write_buffer_mutex = xSemaphoreCreateMutex();
-
-  // command task handlers
-  memset(_command_task_handles, NULL, sizeof(_command_task_handles));
-  memset(_command_task_buffer_mutexes, NULL,
-         sizeof(_command_task_buffer_mutexes));
-  memset(_command_task_buffers, NULL, sizeof(_command_task_buffers));
-  memset(_command_task_buffer_lengths, 0, sizeof(_command_task_buffer_lengths));
 }
 
 bool CDC::init(void) {
@@ -57,7 +66,7 @@ bool CDC::init(void) {
               &_tud_task_handle);
   // create IRQ write flusher
   xTaskCreate(_IRQ_write_flusher, "usb::CDC::_IRQ_write_flusher", 4096, NULL,
-              16, &_write_flusher_task_handle);
+              16, &_interrupt_write_task_handle);
 
   // tinyusb initialised, proceed
   _initialised = true;

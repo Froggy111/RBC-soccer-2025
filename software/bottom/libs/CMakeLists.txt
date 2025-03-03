@@ -5,7 +5,7 @@ add_subdirectory(utils) # this links common util libs
 add_subdirectory(hardware-descriptors) # this links hardware-descriptors
 
 # then communication interface
-#add_subdirectory(comms) # this links debug
+add_subdirectory(comms) # this links debug
 
 # then pins
 add_subdirectory(pins)

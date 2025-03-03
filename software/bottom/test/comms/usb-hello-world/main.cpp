@@ -2,6 +2,7 @@
 #include "types.hpp"
 
 extern "C" {
+#include <FreeRTOS.h>
 #include <pico/stdio.h>
 }
 
