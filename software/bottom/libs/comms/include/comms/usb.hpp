@@ -39,12 +39,14 @@ static const types::u8 N_LENGTH_BYTES = 2;
 static const types::u16 MAX_RX_PACKET_LENGTH = MAX_RX_BUF_SIZE;
 static const types::u16 MAX_TX_PACKET_LENGTH = MAX_TX_BUF_SIZE;
 
-static const types::u8 TUSB_INIT_SLEEP_LOOP_TIME = 100; // in microseconds
+static const types::u16 TUSB_STATUS_CHECKING_TIME = 1; // in milliseconds
 
 using CDCLineCodingCB = void (*)(types::u8, const cdc_line_coding_t *, void *);
 using VendorControlXferCB = bool (*)(types::u8, types::u8,
                                      const tusb_control_request_t *, void *);
 using CDCRxCB = void (*)(types::u8, void *);
+using MountCB = void (*)(void *);
+using CDCLineStateCB = void (*)(types::u8, bool, bool, void *);
 
 extern CDCLineCodingCB CDC_line_coding_cb_fn;
 extern void *CDC_line_coding_cb_user_args;
@@ -160,7 +162,7 @@ private:
   static void _rx_cb(types::u8 interface, void *args);
 
   /**
-   * @brief callback to run on change of line coding settings from host.
+   * @brief callback to run on change of line coding settings from host
    * @brief used mainly for baud rate reset to bootloader hack
    * @param interface: id of tusb cdc interface (probably wont use)
    * @param coding: tusb cdc line coding settings
@@ -168,6 +170,17 @@ private:
    */
   static void _line_coding_cb(types::u8 interface,
                               cdc_line_coding_t const *coding, void *args);
+
+  /**
+   * @brief callback to run on change of line state settings from host
+   * @brief used mainly for monitoring if CDC is connected
+   * @param interface: id of tusb cdc interface (probably wont use)
+   * @param dtr: data terminal ready
+   * @param rts: request to send (used for hardware flow control, not necessary)
+   * @param args: custom args to pass into handler
+   */
+  static void _line_state_cb(types::u8 interface, bool dtr, bool rts,
+                             void *args);
 
   /**
    * @brief callback to run on vendor control from host

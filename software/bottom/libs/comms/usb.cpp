@@ -53,12 +53,8 @@ CDC::CDC() {
 }
 
 bool CDC::init(void) {
-  if (tusb_init()) {
+  if (!tusb_init()) {
     return false; // some error, idk
-  }
-  while (!tusb_inited()) {
-    tud_task();
-    sleep_us(TUSB_INIT_SLEEP_LOOP_TIME);
   }
 
   // create tud_task() caller
@@ -76,7 +72,10 @@ bool CDC::init(void) {
 bool CDC::wait_for_host_connection(u32 timeout) {
   u64 t_start = time_us_64();
   do {
-  } while (tud_connected() && time_us_64() - t_start < timeout);
+    tud_task();
+    sleep_ms(10);
+  } while (!tud_connected() && (time_us_64() - t_start) < timeout);
+  tud_task();
   if (tud_connected()) {
     return true;
   }
@@ -86,7 +85,10 @@ bool CDC::wait_for_host_connection(u32 timeout) {
 bool CDC::wait_for_CDC_connection(u32 timeout) {
   u64 t_start = time_us_64();
   do {
-  } while (tud_cdc_connected() && time_us_64() - t_start < timeout);
+    tud_task();
+    sleep_ms(10);
+  } while (!tud_cdc_connected() && (time_us_64() - t_start) < timeout);
+  tud_task();
   if (tud_cdc_connected()) {
     return true;
   }
