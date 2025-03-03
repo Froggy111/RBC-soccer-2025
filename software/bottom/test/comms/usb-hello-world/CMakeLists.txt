@@ -4,6 +4,5 @@ target_sources(usb_test
     main.cpp
 )
 target_link_libraries(usb_test usb)
-# pico_enable_stdio_usb(usb_test 1)
-# pico_enable_stdio_uart(usb_test 0)
+target_link_globals(usb_test)
 pico_add_extra_outputs(usb_test)

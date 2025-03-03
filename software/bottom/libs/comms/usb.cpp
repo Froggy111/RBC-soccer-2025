@@ -15,8 +15,6 @@ using namespace types;
 
 namespace usb {
 
-CurrentRXState state;
-
 CDC::CDC() {
   // mostly stuff that should be set up before initialising tinyusb
   // set tusb callback handlers
@@ -30,8 +28,19 @@ CDC::CDC() {
   // setup buffers
   _current_rx_state.data_buffer = _read_buffer;
   _current_rx_state.reset();
+  // write mutex
+  _write_mutex = xSemaphoreCreateMutex();
+  // interrupt writing
+  memset(_interrupt_write_buffer, 0, sizeof(_interrupt_write_buffer));
+  _interrupt_write_buffer_index = 0;
+  _interrupt_write_buffer_mutex = xSemaphoreCreateMutex();
 
-  // create some tasks
+  // command task handlers
+  memset(_command_task_handles, NULL, sizeof(_command_task_handles));
+  memset(_command_task_buffer_mutexes, NULL,
+         sizeof(_command_task_buffer_mutexes));
+  memset(_command_task_buffers, NULL, sizeof(_command_task_buffers));
+  memset(_command_task_buffer_lengths, 0, sizeof(_command_task_buffer_lengths));
 }
 
 bool CDC::init(void) {
@@ -43,12 +52,16 @@ bool CDC::init(void) {
     sleep_us(TUSB_INIT_SLEEP_LOOP_TIME);
   }
 
-  // tinyusb initialised, proceed
-  _initialised = true;
-
   // create tud_task() caller
   xTaskCreate(_tud_task_caller, "usb::CDC::_tud_task_caller", 4096, NULL, 20,
-              NULL);
+              &_tud_task_handle);
+  // create IRQ write flusher
+  xTaskCreate(_IRQ_write_flusher, "usb::CDC::_IRQ_write_flusher", 4096, NULL,
+              16, &_write_flusher_task_handle);
+
+  // tinyusb initialised, proceed
+  _initialised = true;
+  return _initialised;
 }
 
 bool CDC::wait_for_host_connection(u32 timeout) {
@@ -73,6 +86,9 @@ bool CDC::wait_for_CDC_connection(u32 timeout) {
 
 bool CDC::write(const comms::SendIdentifiers identifier, const u8 *data,
                 const u16 data_len) {
+  // thread/task safety
+  xSemaphoreTake(_write_mutex, portMAX_DELAY);
+
   u16 reported_len = data_len + sizeof(identifier);
   u16 packet_len = sizeof(reported_len) + reported_len;
   if (packet_len > MAX_TX_BUF_SIZE) {
@@ -86,26 +102,68 @@ bool CDC::write(const comms::SendIdentifiers identifier, const u8 *data,
   tud_cdc_write(&identifier, sizeof(identifier));
   tud_cdc_write(data, data_len);
 
+  xSemaphoreGive(_write_mutex);
+
   return true;
 }
 
-u32 CDC::read(u8 *data, u32 len, u32 timeout) {
-  u64 t_start = time_us_64();
-  u32 n_read = 0;
-
-  while (time_us_64() - t_start < timeout) {
-    int read = stdio_getchar();
-    if (read < 0) { // EOF or some other weird thing
-      continue;
-    }
-    data[n_read] = (u8)read;
-    n_read++;
+bool CDC::write_from_IRQ(const comms::SendIdentifiers identifier,
+                         const u8 *data, const u16 data_len,
+                         BaseType_t *xHigherPriorityTaskWoken) {
+  u16 reported_len = data_len + sizeof(identifier);
+  u16 packet_len = sizeof(reported_len) + reported_len;
+  // check for remaining space
+  if (packet_len > MAX_INTERRUPT_TX_BUF_SIZE - _interrupt_write_buffer_index) {
+    return false;
   }
+
+  // interrupt/task/thread safety
+  if (xSemaphoreTakeFromISR(_interrupt_write_buffer_mutex,
+                            xHigherPriorityTaskWoken) != pdTRUE) {
+    return false;
+  }
+  // write to interrupt write buffer
+  _interrupt_write_buffer_write(&reported_len, sizeof(reported_len));
+  _interrupt_write_buffer_write(&identifier, sizeof(identifier));
+  _interrupt_write_buffer_write(data, data_len);
+
+  xSemaphoreGiveFromISR(_interrupt_write_buffer_mutex,
+                        xHigherPriorityTaskWoken);
+  return true;
+}
+
+void CDC::flush_from_IRQ(BaseType_t *higher_priority_task_woken) {
+  xTaskNotifyFromISR(_interrupt_write_task_handle, 0, eNoAction,
+                     higher_priority_task_woken);
+}
+
+bool CDC::attach_listener(comms::RecvIdentifiers identifier,
+                          TaskHandle_t handle, SemaphoreHandle_t mutex,
+                          u8 *buffer, u16 length) {
+  u8 idx = (u8)identifier;
+  // check for existing listener
+  if (_command_task_handles[idx]) {
+    comms::CommsWarnings warn = comms::CommsWarnings::OVERRIDE_COMMAND_LISTENER;
+    write(comms::SendIdentifiers::COMMS_WARN, (u8 *)&warn, sizeof(warn));
+  }
+
+  // check for param validity
+  if (!(handle && mutex && buffer && length)) {
+    comms::CommsErrors err = comms::CommsErrors::ATTACH_LISTENER_NULLPTR;
+    write(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err, sizeof(err));
+  }
+
+  // add listener
+  _command_task_handles[idx] = handle;
+  _command_task_buffer_mutexes[idx] = mutex;
+  _command_task_buffers[idx] = buffer;
+  _command_task_buffer_lengths[idx] = length;
+  return true;
 }
 
 void CDC::_line_coding_cb(u8 interface, cdc_line_coding_t const *coding,
                           void *args) {
-  // Handle reset via baud rate if needed
+  // reset to bootloader with baud rate hack
   if (coding->bit_rate == 1200) {
     reset_usb_boot(0, 0);
   }
@@ -118,22 +176,21 @@ bool CDC::_vendor_control_xfer_cb(u8 rhport, u8 stage,
     return true;
 
   switch (request->bRequest) {
-  case 0x01: // Reset to bootloader
+  case 0x01: // reset to bootloader
     reset_usb_boot(0, 0);
     return true;
 
-  case 0x02: // Reset to application
+  case 0x02: // restart
     watchdog_reboot(0, 0, 100);
     return true;
   }
 
   return false;
 }
-void CDC::_rx_cb(u8 interface, void *args) {
-  CDC *_this = (CDC *)args;
-  CurrentRXState &state = _this->_current_rx_state;
-  CurrentRawCommand &command = _this->_current_command;
 
+// WARN: This does not execute in an interrupt context!
+void CDC::_rx_cb(u8 interface, void *args) {
+  CurrentRXState &state = _current_rx_state;
   // prevention from missing out a command
   while (true) {
     // length bytes
@@ -145,10 +202,9 @@ void CDC::_rx_cb(u8 interface, void *args) {
       // WARN: this assumes both systems have the same endianness. In the case of RPi and RP2040, both are little endian, so this is fine.
       tud_cdc_read(&state.expected_length, N_LENGTH_BYTES);
       if (state.expected_length > MAX_RX_BUF_SIZE) {
-        comms::CommsErrors err = comms::CommsErrors::PACKET_RECV_TOO_LONG;
-        interrupt_write(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err,
-                        sizeof(err));
-        interrupt_flush();
+        comms::CommsErrors err =
+            comms::CommsErrors::PACKET_RECV_OVER_MAX_BUFSIZE;
+        write(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err, sizeof(err));
         state.reset();
         // WARN: after this, behavior becomes undefined
         // WARN: as we need to exit the cb for the error message to send, we cannot restart here.
@@ -157,7 +213,7 @@ void CDC::_rx_cb(u8 interface, void *args) {
     }
 
     // data bytes
-    if (!state.recieved) {
+    else if (!state.recieved) {
       // wait until there are enough data bytes
       if (tud_cdc_available() < state.expected_length) {
         return;
@@ -166,16 +222,92 @@ void CDC::_rx_cb(u8 interface, void *args) {
       tud_cdc_read(state.data_buffer, state.expected_length);
       // NOTE: here we have a full command in CurrentRXState.
       // this needs to be quickly copied into a command buffer.
+      u8 identifier = state.data_buffer[0];
+
+      // check handler
+      if (!_command_task_handles[identifier]) {
+        comms::CommsErrors err =
+            comms::CommsErrors::CALLING_UNATTACHED_LISTENER;
+        u8 msg[] = {(u8)err, identifier};
+        write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
+        state.reset();
+        continue;
+      }
+
+      // check buffer mutex
+      if (!_command_task_buffer_mutexes[identifier]) {
+        comms::CommsErrors err = comms::CommsErrors::LISTENER_NO_BUFFER_MUTEX;
+        u8 msg[] = {(u8)err, identifier};
+        write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
+        state.reset();
+        continue;
+      }
+
+      // check buffer
+      if (!_command_task_buffers[identifier]) {
+        comms::CommsErrors err = comms::CommsErrors::LISTENER_NO_BUFFER;
+        u8 msg[] = {(u8)err, identifier};
+        write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
+        state.reset();
+        continue;
+      }
+
+      // check length
+      if (_command_task_buffer_lengths[identifier] < identifier) {
+        comms::CommsErrors err =
+            comms::CommsErrors::PACKET_RECV_OVER_COMMAND_LISTENER_MAXSIZE;
+        u8 msg[] = {(u8)err, identifier};
+        write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
+        state.reset();
+        continue;
+      }
+
+      // try to grab buffer mutex
+      if (xSemaphoreTake(_command_task_buffer_mutexes[identifier], 0) !=
+          pdTRUE) {
+        // mutex is already taken, drop this command
+        comms::CommsWarnings warn =
+            comms::CommsWarnings::LISTENER_BUFFER_MUTEX_HELD;
+        u8 msg[] = {(u8)warn, identifier};
+        write(comms::SendIdentifiers::COMMS_WARN, msg, sizeof(msg));
+        state.reset();
+        continue;
+      }
+
+      // here we have the buffer mutex
+      // clear the buffer first
+      memset(_command_task_buffers[identifier], 0,
+             _command_task_buffer_lengths[identifier]);
+      // copy command into the buffer
+      // state.data_buffer contains the identifier, so skip that when copying
+      memcpy(_command_task_buffers[identifier],
+             &state.data_buffer[sizeof(identifier)], // skip the identifier
+             sizeof(state.data_buffer) - sizeof(identifier));
+      // give the semaphore before notifying task, to avoid blocking
+      xSemaphoreGive(_command_task_buffer_mutexes[identifier]);
+      // notify task
+      xTaskNotify(_command_task_handles[identifier], 0, eNoAction);
+
       state.reset();
-      return;
+      // NOTE: don't return here, to avoid missing out a command
+      // NOTE: it should only return when there is not enough bytes in tud rx buffer
     }
   }
 }
 
-void CDC::_rx_command_process_task(void *args) {
-  BaseType_t task_notification_result;
+void CDC::_IRQ_write_flusher(void *args) {
   for (;;) {
-    task_notification_result = xTaskNotifyWait(pdFALSE, ULONG_MAX,
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY); // block until notified
+    // grab buffer access mutex (this will cause all write_from_IRQ executed while this is running to fail, but it is non-critical, so fine to fail.)
+    // no critical section used as it is uh... non critical
+    xSemaphoreTake(_interrupt_write_buffer_mutex, portMAX_DELAY);
+    u16 remaining_len = _interrupt_write_buffer_index + 1;
+    while (remaining_len > 0) {
+      u16 writable = MIN(tud_cdc_available(), remaining_len);
+      tud_cdc_write(_interrupt_write_buffer, writable);
+      tud_cdc_write_flush();
+      remaining_len -= writable;
+    }
   }
 }
 
