@@ -6,6 +6,7 @@
 extern "C" {
 #include <FreeRTOS.h>
 #include <semphr.h>
+#include <event_groups.h>
 #include <task.h>
 #include <pico/bootrom.h>
 #include <pico/stdio.h>
@@ -27,9 +28,12 @@ extern "C" {
  */
 namespace usb {
 
-static const types::u32 HOST_CONNECTION_TIMEOUT =
-    1000 * 1000;                                              // in microseconds
-static const types::u32 CDC_CONNECTION_TIMEOUT = 1000 * 1000; // in microseconds
+/* ******** *
+ * Settings *
+ * ******** */
+
+static const types::u32 HOST_CONNECTION_TIMEOUT = 1000; // in milliseconds
+static const types::u32 CDC_CONNECTION_TIMEOUT = 1000;  // in milliseconds
 
 static const types::u16 MAX_RX_BUF_SIZE = USB_RX_BUFSIZE;
 static const types::u16 MAX_TX_BUF_SIZE = USB_TX_BUFSIZE;
@@ -41,11 +45,19 @@ static const types::u16 MAX_TX_PACKET_LENGTH = MAX_TX_BUF_SIZE;
 
 static const types::u16 TUSB_STATUS_CHECKING_TIME = 1; // in milliseconds
 
+static const types::u8 HOST_CONNECTED_BIT = 0b00000001;
+static const types::u8 CDC_CONNECTED_BIT = 0b00000010;
+
+/* **************************************************************** *
+ * TinyUSB callbacks (done this way for convenience and clean-ness) *
+ * **************************************************************** */
+
 using CDCLineCodingCB = void (*)(types::u8, const cdc_line_coding_t *, void *);
 using VendorControlXferCB = bool (*)(types::u8, types::u8,
                                      const tusb_control_request_t *, void *);
 using CDCRxCB = void (*)(types::u8, void *);
 using MountCB = void (*)(void *);
+using UnmountCB = void (*)(void *);
 using CDCLineStateCB = void (*)(types::u8, bool, bool, void *);
 
 extern CDCLineCodingCB CDC_line_coding_cb_fn;
@@ -56,6 +68,19 @@ extern void *vendor_control_xfer_cb_user_args;
 
 extern CDCRxCB CDC_rx_cb_fn;
 extern void *CDC_rx_cb_user_args;
+
+extern MountCB mount_cb_fn;
+extern void *mount_cb_user_args;
+
+extern UnmountCB unmount_cb_fn;
+extern void *unmount_cb_user_args;
+
+extern CDCLineStateCB CDC_line_state_cb_fn;
+extern void *CDC_line_state_cb_user_args;
+
+/* ******* *
+ * Structs *
+ * ******* */
 
 struct CurrentRXState {
   bool length_bytes_recieved = false;
@@ -70,28 +95,33 @@ struct CurrentRXState {
   }
 };
 
+/* ********** *
+ * Main class *
+ * ********** */
+
 class CDC {
 public:
   CDC();
+
   /**
-   * @brief initialises USB CDC
-   * @warning must be callled after rtos scheduler is started, if using with rtos (due to tinyusb)
+   * @brief initialises all the variables and tasks needed.
+   * @brief WARN: should be called before starting FreeRTOS scheduler.
    * @returns true if successfully initialised, false if not
    */
   bool init(void);
 
-  inline bool initialised(void) { return _initialised; }
+  inline bool initialised(void) { return tud_inited(); }
 
   /**
    * @brief blocks until host is connected through USB.
-   * @param timeout: timeout in microseconds, defaults to HOST_CONNECTION_TIMEOUT
+   * @param timeout: timeout in milliseconds, defaults to HOST_CONNECTION_TIMEOUT
    * @returns true if host connection achieved, false if not
    */
   bool wait_for_host_connection(types::u32 timeout = HOST_CONNECTION_TIMEOUT);
 
   /**
    * @brief blocks until CDC connection to host is established.
-   * @param timeout: timeout in microseconds, defaults to CDC_CONNECTION_TIMEOUT
+   * @param timeout: timeout in milliseconds, defaults to CDC_CONNECTION_TIMEOUT
    * @returns true if host connection achieved, false if not
    */
   bool wait_for_CDC_connection(types::u32 timeout = CDC_CONNECTION_TIMEOUT);
@@ -110,11 +140,11 @@ public:
    */
   static bool write(const comms::SendIdentifiers identifier,
                     const types::u8 *data, const types::u16 data_len);
+
   /**
    * @brief adds data, formatted correctly, to an internal buffer, need to call flush_from_IRQ after all writes in an interrupt is done
    * @brief WARN: NOT lossless! any interrupts that send data should only send data that is ok to be lost
    * @brief WARN: data will be lost if not flushed before buffer (of size MAX_TX_BUF_SIZE)
-   * @brief WARN: NOT thread safe! all interrupts that send data should only be on one core
    * @param identifier: identifier for the sent data
    * @param data: u8 array
    * @param data_len: length of data
@@ -146,6 +176,10 @@ public:
                        types::u16 length);
 
 private:
+  /* **************** *
+  * Private functions *
+  * ***************** */
+
   // helper for writing to _interrupt_write_buffer. does not do any checks!
   // just wraps memcpy and incrementing _interrupt_write_buffer_index
   inline static void _interrupt_write_buffer_write(const void *data,
@@ -153,6 +187,10 @@ private:
     memcpy(_interrupt_write_buffer + _interrupt_write_buffer_index, data, size);
     _interrupt_write_buffer_index += size;
   }
+  static void _usb_device_task(void *args);
+
+  static void _IRQ_write_flusher(void *args);
+
   /**
    * @brief callback that adds to data buffer while parsing length. Feeds command into command_recv_callback.
    * @brief this does not execute in an interrupt context.
@@ -192,19 +230,12 @@ private:
                                       tusb_control_request_t const *request,
                                       void *args);
 
-  inline static void _tud_task_caller(void *args) {
-    for (;;) {
-      tud_task();
-    }
-  }
+  static void _mount_cb(void *args);
+  static void _unmount_cb(void *args);
 
-  static void _IRQ_write_flusher(void *args);
-
-  // safety checks
-  bool _initialised = false;
-
-  bool _host_connected = false;
-  bool _cdc_connected = false;
+  /* *************************************************************** *
+   * Private buffers, synchronisation primitives and other variables *
+   * *************************************************************** */
 
   types::u8 _read_buffer[MAX_RX_BUF_SIZE] = {0};
 
@@ -227,6 +258,9 @@ private:
   // hooks for commands
   TaskHandle_t _tud_task_handle = nullptr;
   static CurrentRXState _current_rx_state;
+
+  // tracking host connection and cdc connection
+  static EventGroupHandle_t _connection_status_event;
 };
 
 } // namespace usb

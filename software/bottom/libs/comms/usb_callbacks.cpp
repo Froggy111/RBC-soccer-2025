@@ -21,6 +21,9 @@ void *CDC_rx_cb_user_args = nullptr;
 MountCB mount_cb_fn = nullptr;
 void *mount_cb_user_args = nullptr;
 
+UnmountCB unmount_cb_fn = nullptr;
+void *unmount_cb_user_args = nullptr;
+
 CDCLineStateCB CDC_line_state_cb_fn = nullptr;
 void *CDC_line_state_cb_user_args = nullptr;
 } // namespace usb
@@ -43,3 +46,4 @@ bool tud_vendor_control_xfer_cb(u8 rhport, u8 stage,
 }
 
 void tud_mount_cb(void) { usb::mount_cb_fn(usb::mount_cb_user_args); }
+void tud_unmount_cb(void) { usb::unmount_cb_fn(usb::unmount_cb_user_args); }

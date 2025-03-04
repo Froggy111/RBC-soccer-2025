@@ -5,6 +5,7 @@
 extern "C" {
 #include <FreeRTOS.h>
 #include <semphr.h>
+#include <event_groups.h>
 #include <task.h>
 #include <hardware/gpio.h>
 #include <pico/stdlib.h>
@@ -17,11 +18,11 @@ using namespace types;
 
 namespace usb {
 
-SemaphoreHandle_t CDC::_write_mutex = nullptr;
+SemaphoreHandle_t CDC::_write_mutex = xSemaphoreCreateMutex();
 
 types::u8 CDC::_interrupt_write_buffer[MAX_INTERRUPT_TX_BUF_SIZE] = {0};
 types::u16 CDC::_interrupt_write_buffer_index = 0;
-SemaphoreHandle_t CDC::_interrupt_write_buffer_mutex = nullptr;
+SemaphoreHandle_t CDC::_interrupt_write_buffer_mutex = xSemaphoreCreateMutex();
 TaskHandle_t CDC::_interrupt_write_task_handle = nullptr;
 
 // hooks for other command handlers
@@ -33,6 +34,8 @@ types::u8 *CDC::_command_task_buffers[comms::identifier_arr_len] = {nullptr};
 types::u8 CDC::_command_task_buffer_lengths[comms::identifier_arr_len] = {0};
 
 CurrentRXState CDC::_current_rx_state = {};
+
+EventGroupHandle_t CDC::_connection_status_event = xEventGroupCreate();
 
 CDC::CDC() {
   // mostly stuff that should be set up before initialising tinyusb
@@ -47,52 +50,42 @@ CDC::CDC() {
   // setup buffers
   _current_rx_state.data_buffer = _read_buffer;
   _current_rx_state.reset();
-  // mutexes
-  _write_mutex = xSemaphoreCreateMutex();
-  _interrupt_write_buffer_mutex = xSemaphoreCreateMutex();
 }
 
 bool CDC::init(void) {
-  if (!tusb_init()) {
-    return false; // some error, idk
-  }
+  // if (!tusb_init()) {
+  //   return false; // some error, idk
+  // }
+  // create sync primitives
+  CDC::_write_mutex = xSemaphoreCreateMutex();
+  CDC::_interrupt_write_buffer_mutex = xSemaphoreCreateMutex();
+  CDC::_connection_status_event = xEventGroupCreate();
 
   // create tud_task() caller
-  xTaskCreate(_tud_task_caller, "usb::CDC::_tud_task_caller", 4096, NULL, 20,
+  xTaskCreate(_usb_device_task, "usb::CDC::_tud_task_caller", 4096, NULL, 20,
               &_tud_task_handle);
   // create IRQ write flusher
   xTaskCreate(_IRQ_write_flusher, "usb::CDC::_IRQ_write_flusher", 4096, NULL,
               16, &_interrupt_write_task_handle);
 
   // tinyusb initialised, proceed
-  _initialised = true;
-  return _initialised;
+  return true;
 }
 
 bool CDC::wait_for_host_connection(u32 timeout) {
-  u64 t_start = time_us_64();
-  do {
-    tud_task();
-    sleep_ms(10);
-  } while (!tud_connected() && (time_us_64() - t_start) < timeout);
-  tud_task();
-  if (tud_connected()) {
+  if (xEventGroupWaitBits(_connection_status_event, HOST_CONNECTED_BIT, pdFALSE,
+                          pdTRUE, pdMS_TO_TICKS(timeout))) {
     return true;
-  }
-  return false;
+  } else
+    return false;
 }
 
 bool CDC::wait_for_CDC_connection(u32 timeout) {
-  u64 t_start = time_us_64();
-  do {
-    tud_task();
-    sleep_ms(10);
-  } while (!tud_cdc_connected() && (time_us_64() - t_start) < timeout);
-  tud_task();
-  if (tud_cdc_connected()) {
+  if (xEventGroupWaitBits(_connection_status_event, CDC_CONNECTED_BIT, pdFALSE,
+                          pdTRUE, pdMS_TO_TICKS(timeout))) {
     return true;
-  }
-  return false;
+  } else
+    return false;
 }
 
 bool CDC::write(const comms::SendIdentifiers identifier, const u8 *data,
@@ -172,31 +165,22 @@ bool CDC::attach_listener(comms::RecvIdentifiers identifier,
   return true;
 }
 
-void CDC::_line_coding_cb(u8 interface, cdc_line_coding_t const *coding,
-                          void *args) {
-  // reset to bootloader with baud rate hack
-  if (coding->bit_rate == 1200) {
-    reset_usb_boot(0, 0);
+void CDC::_usb_device_task(void *args) { tusb_init(); }
+
+void CDC::_IRQ_write_flusher(void *args) {
+  for (;;) {
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY); // block until notified
+    // grab buffer access mutex (this will cause all write_from_IRQ executed while this is running to fail, but it is non-critical, so fine to fail.)
+    // no critical section used as it is uh... non critical
+    xSemaphoreTake(_interrupt_write_buffer_mutex, portMAX_DELAY);
+    u16 remaining_len = _interrupt_write_buffer_index + 1;
+    while (remaining_len > 0) {
+      u16 writable = MIN(tud_cdc_available(), remaining_len);
+      tud_cdc_write(_interrupt_write_buffer, writable);
+      tud_cdc_write_flush();
+      remaining_len -= writable;
+    }
   }
-}
-
-bool CDC::_vendor_control_xfer_cb(u8 rhport, u8 stage,
-                                  tusb_control_request_t const *request,
-                                  void *args) {
-  if (stage != CONTROL_STAGE_SETUP)
-    return true;
-
-  switch (request->bRequest) {
-  case 0x01: // reset to bootloader
-    reset_usb_boot(0, 0);
-    return true;
-
-  case 0x02: // restart
-    watchdog_reboot(0, 0, 100);
-    return true;
-  }
-
-  return false;
 }
 
 // WARN: This does not execute in an interrupt context!
@@ -306,20 +290,52 @@ void CDC::_rx_cb(u8 interface, void *args) {
   }
 }
 
-void CDC::_IRQ_write_flusher(void *args) {
-  for (;;) {
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY); // block until notified
-    // grab buffer access mutex (this will cause all write_from_IRQ executed while this is running to fail, but it is non-critical, so fine to fail.)
-    // no critical section used as it is uh... non critical
-    xSemaphoreTake(_interrupt_write_buffer_mutex, portMAX_DELAY);
-    u16 remaining_len = _interrupt_write_buffer_index + 1;
-    while (remaining_len > 0) {
-      u16 writable = MIN(tud_cdc_available(), remaining_len);
-      tud_cdc_write(_interrupt_write_buffer, writable);
-      tud_cdc_write_flush();
-      remaining_len -= writable;
-    }
+void CDC::_line_coding_cb(u8 interface, cdc_line_coding_t const *coding,
+                          void *args) {
+  // reset to bootloader with baud rate hack
+  if (coding->bit_rate == 1200) {
+    reset_usb_boot(0, 0);
   }
+}
+
+void CDC::_line_state_cb(u8 interface, bool dtr, bool rts, void *args) {
+  if (dtr) {
+    // connected
+    xEventGroupSetBits(_connection_status_event, CDC_CONNECTED_BIT);
+    return;
+  } else {
+    // disconnected
+    xEventGroupClearBits(_connection_status_event, CDC_CONNECTED_BIT);
+    return;
+  }
+}
+
+bool CDC::_vendor_control_xfer_cb(u8 rhport, u8 stage,
+                                  tusb_control_request_t const *request,
+                                  void *args) {
+  if (stage != CONTROL_STAGE_SETUP)
+    return true;
+
+  switch (request->bRequest) {
+  case 0x01: // reset to bootloader
+    reset_usb_boot(0, 0);
+    return true;
+
+  case 0x02: // restart
+    watchdog_reboot(0, 0, 100);
+    return true;
+  }
+
+  return false;
+}
+
+void CDC::_mount_cb(void *args) {
+  xEventGroupSetBits(_connection_status_event, HOST_CONNECTED_BIT);
+  return;
+}
+
+void CDC::_unmount_cb(void *args) {
+  xEventGroupClearBits(_connection_status_event, HOST_CONNECTED_BIT);
 }
 
 } // namespace usb
