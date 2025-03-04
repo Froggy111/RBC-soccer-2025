@@ -2,6 +2,8 @@
 extern "C" {
 #include <hardware/spi.h>
 #include <hardware/gpio.h>
+#include <hardware/timer.h>
+
 #include <pico/stdlib.h>
 #include <pico/stdio.h>
 #include <stdio.h>
@@ -100,23 +102,20 @@ extern "C" {
 
 #define FAULT_SUMMARY_REG 0x01
 
-void MouseSensor::init(int id, types::u64 SPI_SPEED) {
-  // Initialize SPI with error checking
-  if (!spi_init(spi0, SPI_SPEED)) {
-    printf("Error: SPI initialization failed\n");
-    return;
-  }
+void MouseSensor::init(int id, spi_inst_t *spi_obj_touse) {
 
   // Initialize SPI pins (except CS)
   gpio_set_function(pinSelector.get_pin(SCLK), GPIO_FUNC_SPI);
   gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
   gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
 
+  // Set SPI Object
+  spi_obj = spi_obj_touse;
   // Initialize CS pin as GPIO
   inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS);
 
   // Set SPI format
-  spi_set_format(spi0, 16, SPI_CPOL_1, SPI_CPHA_1, SPI_MSB_FIRST);
+  spi_set_format(spi_obj, 8, SPI_CPOL_1, SPI_CPHA_1, SPI_MSB_FIRST);
   init_registers();
 }
 
@@ -133,11 +132,11 @@ void MouseSensor::write8(uint8_t reg, uint8_t value, int8_t expected) {
     types::u8 buffer[2] = {(types::u8)(reg | 0x80),value};
 
     inputControl.write_digital(pinSelector.get_pin(CS), 0);
-    sleep_us(1);
-    spi_write_blocking(spi0, buffer, 2);
+    busy_wait_ns(120); // Sleep for 120 nanoseconds
+    spi_write_blocking(spi_obj, buffer, 2);
     inputControl.write_digital(pinSelector.get_pin(CS), 1);
 
-    sleep_us(180);
+    busy_wait_ns(120);
 }
 
 uint8_t MouseSensor::read8(uint8_t reg) {
@@ -145,12 +144,12 @@ uint8_t MouseSensor::read8(uint8_t reg) {
     types::u8 response = 0;
 
     inputControl.write_digital(pinSelector.get_pin(CS), 0);
-    sleep_us(1);
-    spi_write_blocking(spi0, buffer, 1);
+    busy_wait_ns(120); // Sleep for 120 nanoseconds
+    spi_write_blocking(spi_obj, buffer, 1);
     sleep_us(160);
-    spi_read_blocking(spi0, 0x00, &response, 1);
+    spi_read_blocking(spi_obj, 0x00, &response, 1);
     inputControl.write_digital(pinSelector.get_pin(CS), 1);
-
+    busy_wait_ns(120); // Sleep for 120 nanoseconds
     return response;
 }
 
@@ -161,14 +160,14 @@ void MouseSensor::read_motion_burst() {
 
   // Start burst mode - use 8-bit commands
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
-  spi_write_blocking(spi0, &reg, 1); // 8-bit write
+  spi_write_blocking(spi_obj, &reg, 1); // 8-bit write
 
   // T_SRAD delay (at least 35μs)
-  sleep_us(50);
+  sleep_us(35);
 
   // Read burst data (12 bytes total)
   uint8_t temp_buffer[12];
-  spi_read_blocking(spi0, 0, temp_buffer, 12); // 8-bit reads
+  spi_read_blocking(spi_obj, 0, temp_buffer, 12); // 8-bit reads
 
   // Copy to buffer (assuming motion_burst_buffer is uint16_t[])
   for (int i = 0; i < 12; i++) {
@@ -176,6 +175,8 @@ void MouseSensor::read_motion_burst() {
   }
 
   inputControl.write_digital(pinSelector.get_pin(CS), 1); // Release CS pin
+
+  busy_wait_ns(500); //Sleep for 500 nanoseconds
 }
 
 //Return X_Delta Values
@@ -222,12 +223,14 @@ bool MouseSensor::init_registers() {
   // First disable REST mode and prepare for SROM download
   write8(CONFIG2, 0x00, 0);
   write8(SROM_ENABLE, 0x1D, 0);
-  write8(SROM_ENABLE, 0x18, 0);
+  
 
   
 
   // Wait 10ms
   sleep_ms(10);
+
+  write8(SROM_ENABLE, 0x18, 0);
 
   // Load the SROM firmware (this depends on the firmware - consult PMW3360 datasheet)
   // Usually involves writing multiple bytes to SROM_LOAD_BURST register
@@ -235,19 +238,18 @@ bool MouseSensor::init_registers() {
   // After preparing for SROM download (which you've already done)
   // Write to the SROM_LOAD_BURST register and send firmware bytes
   const uint16_t firmware_length = 4094; // Check exact length in datasheet
-  uint8_t
-      firmware_data[firmware_length]; // This would contain the firmware bytes
+  uint8_t firmware_data[firmware_length]; // This would contain the firmware bytes
 
   // Fill firmware_data with the actual SROM bytes from the datasheet
 
   // Begin SROM load
   uint8_t burst_cmd = SROM_LOAD_BURST;
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
-  spi_write_blocking(spi0, &burst_cmd, 1);
+  spi_write_blocking(spi_obj, &burst_cmd, 1);
 
   // Send all firmware bytes
   for (int i = 0; i < firmware_length; i++) {
-    spi_write_blocking(spi0, &firmware_data[i], 1);
+    spi_write_blocking(spi_obj, &firmware_data[i], 1);
     // Short delay between bytes if required
     sleep_us(15); // Check datasheet for exact timing
   }

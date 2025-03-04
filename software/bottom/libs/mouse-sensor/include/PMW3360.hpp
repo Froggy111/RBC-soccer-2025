@@ -2,6 +2,7 @@
 #include "types.hpp"
 #include "dbg_pins.hpp"
 #include "pin_selector.hpp"
+#include <hardware/spi.h>
 #include <pico/types.h>
 #include <string>
 
@@ -21,9 +22,11 @@ private:
     PinOutputControl outputControl;
     PinSelector pinSelector;
 
+    spi_inst_t *spi_obj;
+
 public:
 
-    void init(int id, types::u64 SPI_SPEED);
+    void init(int id, spi_inst_t *spi_obj_touse);
 
     types::u8 motion_burst_buffer[12] = {99}; //Stores data read from data burst 
     

@@ -18,7 +18,11 @@ int main() {
   while (!stdio_usb_connected())
     continue;
 
-  sensor.init(-1, 1000000);
+  if (!spi_init(spi0, 1000000)) {
+    printf("SPI Initialization Failed!\n");
+  }
+
+  sensor.init(-1, spi0);
 
   for(int i = 0; i < 25; i++){
     sleep_ms(1000);
