@@ -1,1 +1,1 @@
-add_subdirectory(camera_test)
+add_subdirectory(camera)

@@ -31,8 +31,14 @@ function(target_link_globals target_name)
   endforeach()
 endfunction()
 
-# configs
-add_subdirectory(configs)
+cmake_minimum_required(VERSION 3.23)
+
+include(pico_sdk_import.cmake)
+
+# Metadata
+project(bottom C CXX ASM)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 # Libraries
 add_subdirectory(libs) # global libs need to be explicitly linked to with target_link_globals(TARGET)
