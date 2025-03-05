@@ -51,7 +51,7 @@ set(PICO_BOARD pico CACHE STRING "Board type")
 # use external tinyusb (picosdk provided tinyusb hardcodes CFG_TUSB_OS as OPT_OS_PICO, but we want OPT_OS_FREERTOS)
 # if testing without comms lib and freertos, comment this out
 set(PICO_SDK_TINYUSB_PATH "")
-set(PICO_TINYUSB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/tinyusb")
+set(PICO_TINYUSB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../external/tinyusb")
 
 cmake_minimum_required(VERSION 3.23)
 
