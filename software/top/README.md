@@ -1,4 +1,4 @@
-# bottom PCB firmware
+# top PCB firmware
 
 ## project structure
 
