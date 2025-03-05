@@ -86,6 +86,16 @@ add_global_library(pico_stdlib)
 # add tinyusb
 add_subdirectory(${PICO_TINYUSB_PATH}/src/ ${CMAKE_BINARY_DIR}/tinyusb)
 
+# add soniclib
+set(CHIRP_MAX_NUM_SENSORS 1 CACHE STRING "Number of ultrasonic sensors" FORCE)
+set(CHIRP_NUM_BUSES 1 CACHE STRING "Number of buses for sensors" FORCE)
+set(CHIRP_SENSOR_INT_PIN 1 CACHE STRING "Pin for ultrasonic sensor interrupts" FORCE)
+set(CHIRP_SENSOR_TRIG_PIN 2 CACHE STRING "Pin for ultrasonic sensor triggers" FORCE)
+set(CHIRP_INIT_FW_TYPE "NO_TX_OPTIMIZATION" CACHE STRING "Firmware initialization type" FORCE)
+set(CHIRP_LOG_LEVEL 2 CACHE STRING "SonicLib log level (info)" FORCE)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../external/ultrasonic.soniclib ${CMAKE_BINARY_DIR}/ultrasonic.soniclib)
+add_global_library(soniclib)
+
 # configs
 add_subdirectory(configs)
 
