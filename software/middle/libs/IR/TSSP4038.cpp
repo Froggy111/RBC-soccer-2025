@@ -11,7 +11,6 @@ void IRsensor::init(){
 
 bool IRsensor::is_signal_detected(){
     return gpio_get(_pin) == 0;
-
 }
 
 void IRsensor::read_signal(){
@@ -21,3 +20,4 @@ void IRsensor::read_signal(){
         printf("Signal is not detected\n");
     }
 }
+
