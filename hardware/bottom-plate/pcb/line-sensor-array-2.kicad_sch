@@ -1404,6 +1404,7 @@
 	)
 	(label "LS10"
 		(at 95.25 77.47 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1414,6 +1415,7 @@
 	)
 	(label "LS4"
 		(at 95.25 100.33 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1424,6 +1426,7 @@
 	)
 	(label "LS3"
 		(at 137.16 49.53 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1434,6 +1437,7 @@
 	)
 	(label "LS[1..16]"
 		(at 99.06 72.39 0)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1444,6 +1448,7 @@
 	)
 	(label "LS6"
 		(at 137.16 80.01 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1454,6 +1459,7 @@
 	)
 	(label "LS8"
 		(at 137.16 100.33 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1464,6 +1470,7 @@
 	)
 	(label "LS12"
 		(at 137.16 140.97 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1474,6 +1481,7 @@
 	)
 	(label "LS14"
 		(at 137.16 161.29 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1484,6 +1492,7 @@
 	)
 	(label "LS5"
 		(at 95.25 90.17 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1494,6 +1503,7 @@
 	)
 	(label "LS13"
 		(at 95.25 102.87 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1504,6 +1514,7 @@
 	)
 	(label "LS14"
 		(at 95.25 105.41 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1514,6 +1525,7 @@
 	)
 	(label "LS11"
 		(at 137.16 130.81 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1524,6 +1536,7 @@
 	)
 	(label "LS10"
 		(at 137.16 120.65 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1534,6 +1547,7 @@
 	)
 	(label "LS1"
 		(at 137.16 29.21 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1544,6 +1558,7 @@
 	)
 	(label "LS15"
 		(at 95.25 107.95 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1554,6 +1569,7 @@
 	)
 	(label "LS12"
 		(at 95.25 72.39 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1564,6 +1580,7 @@
 	)
 	(label "LS8"
 		(at 95.25 82.55 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1574,6 +1591,7 @@
 	)
 	(label "LS3"
 		(at 95.2483 97.79 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1584,6 +1602,7 @@
 	)
 	(label "LS4"
 		(at 137.16 59.69 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1594,6 +1613,7 @@
 	)
 	(label "LS9"
 		(at 137.16 110.49 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1604,6 +1624,7 @@
 	)
 	(label "LS7"
 		(at 137.16 90.17 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1614,6 +1635,7 @@
 	)
 	(label "LS11"
 		(at 95.25 74.93 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1624,6 +1646,7 @@
 	)
 	(label "LS16"
 		(at 95.25 110.49 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1634,6 +1657,7 @@
 	)
 	(label "LS7"
 		(at 95.25 85.09 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1644,6 +1668,7 @@
 	)
 	(label "LS6"
 		(at 95.25 87.63 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1654,6 +1679,7 @@
 	)
 	(label "LS16"
 		(at 137.16 181.61 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1664,6 +1690,7 @@
 	)
 	(label "LS2"
 		(at 137.16 39.37 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1674,6 +1701,7 @@
 	)
 	(label "LS9"
 		(at 95.25 80.01 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1684,6 +1712,7 @@
 	)
 	(label "LS15"
 		(at 137.16 171.45 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1694,6 +1723,7 @@
 	)
 	(label "LS13"
 		(at 137.16 151.13 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1704,6 +1734,7 @@
 	)
 	(label "LS5"
 		(at 137.16 69.85 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1714,6 +1745,7 @@
 	)
 	(label "LS2"
 		(at 95.25 95.25 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1724,6 +1756,7 @@
 	)
 	(label "LS1"
 		(at 95.25 92.71 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1735,6 +1768,7 @@
 	(hierarchical_label "S3"
 		(shape input)
 		(at 66.04 95.25 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1746,6 +1780,7 @@
 	(hierarchical_label "S2"
 		(shape input)
 		(at 66.04 92.71 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1757,6 +1792,7 @@
 	(hierarchical_label "COM"
 		(shape input)
 		(at 66.04 77.47 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1768,6 +1804,7 @@
 	(hierarchical_label "EN"
 		(shape input)
 		(at 66.04 105.41 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1779,6 +1816,7 @@
 	(hierarchical_label "S0"
 		(shape input)
 		(at 66.04 87.63 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1790,6 +1828,7 @@
 	(hierarchical_label "S1"
 		(shape input)
 		(at 66.04 90.17 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)

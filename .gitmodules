@@ -1,9 +1,12 @@
-[submodule "software/bottom/external/tinyusb"]
-	path = software/bottom/external/tinyusb
+[submodule "tinyusb"]
+	path = software/external/tinyusb
 	url = https://github.com/hathach/tinyusb.git
-[submodule "software/bottom/external/freertos"]
-	path = software/bottom/external/freertos
+[submodule "freertos"]
+	path = software/external/freertos
 	url = https://github.com/raspberrypi/FreeRTOS-Kernel.git
 [submodule "picotool"]
     path = picotool
     url = https://github.com/raspberrypi/picotool.git
+[submodule "ultrasonic.soniclib"]
+	path = software/external/ultrasonic.soniclib
+	url = https://github.com/tdk-invn-oss/ultrasonic.soniclib
