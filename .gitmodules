@@ -7,3 +7,6 @@
 [submodule "ultrasonic.soniclib"]
 	path = software/external/ultrasonic.soniclib
 	url = https://github.com/tdk-invn-oss/ultrasonic.soniclib
+[submodule "picotool"]
+    path = picotool
+    url = https://github.com/raspberrypi/picotool.git
