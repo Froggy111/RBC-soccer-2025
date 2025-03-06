@@ -11,8 +11,10 @@ extern "C" {
 
 void PinInputControl::init(bool dbg, spi_inst_t *spi_obj) {
   debug = dbg;
-  dmux1.init(1, spi_obj);
-  dmux2.init(2, spi_obj);
+  if (!debug) {
+    dmux1.init(1, spi_obj);
+    dmux2.init(2, spi_obj);
+  }
 }
 
 // pins responsible for providing input to DRV8244
@@ -100,8 +102,10 @@ bool PinInputControl::get_last_value_analog(types::u8 pin) {
 
 void PinOutputControl::init(bool dbg, spi_inst_t *spi_obj) {
   debug = dbg;
-  dmux1.init(1, spi_obj);
-  dmux2.init(2, spi_obj);
+  if (!debug) {
+    dmux1.init(1, spi_obj);
+    dmux2.init(2, spi_obj);
+  }
 }
 
 // pins responsible for providing output to DRV8244
