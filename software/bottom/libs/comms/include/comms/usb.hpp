@@ -45,8 +45,9 @@ static const types::u16 MAX_TX_PACKET_LENGTH = MAX_TX_BUF_SIZE;
 
 static const types::u16 TUSB_STATUS_CHECKING_TIME = 1; // in milliseconds
 
-static const types::u8 HOST_CONNECTED_BIT = 0b00000001;
-static const types::u8 CDC_CONNECTED_BIT = 0b00000010;
+static const types::u8 TUSB_INITED_BIT = 0b00000000;
+static const types::u8 HOST_CONNECTED_BIT = 0b00000010;
+static const types::u8 CDC_CONNECTED_BIT = 0b00000100;
 
 /* **************************************************************** *
  * TinyUSB callbacks (done this way for convenience and clean-ness) *
@@ -85,12 +86,10 @@ extern void *CDC_line_state_cb_user_args;
 struct CurrentRXState {
   bool length_bytes_recieved = false;
   types::u16 expected_length = 0;
-  bool recieved = false;
   types::u8 *data_buffer = nullptr;
   inline void reset(void) {
     length_bytes_recieved = false;
     expected_length = 0;
-    recieved = false;
     memset(data_buffer, 0, MAX_RX_BUF_SIZE);
   }
 };
@@ -125,6 +124,10 @@ public:
    * @returns true if host connection achieved, false if not
    */
   bool wait_for_CDC_connection(types::u32 timeout = CDC_CONNECTION_TIMEOUT);
+
+  // self explanatory
+  static bool host_connected(void);
+  static bool CDC_connected(void);
 
   /**
    * @brief flush write buffer
@@ -179,6 +182,8 @@ private:
   /* **************** *
   * Private functions *
   * ***************** */
+
+  static void _debug_printf(const char *format, ...);
 
   // helper for writing to _interrupt_write_buffer. does not do any checks!
   // just wraps memcpy and incrementing _interrupt_write_buffer_index
@@ -259,8 +264,8 @@ private:
   TaskHandle_t _tud_task_handle = nullptr;
   static CurrentRXState _current_rx_state;
 
-  // tracking host connection and cdc connection
-  static EventGroupHandle_t _connection_status_event;
+  // tusb state
+  static EventGroupHandle_t _tusb_state_eventgroup;
 };
 
 } // namespace usb

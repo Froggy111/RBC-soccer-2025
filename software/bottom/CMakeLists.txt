@@ -11,6 +11,10 @@ set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
 if (EXISTS ${picoVscode})
   include(${picoVscode})
 endif()
+
+# warnings as errors, comment this out if needed
+add_compile_options(-Werror)
+
 # ====================================================================================
 
 # ================================= HELPER FUNCTIONS =================================
@@ -48,8 +52,6 @@ endfunction()
 # ===================================== PICO SDK =====================================
 set(PICO_BOARD pico CACHE STRING "Board type")
 
-# use external tinyusb (picosdk provided tinyusb hardcodes CFG_TUSB_OS as OPT_OS_PICO, but we want OPT_OS_FREERTOS)
-# if testing without comms lib and freertos, comment this out
 set(PICO_SDK_TINYUSB_PATH "")
 set(PICO_TINYUSB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../external/tinyusb")
 
@@ -65,13 +67,15 @@ set(CMAKE_CXX_STANDARD 17)
 # Init PicoSDK
 # set(PICOTOOL_FORCE_FETCH_FROM_GIT ON)
 pico_sdk_init()
+
+# HACK: use external tinyusb (picosdk provided tinyusb hardcodes CFG_TUSB_OS as OPT_OS_PICO, but we want OPT_OS_FREERTOS)
+# HACK: if testing without comms lib and freertos, comment this out
+add_compile_options(-UCFG_TUSB_OS -DCFG_TUSB_OS=OPT_OS_FREERTOS)
 # ====================================================================================
 
 # ===================================== FREERTOS =====================================
 # FreeRTOS
-if(NOT DEFINED FREERTOS_KERNEL_PATH)
-  set(FREERTOS_KERNEL_PATH ${CMAKE_SOURCE_DIR}/../external/freertos)
-endif()
+set(FREERTOS_KERNEL_PATH ${CMAKE_SOURCE_DIR}/../external/freertos)
 include(FreeRTOS_Kernel_import.cmake)
 # ====================================================================================
 

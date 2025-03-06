@@ -5,7 +5,7 @@
 // RHPort number used for device
 #define CFG_TUSB_RHPORT0_MODE OPT_MODE_DEVICE
 // TinyUSB OS as FreeRTOS so tud_task() blocks
-#ifndef CFG_TUBS_OS
+#ifndef CFG_TUSB_OS
 #define CFG_TUSB_OS OPT_OS_FREERTOS
 #endif
 

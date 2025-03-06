@@ -18,11 +18,11 @@ using namespace types;
 
 namespace usb {
 
-SemaphoreHandle_t CDC::_write_mutex = xSemaphoreCreateMutex();
+SemaphoreHandle_t CDC::_write_mutex = nullptr;
 
 types::u8 CDC::_interrupt_write_buffer[MAX_INTERRUPT_TX_BUF_SIZE] = {0};
 types::u16 CDC::_interrupt_write_buffer_index = 0;
-SemaphoreHandle_t CDC::_interrupt_write_buffer_mutex = xSemaphoreCreateMutex();
+SemaphoreHandle_t CDC::_interrupt_write_buffer_mutex = nullptr;
 TaskHandle_t CDC::_interrupt_write_task_handle = nullptr;
 
 // hooks for other command handlers
@@ -35,7 +35,7 @@ types::u8 CDC::_command_task_buffer_lengths[comms::identifier_arr_len] = {0};
 
 CurrentRXState CDC::_current_rx_state = {};
 
-EventGroupHandle_t CDC::_connection_status_event = xEventGroupCreate();
+EventGroupHandle_t CDC::_tusb_state_eventgroup = nullptr;
 
 CDC::CDC() {
   // mostly stuff that should be set up before initialising tinyusb
@@ -46,6 +46,9 @@ CDC::CDC() {
   usb::CDC_line_coding_cb_user_args = nullptr;
   usb::CDC_rx_cb_fn = _rx_cb;
   usb::CDC_rx_cb_user_args = &_current_rx_state;
+  usb::CDC_line_state_cb_fn = _line_state_cb;
+  usb::mount_cb_fn = _mount_cb;
+  usb::unmount_cb_fn = _unmount_cb;
 
   // setup buffers
   _current_rx_state.data_buffer = _read_buffer;
@@ -59,7 +62,7 @@ bool CDC::init(void) {
   // create sync primitives
   CDC::_write_mutex = xSemaphoreCreateMutex();
   CDC::_interrupt_write_buffer_mutex = xSemaphoreCreateMutex();
-  CDC::_connection_status_event = xEventGroupCreate();
+  CDC::_tusb_state_eventgroup = xEventGroupCreate();
 
   // create tud_task() caller
   xTaskCreate(_usb_device_task, "usb::CDC::_tud_task_caller", 4096, NULL, 20,
@@ -73,7 +76,7 @@ bool CDC::init(void) {
 }
 
 bool CDC::wait_for_host_connection(u32 timeout) {
-  if (xEventGroupWaitBits(_connection_status_event, HOST_CONNECTED_BIT, pdFALSE,
+  if (xEventGroupWaitBits(_tusb_state_eventgroup, HOST_CONNECTED_BIT, pdFALSE,
                           pdTRUE, pdMS_TO_TICKS(timeout))) {
     return true;
   } else
@@ -81,15 +84,27 @@ bool CDC::wait_for_host_connection(u32 timeout) {
 }
 
 bool CDC::wait_for_CDC_connection(u32 timeout) {
-  if (xEventGroupWaitBits(_connection_status_event, CDC_CONNECTED_BIT, pdFALSE,
+  if (xEventGroupWaitBits(_tusb_state_eventgroup, CDC_CONNECTED_BIT, pdFALSE,
                           pdTRUE, pdMS_TO_TICKS(timeout))) {
     return true;
   } else
     return false;
 }
 
+bool CDC::host_connected(void) {
+  return xEventGroupGetBits(_tusb_state_eventgroup) & HOST_CONNECTED_BIT;
+}
+
+bool CDC::CDC_connected(void) {
+  return xEventGroupGetBits(_tusb_state_eventgroup) & CDC_CONNECTED_BIT;
+}
+
 bool CDC::write(const comms::SendIdentifiers identifier, const u8 *data,
                 const u16 data_len) {
+  // dont do anything if not connected
+  if (!CDC_connected()) {
+    return false;
+  }
   // thread/task safety
   xSemaphoreTake(_write_mutex, portMAX_DELAY);
 
@@ -155,6 +170,7 @@ bool CDC::attach_listener(comms::RecvIdentifiers identifier,
   if (!(handle && mutex && buffer && length)) {
     comms::CommsErrors err = comms::CommsErrors::ATTACH_LISTENER_NULLPTR;
     write(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err, sizeof(err));
+    return false;
   }
 
   // add listener
@@ -165,10 +181,32 @@ bool CDC::attach_listener(comms::RecvIdentifiers identifier,
   return true;
 }
 
-void CDC::_usb_device_task(void *args) { tusb_init(); }
+void CDC::_debug_printf(const char *format, ...) {
+  char formatted[MAX_TX_BUF_SIZE];
+  va_list args;
+  va_start(args, format);
+  u16 size = vsnprintf(formatted, sizeof(formatted), format, args);
+  tud_cdc_write(formatted, size);
+  tud_cdc_write_flush();
+  va_end(args);
+  return;
+}
+
+void CDC::_usb_device_task(void *args) {
+  // initialise first, then loop
+  tusb_init();
+  xEventGroupSetBits(_tusb_state_eventgroup,
+                     TUSB_INITED_BIT); // let other tasks start
+  for (;;) {
+    tud_task();
+  }
+}
 
 void CDC::_IRQ_write_flusher(void *args) {
   for (;;) {
+    // wait/make sure CDC is connected
+    xEventGroupWaitBits(_tusb_state_eventgroup, CDC_CONNECTED_BIT, pdFALSE,
+                        pdTRUE, portMAX_DELAY);
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY); // block until notified
     // grab buffer access mutex (this will cause all write_from_IRQ executed while this is running to fail, but it is non-critical, so fine to fail.)
     // no critical section used as it is uh... non critical
@@ -185,6 +223,10 @@ void CDC::_IRQ_write_flusher(void *args) {
 
 // WARN: This does not execute in an interrupt context!
 void CDC::_rx_cb(u8 interface, void *args) {
+  // const u8 LED_PIN = 25;
+  // gpio_put(LED_PIN, 1);
+  // sleep_ms(500);
+  // gpio_put(LED_PIN, 0);
   CurrentRXState &state = _current_rx_state;
   // prevention from missing out a command
   while (true) {
@@ -196,10 +238,13 @@ void CDC::_rx_cb(u8 interface, void *args) {
       }
       // WARN: this assumes both systems have the same endianness. In the case of RPi and RP2040, both are little endian, so this is fine.
       tud_cdc_read(&state.expected_length, N_LENGTH_BYTES);
+      state.length_bytes_recieved = true;
       if (state.expected_length > MAX_RX_BUF_SIZE) {
-        comms::CommsErrors err =
-            comms::CommsErrors::PACKET_RECV_OVER_MAX_BUFSIZE;
-        write(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err, sizeof(err));
+        // comms::CommsErrors err =
+        //     comms::CommsErrors::PACKET_RECV_OVER_MAX_BUFSIZE;
+        // write(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err, sizeof(err));
+        _debug_printf("length over max buf size. recieved length: %u\n",
+                      state.expected_length);
         state.reset();
         // WARN: after this, behavior becomes undefined
         // WARN: as we need to exit the cb for the error message to send, we cannot restart here.
@@ -208,7 +253,9 @@ void CDC::_rx_cb(u8 interface, void *args) {
     }
 
     // data bytes
-    else if (!state.recieved) {
+    else {
+      _debug_printf("length recieved. expected length: %u\n",
+                    state.expected_length);
       // wait until there are enough data bytes
       if (tud_cdc_available() < state.expected_length) {
         return;
@@ -218,56 +265,65 @@ void CDC::_rx_cb(u8 interface, void *args) {
       // NOTE: here we have a full command in CurrentRXState.
       // this needs to be quickly copied into a command buffer.
       u8 identifier = state.data_buffer[0];
+      _debug_printf("recieved identifier: %u\n", identifier);
 
       // check handler
       if (!_command_task_handles[identifier]) {
-        comms::CommsErrors err =
-            comms::CommsErrors::CALLING_UNATTACHED_LISTENER;
-        u8 msg[] = {(u8)err, identifier};
-        write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
+        // comms::CommsErrors err =
+        //     comms::CommsErrors::CALLING_UNATTACHED_LISTENER;
+        // u8 msg[] = {(u8)err, identifier};
+        // write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
+        _debug_printf("unattached listener\n");
         state.reset();
         continue;
       }
 
       // check buffer mutex
       if (!_command_task_buffer_mutexes[identifier]) {
-        comms::CommsErrors err = comms::CommsErrors::LISTENER_NO_BUFFER_MUTEX;
-        u8 msg[] = {(u8)err, identifier};
-        write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
+        // comms::CommsErrors err = comms::CommsErrors::LISTENER_NO_BUFFER_MUTEX;
+        // u8 msg[] = {(u8)err, identifier};
+        // write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
+        _debug_printf("no buffer mutex\n");
         state.reset();
         continue;
       }
 
       // check buffer
       if (!_command_task_buffers[identifier]) {
-        comms::CommsErrors err = comms::CommsErrors::LISTENER_NO_BUFFER;
-        u8 msg[] = {(u8)err, identifier};
-        write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
+        // comms::CommsErrors err = comms::CommsErrors::LISTENER_NO_BUFFER;
+        // u8 msg[] = {(u8)err, identifier};
+        // write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
+        _debug_printf("no buffer\n");
         state.reset();
         continue;
       }
 
       // check length
-      if (_command_task_buffer_lengths[identifier] < identifier) {
-        comms::CommsErrors err =
-            comms::CommsErrors::PACKET_RECV_OVER_COMMAND_LISTENER_MAXSIZE;
-        u8 msg[] = {(u8)err, identifier};
-        write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
+      if (_command_task_buffer_lengths[identifier] <
+          state.expected_length - 1) {
+        // comms::CommsErrors err =
+        //     comms::CommsErrors::PACKET_RECV_OVER_COMMAND_LISTENER_MAXSIZE;
+        // u8 msg[] = {(u8)err, identifier};
+        // write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
+        _debug_printf("packet size over command listener maxsize\n");
         state.reset();
         continue;
       }
 
+      _debug_printf("trying to grab attached mutex\n");
       // try to grab buffer mutex
       if (xSemaphoreTake(_command_task_buffer_mutexes[identifier], 0) !=
           pdTRUE) {
         // mutex is already taken, drop this command
-        comms::CommsWarnings warn =
-            comms::CommsWarnings::LISTENER_BUFFER_MUTEX_HELD;
-        u8 msg[] = {(u8)warn, identifier};
-        write(comms::SendIdentifiers::COMMS_WARN, msg, sizeof(msg));
+        // comms::CommsWarnings warn =
+        //     comms::CommsWarnings::LISTENER_BUFFER_MUTEX_HELD;
+        // u8 msg[] = {(u8)warn, identifier};
+        // write(comms::SendIdentifiers::COMMS_WARN, msg, sizeof(msg));
+        _debug_printf("cannot take mutex");
         state.reset();
         continue;
       }
+      _debug_printf("grabbed mutex\n");
 
       // here we have the buffer mutex
       // clear the buffer first
@@ -301,11 +357,11 @@ void CDC::_line_coding_cb(u8 interface, cdc_line_coding_t const *coding,
 void CDC::_line_state_cb(u8 interface, bool dtr, bool rts, void *args) {
   if (dtr) {
     // connected
-    xEventGroupSetBits(_connection_status_event, CDC_CONNECTED_BIT);
+    xEventGroupSetBits(_tusb_state_eventgroup, CDC_CONNECTED_BIT);
     return;
   } else {
     // disconnected
-    xEventGroupClearBits(_connection_status_event, CDC_CONNECTED_BIT);
+    xEventGroupClearBits(_tusb_state_eventgroup, CDC_CONNECTED_BIT);
     return;
   }
 }
@@ -330,12 +386,12 @@ bool CDC::_vendor_control_xfer_cb(u8 rhport, u8 stage,
 }
 
 void CDC::_mount_cb(void *args) {
-  xEventGroupSetBits(_connection_status_event, HOST_CONNECTED_BIT);
+  xEventGroupSetBits(_tusb_state_eventgroup, HOST_CONNECTED_BIT);
   return;
 }
 
 void CDC::_unmount_cb(void *args) {
-  xEventGroupClearBits(_connection_status_event, HOST_CONNECTED_BIT);
+  xEventGroupClearBits(_tusb_state_eventgroup, HOST_CONNECTED_BIT);
 }
 
 } // namespace usb
