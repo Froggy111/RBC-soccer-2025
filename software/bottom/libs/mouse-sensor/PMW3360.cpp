@@ -1,12 +1,16 @@
 #include <cstdint>
 extern "C" {
 #include <hardware/spi.h>
+//#include <chrono>
+//#include <thread>
+//#include <time.h>
 #include <hardware/gpio.h>
 #include <hardware/timer.h>
-
 #include <pico/stdlib.h>
 #include <pico/stdio.h>
 #include <stdio.h>
+//#include <cpu.h>
+
 }
 #include "PMW3360.hpp"
 #include "types.hpp"
@@ -102,6 +106,35 @@ extern "C" {
 
 #define FAULT_SUMMARY_REG 0x01
 
+inline void sleep_120ns(){
+    asm volatile(
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+    );
+}
+
+inline void sleep_20ns(){
+    asm volatile(
+        "nop\n"
+        "nop\n"
+        "nop\n"
+    );
+}
+
+
 void MouseSensor::init(int id, spi_inst_t *spi_obj_touse) {
 
   // Initialize SPI pins (except CS)
@@ -132,11 +165,16 @@ void MouseSensor::write8(uint8_t reg, uint8_t value, int8_t expected) {
     types::u8 buffer[2] = {(types::u8)(reg | 0x80),value};
 
     inputControl.write_digital(pinSelector.get_pin(CS), 0);
-    busy_wait_ns(120); // Sleep for 120 nanoseconds
+    //busy_wait_ns(120); // Sleep for 120 nanoseconds
+    sleep_120ns();
+
+
     spi_write_blocking(spi_obj, buffer, 2);
     inputControl.write_digital(pinSelector.get_pin(CS), 1);
+    //busy_wait_ns(120);
+    //std::this_thread::sleep_for(std::chrono::nanoseconds(120));
+    sleep_120ns();
 
-    busy_wait_ns(120);
 }
 
 uint8_t MouseSensor::read8(uint8_t reg) {
@@ -144,12 +182,16 @@ uint8_t MouseSensor::read8(uint8_t reg) {
     types::u8 response = 0;
 
     inputControl.write_digital(pinSelector.get_pin(CS), 0);
-    busy_wait_ns(120); // Sleep for 120 nanoseconds
+    //busy_wait_ns(120); // Sleep for 120 nanoseconds
+    //std::this_thread::sleep_for(std::chrono::nanoseconds(120));
+    sleep_120ns();
     spi_write_blocking(spi_obj, buffer, 1);
     sleep_us(160);
     spi_read_blocking(spi_obj, 0x00, &response, 1);
     inputControl.write_digital(pinSelector.get_pin(CS), 1);
-    busy_wait_ns(120); // Sleep for 120 nanoseconds
+    //busy_wait_ns(120); // Sleep for 120 nanoseconds
+    //std::this_thread::sleep_for(std::chrono::nanoseconds(120));
+    sleep_120ns();
     return response;
 }
 
@@ -160,7 +202,7 @@ void MouseSensor::read_motion_burst() {
 
   // Start burst mode - use 8-bit commands
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
-  spi_write_blocking(spi_obj, &reg, 1); // 8-bit write
+  spi_write_blocking(spi_obj, &reg, 1); // 8-bit write 
 
   // T_SRAD delay (at least 35μs)
   sleep_us(35);
@@ -176,7 +218,10 @@ void MouseSensor::read_motion_burst() {
 
   inputControl.write_digital(pinSelector.get_pin(CS), 1); // Release CS pin
 
-  busy_wait_ns(500); //Sleep for 500 nanoseconds
+  //busy_wait_ns(500); //Sleep for 500 nanoseconds
+  //std::this_thread::sleep_for(std::chrono::nanoseconds(500));
+  for(int i = 0; i < 4; i++) sleep_120ns(); //total 480
+  sleep_20ns();
 }
 
 //Return X_Delta Values
