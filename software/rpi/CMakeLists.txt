@@ -33,8 +33,6 @@ endfunction()
 
 cmake_minimum_required(VERSION 3.23)
 
-include(pico_sdk_import.cmake)
-
 # Metadata
 project(bottom C CXX ASM)
 set(CMAKE_C_STANDARD 11)
