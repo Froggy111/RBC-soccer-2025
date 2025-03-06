@@ -181,7 +181,7 @@ bool CDC::attach_listener(comms::RecvIdentifiers identifier,
   return true;
 }
 
-void CDC::_debug_printf(const char *format, ...) {
+void CDC::printf(const char *format, ...) {
   char formatted[MAX_TX_BUF_SIZE];
   va_list args;
   va_start(args, format);
@@ -223,10 +223,6 @@ void CDC::_IRQ_write_flusher(void *args) {
 
 // WARN: This does not execute in an interrupt context!
 void CDC::_rx_cb(u8 interface, void *args) {
-  // const u8 LED_PIN = 25;
-  // gpio_put(LED_PIN, 1);
-  // sleep_ms(500);
-  // gpio_put(LED_PIN, 0);
   CurrentRXState &state = _current_rx_state;
   // prevention from missing out a command
   while (true) {
@@ -240,11 +236,14 @@ void CDC::_rx_cb(u8 interface, void *args) {
       tud_cdc_read(&state.expected_length, N_LENGTH_BYTES);
       state.length_bytes_recieved = true;
       if (state.expected_length > MAX_RX_BUF_SIZE) {
-        // comms::CommsErrors err =
-        //     comms::CommsErrors::PACKET_RECV_OVER_MAX_BUFSIZE;
-        // write(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err, sizeof(err));
-        _debug_printf("length over max buf size. recieved length: %u\n",
-                      state.expected_length);
+#ifdef USB_DEBUG_ABSTRACTED
+        comms::CommsErrors err =
+            comms::CommsErrors::PACKET_RECV_OVER_MAX_BUFSIZE;
+        write(comms::SendIdentifiers::COMMS_ERROR, (u8 *)&err, sizeof(err));
+#else
+        printf("comms::CommsErrors::PACKET_RECV_OVER_MAX_BUFSIZE\n",
+               state.expected_length);
+#endif
         state.reset();
         // WARN: after this, behavior becomes undefined
         // WARN: as we need to exit the cb for the error message to send, we cannot restart here.
@@ -254,8 +253,7 @@ void CDC::_rx_cb(u8 interface, void *args) {
 
     // data bytes
     else {
-      _debug_printf("length recieved. expected length: %u\n",
-                    state.expected_length);
+      printf("length recieved. expected length: %u\n", state.expected_length);
       // wait until there are enough data bytes
       if (tud_cdc_available() < state.expected_length) {
         return;
@@ -265,35 +263,44 @@ void CDC::_rx_cb(u8 interface, void *args) {
       // NOTE: here we have a full command in CurrentRXState.
       // this needs to be quickly copied into a command buffer.
       u8 identifier = state.data_buffer[0];
-      _debug_printf("recieved identifier: %u\n", identifier);
+      printf("recieved identifier: %u\n", identifier);
 
       // check handler
       if (!_command_task_handles[identifier]) {
-        // comms::CommsErrors err =
-        //     comms::CommsErrors::CALLING_UNATTACHED_LISTENER;
-        // u8 msg[] = {(u8)err, identifier};
-        // write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
-        _debug_printf("unattached listener\n");
+#ifdef USB_DEBUG_ABSTRACTED
+        comms::CommsErrors err =
+            comms::CommsErrors::CALLING_UNATTACHED_LISTENER;
+        u8 msg[] = {(u8)err, identifier};
+        write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
+#else
+        printf("comms::CommsErrors::CALLING_UNATTACHED_LISTENER\n");
+#endif
         state.reset();
         continue;
       }
 
       // check buffer mutex
       if (!_command_task_buffer_mutexes[identifier]) {
-        // comms::CommsErrors err = comms::CommsErrors::LISTENER_NO_BUFFER_MUTEX;
-        // u8 msg[] = {(u8)err, identifier};
-        // write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
-        _debug_printf("no buffer mutex\n");
+#ifdef USB_DEBUG_ABSTRACTED
+        comms::CommsErrors err = comms::CommsErrors::LISTENER_NO_BUFFER_MUTEX;
+        u8 msg[] = {(u8)err, identifier};
+        write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
+#else
+        printf("comms::CommsErrors::LISTENER_NO_BUFFER_MUTEX\n");
+#endif
         state.reset();
         continue;
       }
 
       // check buffer
       if (!_command_task_buffers[identifier]) {
-        // comms::CommsErrors err = comms::CommsErrors::LISTENER_NO_BUFFER;
-        // u8 msg[] = {(u8)err, identifier};
-        // write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
-        _debug_printf("no buffer\n");
+#ifdef USB_DEBUG_ABSTRACTED
+        comms::CommsErrors err = comms::CommsErrors::LISTENER_NO_BUFFER;
+        u8 msg[] = {(u8)err, identifier};
+        write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
+#else
+        printf("comms::CommsErrors::LISTENER_NO_BUFFER\n");
+#endif
         state.reset();
         continue;
       }
@@ -301,29 +308,36 @@ void CDC::_rx_cb(u8 interface, void *args) {
       // check length
       if (_command_task_buffer_lengths[identifier] <
           state.expected_length - 1) {
-        // comms::CommsErrors err =
-        //     comms::CommsErrors::PACKET_RECV_OVER_COMMAND_LISTENER_MAXSIZE;
-        // u8 msg[] = {(u8)err, identifier};
-        // write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
-        _debug_printf("packet size over command listener maxsize\n");
+#ifdef USB_DEBUG_ABSTRACTED
+        comms::CommsErrors err =
+            comms::CommsErrors::PACKET_RECV_OVER_COMMAND_LISTENER_MAXSIZE;
+        u8 msg[] = {(u8)err, identifier};
+        write(comms::SendIdentifiers::COMMS_ERROR, msg, sizeof(msg));
+#else
+        printf(
+            "comms::CommsErrors::PACKET_RECV_OVER_COMMAND_LISTENER_MAXSIZE\n");
+#endif
         state.reset();
         continue;
       }
 
-      _debug_printf("trying to grab attached mutex\n");
+      printf("trying to grab attached mutex\n");
       // try to grab buffer mutex
       if (xSemaphoreTake(_command_task_buffer_mutexes[identifier], 0) !=
           pdTRUE) {
         // mutex is already taken, drop this command
-        // comms::CommsWarnings warn =
-        //     comms::CommsWarnings::LISTENER_BUFFER_MUTEX_HELD;
-        // u8 msg[] = {(u8)warn, identifier};
-        // write(comms::SendIdentifiers::COMMS_WARN, msg, sizeof(msg));
-        _debug_printf("cannot take mutex");
+#ifdef USB_DEBUG_ABSTRACTED
+        comms::CommsWarnings warn =
+            comms::CommsWarnings::LISTENER_BUFFER_MUTEX_HELD;
+        u8 msg[] = {(u8)warn, identifier};
+        write(comms::SendIdentifiers::COMMS_WARN, msg, sizeof(msg));
+#else
+        printf("comms::CommsWarnings::LISTENER_BUFFER_MUTEX_HELD\n");
+#endif
         state.reset();
         continue;
       }
-      _debug_printf("grabbed mutex\n");
+      printf("grabbed mutex\n");
 
       // here we have the buffer mutex
       // clear the buffer first

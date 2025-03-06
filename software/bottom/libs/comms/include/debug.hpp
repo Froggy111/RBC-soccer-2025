@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-
 #include "comms/identifiers.hpp"
 #include "types.hpp"
 #include "comms.hpp"
@@ -16,6 +14,13 @@ enum class LogLevel : types::u8 {
   ERROR = (types::u8)comms::SendIdentifiers::ERROR,
   FATAL = (types::u8)comms::SendIdentifiers::FATAL,
 };
+
+void log(char *format, ...);
+void debug(char *format, ...);
+void info(char *format, ...);
+void warn(char *format, ...);
+void error(char *format, ...);
+void fatal(char *format, ...);
 
 void msg(std::string format, LogLevel log_level = LogLevel::INFO, ...);
 void msg_UART(std::string format, LogLevel log_level = LogLevel::INFO, ...);

@@ -12,4 +12,8 @@
 #define USB_RX_BUFSIZE USB_MAX_PACKET_SIZE
 #endif
 
+#ifndef USB_DEBUG_ABSTRACTED
+#define USB_DEBUG_ABSTRACTED // default to the abstracted usb debug instead of sending raw text. undefine this to change.
+#endif
+
 #endif // DEFAULT_USB_CONFIG_H

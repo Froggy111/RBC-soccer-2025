@@ -145,6 +145,11 @@ public:
                     const types::u8 *data, const types::u16 data_len);
 
   /**
+   * @brief just a regular printf
+   */
+  static void printf(const char *format, ...);
+
+  /**
    * @brief adds data, formatted correctly, to an internal buffer, need to call flush_from_IRQ after all writes in an interrupt is done
    * @brief WARN: NOT lossless! any interrupts that send data should only send data that is ok to be lost
    * @brief WARN: data will be lost if not flushed before buffer (of size MAX_TX_BUF_SIZE)
@@ -182,8 +187,6 @@ private:
   /* **************** *
   * Private functions *
   * ***************** */
-
-  static void _debug_printf(const char *format, ...);
 
   // helper for writing to _interrupt_write_buffer. does not do any checks!
   // just wraps memcpy and incrementing _interrupt_write_buffer_index
