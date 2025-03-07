@@ -1,14 +1,12 @@
 #include "ALSPT19.hpp"
-#include "MCP23S17.hpp"
+#include "pins/MCP23S17.hpp"
+#include "pinmap.hpp"
+#include "types.hpp"
 
 extern "C" {
-    #include "types.hpp"
     #include "hardware/adc.h"
     #include "hardware/gpio.h"
-    #include <pico/stdio.h>
     #include <pico/stdlib.h>
-    #include <pico/stdio.h>
-    #include <stdio.h>
 }
 
 void LineSensor::init(types::u8 id, spi_inst_t *spi_obj) {
@@ -17,9 +15,11 @@ void LineSensor::init(types::u8 id, spi_inst_t *spi_obj) {
     dmux.init(1, spi_obj);
 
     adc_init();  // initialise ADC 
-    adc_gpio_init();
-    adc_gpio_init(comm_pin);
-    adc_gpio_init(comm_pin);
+    adc_gpio_init((int) pinmap::DigitalPins::AMUX_S2); // initialise ADC pin
+    adc_gpio_init((int) pinmap::DigitalPins::AMUX_S1); // initialise ADC pin
+    adc_gpio_init((int) pinmap::DigitalPins::AMUX_S3); // initialise ADC pin
+    
+    
 }
 
 void LineSensor::select_channel(uint8_t channel) {

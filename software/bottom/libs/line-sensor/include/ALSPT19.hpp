@@ -6,7 +6,7 @@ extern "C" {
 
 }
 #include "types.hpp"
-#include "MCP23S17.hpp"
+#include "pins/MCP23S17.hpp"
 #define LINE_SENSOR_HPP
 
 class LineSensor {
