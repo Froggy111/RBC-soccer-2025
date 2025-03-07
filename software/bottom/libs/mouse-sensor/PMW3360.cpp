@@ -190,6 +190,7 @@ uint8_t MouseSensor::read8(uint8_t reg) {
 
   return response;
   //104 //01101000
+  //96  //01100000
 }
 
 //read_motion_burst return 12 bytes (description in datasheet)
