@@ -173,7 +173,7 @@ void MouseSensor::write8(uint8_t reg, uint8_t value, int8_t expected) {
 
 uint8_t MouseSensor::read8(uint8_t reg) {
   types::u8 buffer[2] = {(types::u8)(reg & 0x7F), 0x00};
-  types::u8 response = 0;
+  types::u8 response = 88;
 
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
   //busy_wait_ns(120); // Sleep for 120 nanoseconds

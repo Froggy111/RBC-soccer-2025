@@ -25,7 +25,7 @@ void mouse_sensor_task(void *args) {
     gpio_put(LED_PIN, 1);
     // vTaskDelay(pdMS_TO_TICKS(500));
     sleep_ms(500);
-    sensor.write8(0x02, 0, -1);
+    sensor.write8(0x02, 0x20, -1);
 
     comms::USB_CDC.printf("Motion detected? %d", (sensor.read8(0x02)));
     gpio_put(LED_PIN, 0);
