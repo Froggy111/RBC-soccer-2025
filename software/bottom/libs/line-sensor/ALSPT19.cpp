@@ -2,6 +2,8 @@
 #include "pins/MCP23S17.hpp"
 #include "pinmap.hpp"
 #include "types.hpp"
+#include <cstdint>
+#include "comms.hpp"
 
 extern "C" {
     #include "hardware/adc.h"
@@ -10,7 +12,7 @@ extern "C" {
 }
 
 void LineSensor::init(types::u8 id, spi_inst_t *spi_obj) {
-    printf("---> Initializing ALSPT19\n");
+    comms::USB_CDC.printf("---> Initializing ALSPT19\n");
     
     //init dmux
     dmux.init(1, spi_obj);
@@ -37,18 +39,28 @@ void LineSensor::select_channel(uint8_t channel) {
     dmux.write_gpio((int) pinmap::Mux1A::AMUX_S3, true, channel & 0x08);
 }
 
-uint16_t LineSensor::read_raw() {
-    adc_select_input(comm_pin); // select adc pin (28) on pico to read amux output
-    return adc_read(); //read adc value
+// id starts from 0 to 47
+uint16_t LineSensor::read_raw(uint8_t line_sensor_id) {
+    if (line_sensor_id > 47) {
+        comms::USB_CDC.printf("Invalid line sensor ID\n");
+        return 0;
+    }
+
+    if (line_sensor_id < 16) {
+        select_channel(line_sensor_id);
+        adc_select_input(2);
+        return adc_read();
+    } else if (line_sensor_id < 32) {
+        select_channel(line_sensor_id - 16);
+        adc_select_input(1);
+        return adc_read();
+    } else {
+        select_channel(line_sensor_id - 32);
+        adc_select_input(0);
+        return adc_read();
+    }
 }
 
 float LineSensor::read_voltage() {
-    uint16_t raw_value = read_raw();
-    float voltage = (raw_value * 3.3f) / 4095.0f;
-    return voltage; //converts adc to voltage
-}
-
-void LineSensor::read() {
-    float voltage = read_voltage();
-    printf("Sensor Voltage: %.3fV\n", voltage);
+    // TODO: Implement this function
 }
