@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <pico/time.h>
 extern "C" {
 #include <hardware/spi.h>
 //#include <chrono>
@@ -160,13 +161,13 @@ void MouseSensor::write8(uint8_t reg, uint8_t value, int8_t expected) {
 
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
   //busy_wait_ns(120); // Sleep for 120 nanoseconds
-  sleep_120ns();
+  sleep_us(1);
 
   spi_write_blocking(spi_obj, buffer, 2);
   inputControl.write_digital(pinSelector.get_pin(CS), 1);
   //busy_wait_ns(120);
   //std::this_thread::sleep_for(std::chrono::nanoseconds(120));
-  sleep_120ns();
+  sleep_us(1);
 }
 
 uint8_t MouseSensor::read8(uint8_t reg) {
@@ -176,14 +177,14 @@ uint8_t MouseSensor::read8(uint8_t reg) {
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
   //busy_wait_ns(120); // Sleep for 120 nanoseconds
   //std::this_thread::sleep_for(std::chrono::nanoseconds(120));
-  sleep_120ns();
+  
   spi_write_blocking(spi_obj, buffer, 1);
-  sleep_us(160);
+  sleep_us(160); //atleast 160 us
   spi_read_blocking(spi_obj, 0x00, &response, 1);
   inputControl.write_digital(pinSelector.get_pin(CS), 1);
   //busy_wait_ns(120); // Sleep for 120 nanoseconds
   //std::this_thread::sleep_for(std::chrono::nanoseconds(120));
-  sleep_120ns();
+  
   return response;
 }
 
