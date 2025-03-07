@@ -45,8 +45,15 @@ set(CMAKE_CXX_STANDARD 17)
 # Define the path to raspicam
 set(RASPICAM_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../external/raspicam")
 
+# Set C++ standard to C++11 before building raspicam
+set(CMAKE_CXX_STANDARD_BACKUP ${CMAKE_CXX_STANDARD})
+set(CMAKE_CXX_STANDARD 11)
+
 # First build the raspicam library
 add_subdirectory(${RASPICAM_SOURCE_DIR} ${CMAKE_BINARY_DIR}/raspicam)
+
+# Restore original C++ standard
+set(CMAKE_CXX_STANDARD ${CMAKE_CXX_STANDARD_BACKUP})
 
 # Make raspicam targets available directly
 if(TARGET raspicam)
