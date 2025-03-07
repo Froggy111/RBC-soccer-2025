@@ -1,5 +1,5 @@
 add_executable(mouse_sensor_test)
-target_sources(mouse_sensor_test 
+target_sources(mouse_sensor_test
   PRIVATE
     main.cpp
 )

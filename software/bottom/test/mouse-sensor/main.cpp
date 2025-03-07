@@ -7,7 +7,6 @@ const types::u8 LED_PIN = 25;
 
 //MouseSensor sensor;
 
-
 // void mouse_sensor_task(void *args) {
 //   if (!spi_init(spi0, 1000000)) {
 //     comms::USB_CDC.printf("SPI Initialization Failed!\n");
@@ -49,31 +48,31 @@ const types::u8 LED_PIN = 25;
 //   // }
 // }
 
-// void led_test(void *args){
-//     while(true){
-//         gpio_put(LED_PIN, 1);
-//         vTaskDelay(pdMS_TO_TICKS(500));
-//         gpio_put(LED_PIN, 0);
-//     }
-// }
+void led_test(void *args) {
+  while (true) {
+    gpio_put(LED_PIN, 1);
+    vTaskDelay(pdMS_TO_TICKS(500));
+    comms::USB_CDC.printf("hehe");
+    gpio_put(LED_PIN, 0);
+  }
+}
 
 int main() {
 
   gpio_init(LED_PIN);
   gpio_set_dir(LED_PIN, GPIO_OUT);
   gpio_put(LED_PIN, 1);
-  
-//   comms::USB_CDC.init();
 
-//   xTaskCreate(mouse_sensor_task, "mouse_sensor_task", 1024, nullptr, 10, NULL);
+  comms::USB_CDC.init();
 
-//   vTaskStartScheduler();
+  //   xTaskCreate(mouse_sensor_task, "mouse_sensor_task", 1024, nullptr, 10, NULL);
 
-//   comms::USB_CDC.init();
+  xTaskCreate(led_test, "led_task", 1024, nullptr, 10, NULL);
+  vTaskStartScheduler();
 
-//   xTaskCreate(led_test, "led_task", 1024, nullptr, 10, NULL);
+  //   comms::USB_CDC.init();
 
-//   vTaskStartScheduler();
+  //   vTaskStartScheduler();
 
   return 0;
 }
