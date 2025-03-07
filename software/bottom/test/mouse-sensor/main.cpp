@@ -9,6 +9,7 @@ MouseSensor sensor;
 
 void mouse_sensor_task(void *args) {
 
+  comms::USB_CDC.wait_for_CDC_connection();
   //usb::CDC *cdc = (usb::CDC *)args;
   if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.printf("SPI Initialization Failed!\n");
