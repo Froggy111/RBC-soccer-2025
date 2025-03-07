@@ -7,12 +7,11 @@ const u8 LED_PIN = 25;
 
 void hello_world_task(void *args) {
   usb::CDC *cdc = (usb::CDC *)args;
-  u8 payload[] = "Hello world!\n";
+  char payload[] = "Hello world!\n";
   while (true) {
     gpio_put(LED_PIN, 0);
     sleep_ms(500);
-    cdc->write((comms::SendIdentifiers)payload[0], &payload[1],
-               sizeof(payload) - 1);
+    cdc->printf(payload);
     gpio_put(LED_PIN, 1);
     sleep_ms(500);
   }
