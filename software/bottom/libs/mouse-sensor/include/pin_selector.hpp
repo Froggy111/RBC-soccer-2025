@@ -17,7 +17,7 @@ typedef enum MouseSensorPinMap {
 } MouseSensorPinMap;
 
 constexpr types::u8 mouse_sensor1_pins[] = {
-    static_cast<types::u8>(pinmap::DigitalPins::DRV2_IN2),  // CS
+    static_cast<types::u8>(1),  // CS
     static_cast<types::u8>(pinmap::DigitalPins::SPI0_MOSI),   // MOSI
     static_cast<types::u8>(pinmap::DigitalPins::SPI0_MISO),   // MISO
     static_cast<types::u8>(pinmap::DigitalPins::SPI0_SCLK),   // SCK

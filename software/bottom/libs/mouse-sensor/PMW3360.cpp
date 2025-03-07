@@ -133,6 +133,7 @@ extern "C" {
 void MouseSensor::init(int id, spi_inst_t *spi_obj_touse) {
 
   // Initialize SPI pins (except CS)
+  pinSelector.set_mouse_sensor_id(1);
   gpio_set_function(pinSelector.get_pin(SCLK), GPIO_FUNC_SPI);
   gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
   gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);

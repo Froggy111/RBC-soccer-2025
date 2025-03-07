@@ -19,7 +19,7 @@ void mouse_sensor_task(void *args) {
     comms::USB_CDC.printf("SPI Initialization Successful!\n");
   }
 
-  sensor.init(-1, spi0);
+  sensor.init(1, spi0);
   comms::USB_CDC.printf("Mouse Sensor Initialised!\n");
   while (true) {
     gpio_put(LED_PIN, 1);
