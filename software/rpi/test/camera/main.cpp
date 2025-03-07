@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
-#include <raspicam/raspicam.h>
-#include <unistd.h>  // For sleep()
+#include "raspicam.h"
+#include <unistd.h>
 
 int main() {
     // Create camera object

@@ -38,6 +38,31 @@ project(bottom C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
+# ====================================================================================
+
+# ===================================== RASPICAM =====================================
+
+# Define the path to raspicam
+set(RASPICAM_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../external/raspicam")
+
+# First build the raspicam library
+add_subdirectory(${RASPICAM_SOURCE_DIR} ${CMAKE_BINARY_DIR}/raspicam)
+
+# Make raspicam targets available directly
+if(TARGET raspicam)
+  add_global_library(raspicam)
+  message(STATUS "Found raspicam target")
+endif()
+
+if(TARGET raspicam_cv)
+  add_global_library(raspicam_cv)
+  message(STATUS "Found raspicam_cv target")
+endif()
+
+# Add include directories
+include_directories(${RASPICAM_SOURCE_DIR}/src)
+include_directories(${CMAKE_BINARY_DIR}/raspicam) # For generated files
+
 # Libraries
 add_subdirectory(libs) # global libs need to be explicitly linked to with target_link_globals(TARGET)
 
