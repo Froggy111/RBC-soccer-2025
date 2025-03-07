@@ -1,4 +1,4 @@
-#include "comms/usb.hpp"
+#include "comms.hpp"
 #include "types.hpp"
 
 using namespace types;
@@ -24,6 +24,7 @@ int main() {
   usb::CDC cdc = usb::CDC();
   cdc.init();
   xTaskCreate(hello_world_task, "hello_world_task", 1024, &cdc, 10, NULL);
+  
   vTaskStartScheduler();
   return 0;
 }

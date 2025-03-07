@@ -14,7 +14,7 @@
 
 namespace comms {
 
-usb::CDC USB_CDC;
-uart::Serial UART_serial;
+usb::CDC USB_CDC = usb::CDC();
+uart::Serial UART_serial = uart::Serial();
 
 } // namespace comms

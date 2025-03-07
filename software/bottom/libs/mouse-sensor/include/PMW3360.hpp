@@ -7,25 +7,10 @@
 #include <string>
 
 class MouseSensor{
-private:
-    void init_spi(types::u64 SPI_SPEED);
 
-    void init_pins();
-
-    // types::u8 read8(types::u8 reg);
-
-    // void write8(types::u8 reg, types::u8 data, int8_t expected = -1);
-
-    bool check_config();
-
-    PinInputControl inputControl;
-    PinOutputControl outputControl;
-    PinSelector pinSelector;
-
-    spi_inst_t *spi_obj;
 
 public:
-
+    MouseSensor(void) = default;
     void init(int id, spi_inst_t *spi_obj_touse);
 
     types::u8 motion_burst_buffer[12] = {99}; //Stores data read from data burst 
@@ -41,4 +26,21 @@ public:
 
 
     bool init_registers();
+
+    private:
+    void init_spi(types::u64 SPI_SPEED);
+
+    void init_pins();
+
+    // types::u8 read8(types::u8 reg);
+
+    // void write8(types::u8 reg, types::u8 data, int8_t expected = -1);
+
+    bool check_config();
+
+    PinInputControl inputControl;
+    PinOutputControl outputControl;
+    PinSelector pinSelector;
+
+    spi_inst_t *spi_obj;
 };
