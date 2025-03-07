@@ -11,31 +11,31 @@ MouseSensor sensor;
 void mouse_sensor_task(void *args) {
 
   comms::USB_CDC.wait_for_CDC_connection(0xffffffff);
-  comms::USB_CDC.printf("CDC Connected!\n");
+  comms::USB_CDC.printf("CDC Connected!\r\n");
   //usb::CDC *cdc = (usb::CDC *)args;
   if (!spi_init(spi0, 1000000)) {
-    comms::USB_CDC.printf("SPI Initialization Failed!\n");
+    comms::USB_CDC.printf("SPI Initialization Failed!\r\n");
   } else {
-    comms::USB_CDC.printf("SPI Initialization Successful!\n");
+    comms::USB_CDC.printf("SPI Initialization Successful!\r\n");
   }
 
   sensor.init(1, spi0);
-  comms::USB_CDC.printf("Mouse Sensor Initialised!\n");
+  comms::USB_CDC.printf("Mouse Sensor Initialised!\r\n");
   
   while (true) {
       sleep_ms(500);
       sensor.read_motion_burst();
       types::u16 x_delta, y_delta, shutter;
       for(int j = 0;j < 12; j++){
-        comms::USB_CDC.printf("TERM %d: %d \n", j, sensor.motion_burst_buffer[j]);
+        comms::USB_CDC.printf("TERM %d: %d \r\n", j, sensor.motion_burst_buffer[j]);
       }
       x_delta = ((sensor.motion_burst_buffer[2] << 8) | sensor.motion_burst_buffer[3]);
       y_delta = ((sensor.motion_burst_buffer[4] << 8) | sensor.motion_burst_buffer[5]);
 
-      comms::USB_CDC.printf("X_L: %d | X_H: %d \n", sensor.motion_burst_buffer[2], sensor.motion_burst_buffer[3]);
-      comms::USB_CDC.printf("Y_L: %d | Y_H: %d \n", sensor.motion_burst_buffer[4], sensor.motion_burst_buffer[5]);
+      comms::USB_CDC.printf("X_L: %d | X_H: %d \r\n", sensor.motion_burst_buffer[2], sensor.motion_burst_buffer[3]);
+      comms::USB_CDC.printf("Y_L: %d | Y_H: %d \r\n", sensor.motion_burst_buffer[4], sensor.motion_burst_buffer[5]);
 
-      comms::USB_CDC.printf("X delta: %d | Y delta: %d \n", x_delta, y_delta);
+      comms::USB_CDC.printf("X delta: %d | Y delta: %d \r\n", x_delta, y_delta);
 
       //printf("Raw Data Sum: %d \n", sensor.motion_burst_buffer[7]);
       //printf("Minimum Raw Data: %d | Maximum Raw Data: %d \n", sensor.motion_burst_buffer[8], sensor.motion_burst_buffer[9]);
