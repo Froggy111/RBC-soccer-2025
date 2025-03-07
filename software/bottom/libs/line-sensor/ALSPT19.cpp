@@ -63,4 +63,5 @@ uint16_t LineSensor::read_raw(uint8_t line_sensor_id) {
 
 float LineSensor::read_voltage() {
     // TODO: Implement this function
+    return 0;
 }
