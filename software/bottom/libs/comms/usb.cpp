@@ -182,8 +182,6 @@ bool CDC::attach_listener(comms::RecvIdentifiers identifier,
 }
 
 void CDC::printf(const char *format, ...) {
-  xEventGroupWaitBits(_tusb_state_eventgroup, CDC_CONNECTED_BIT, pdFALSE,
-                      pdTRUE, portMAX_DELAY);
   char formatted[MAX_TX_BUF_SIZE];
   va_list args;
   va_start(args, format);
