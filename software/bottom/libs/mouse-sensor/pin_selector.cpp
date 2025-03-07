@@ -11,6 +11,6 @@ types::u8 PinSelector::get_pin(MouseSensorPinMap pin) {
     case 2:
       return mouse_sensor2_pins[static_cast<types::u8>(pin)];
     default:
-      return 0;
+      return mouse_sensor1_pins[static_cast<types::u8>(pin)];
   }
 }
