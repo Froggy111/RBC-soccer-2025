@@ -51,7 +51,8 @@ const types::u8 LED_PIN = 25;
 void led_test(void *args) {
   while (true) {
     gpio_put(LED_PIN, 1);
-    vTaskDelay(pdMS_TO_TICKS(500));
+    // vTaskDelay(pdMS_TO_TICKS(500));
+    sleep_ms(500);
     comms::USB_CDC.printf("hehe");
     gpio_put(LED_PIN, 0);
   }
