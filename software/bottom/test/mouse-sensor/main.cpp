@@ -9,7 +9,7 @@ MouseSensor sensor;
 
 void mouse_sensor_task(void *args) {
 
-  usb::CDC *cdc = (usb::CDC *)args;
+  //usb::CDC *cdc = (usb::CDC *)args;
   if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.printf("SPI Initialization Failed!\n");
   }
@@ -20,7 +20,7 @@ void mouse_sensor_task(void *args) {
     vTaskDelay(pdMS_TO_TICKS(500));
     sensor.write8(0x02, 0, -1);
 
-    cdc->printf("Motion detected? %d", (sensor.read8(0x02)));
+    comms::USB_CDC.printf("Motion detected? %d", (sensor.read8(0x02)));
     gpio_put(LED_PIN, 0);
   }
   //return;
@@ -71,7 +71,7 @@ int main() {
 
   //   xTaskCreate(mouse_sensor_task, "mouse_sensor_task", 1024, nullptr, 10, NULL);
 
-  xTaskCreate(led_test, "led_task", 1024, &cdc, 10, NULL);
+  xTaskCreate(mouse_sensor_task, "mouse_sensor_task", 1024, &cdc, 10, NULL);
   vTaskStartScheduler();
 
   //   comms::USB_CDC.init();
