@@ -146,8 +146,9 @@ public:
 
   /**
    * @brief just a regular printf
+   * @returns false if CDC not connected before called
    */
-  static void printf(const char *format, ...);
+  static bool printf(const char *format, ...);
 
   /**
    * @brief adds data, formatted correctly, to an internal buffer, need to call flush_from_IRQ after all writes in an interrupt is done

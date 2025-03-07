@@ -181,7 +181,11 @@ bool CDC::attach_listener(comms::RecvIdentifiers identifier,
   return true;
 }
 
-void CDC::printf(const char *format, ...) {
+bool CDC::printf(const char *format, ...) {
+  if (!xEventGroupWaitBits(_tusb_state_eventgroup, CDC_CONNECTED_BIT, pdFALSE,
+                           pdTRUE, 0)) {
+    return false;
+  }
   char formatted[MAX_TX_BUF_SIZE];
   va_list args;
   va_start(args, format);
@@ -189,7 +193,7 @@ void CDC::printf(const char *format, ...) {
   tud_cdc_write(formatted, size);
   tud_cdc_write_flush();
   va_end(args);
-  return;
+  return true;
 }
 
 void CDC::_usb_device_task(void *args) {
