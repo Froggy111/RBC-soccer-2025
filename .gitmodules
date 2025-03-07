@@ -10,3 +10,9 @@
 [submodule "picotool"]
     path = picotool
     url = https://github.com/raspberrypi/picotool.git
+[submodule "software/external/opencv"]
+	path = software/external/opencv
+	url = https://github.com/opencv/opencv.git
+[submodule "software/external/raspicam"]
+	path = software/external/raspicam
+	url = https://github.com/cedricve/raspicam
