@@ -106,29 +106,29 @@ extern "C" {
 
 #define FAULT_SUMMARY_REG 0x01
 
-inline void sleep_120ns() {
-  asm volatile("nop\n"
-               "nop\n"
-               "nop\n"
-               "nop\n"
-               "nop\n"
-               "nop\n"
-               "nop\n"
-               "nop\n"
-               "nop\n"
-               "nop\n"
-               "nop\n"
-               "nop\n"
-               "nop\n"
-               "nop\n"
-               "nop\n");
-}
+// inline void sleep_120ns() {
+//   asm volatile("nop\n"
+//                "nop\n"
+//                "nop\n"
+//                "nop\n"
+//                "nop\n"
+//                "nop\n"
+//                "nop\n"
+//                "nop\n"
+//                "nop\n"
+//                "nop\n"
+//                "nop\n"
+//                "nop\n"
+//                "nop\n"
+//                "nop\n"
+//                "nop\n");
+// }
 
-inline void sleep_20ns() {
-  asm volatile("nop\n"
-               "nop\n"
-               "nop\n");
-}
+// inline void sleep_20ns() {
+//   asm volatile("nop\n"
+//                "nop\n"
+//                "nop\n");
+// }
 
 void MouseSensor::init(int id, spi_inst_t *spi_obj_touse) {
 
@@ -177,6 +177,7 @@ uint8_t MouseSensor::read8(uint8_t reg) {
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
   //busy_wait_ns(120); // Sleep for 120 nanoseconds
   //std::this_thread::sleep_for(std::chrono::nanoseconds(120));
+  sleep_us(1);
   
   spi_write_blocking(spi_obj, buffer, 1);
   sleep_us(160); //atleast 160 us
@@ -184,7 +185,8 @@ uint8_t MouseSensor::read8(uint8_t reg) {
   inputControl.write_digital(pinSelector.get_pin(CS), 1);
   //busy_wait_ns(120); // Sleep for 120 nanoseconds
   //std::this_thread::sleep_for(std::chrono::nanoseconds(120));
-  
+  sleep_us(1);
+
   return response;
 }
 
@@ -213,9 +215,10 @@ void MouseSensor::read_motion_burst() {
 
   //busy_wait_ns(500); //Sleep for 500 nanoseconds
   //std::this_thread::sleep_for(std::chrono::nanoseconds(500));
-  for (int i = 0; i < 4; i++)
-    sleep_120ns(); //total 480
-  sleep_20ns();
+//   for (int i = 0; i < 4; i++)
+//     sleep_120ns(); //total 480
+//   sleep_20ns();
+  sleep_us(1);
 }
 
 //Return X_Delta Values
