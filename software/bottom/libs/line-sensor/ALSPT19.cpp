@@ -17,11 +17,6 @@ LineSensor::LineSensor(uint8_t comm_pin)
 void LineSensor::init(types::u8 id) {
     printf("---> Initializing ALSPT19\n");
     
-    if (id == (types::u8)-1) {
-        pinSelector.set_debug_mode(true);
-    } else {
-        pinSelector.set_driver_id(id);
-    }
     MCP23S17.init(types::u8 1, spi1);
 
     adc_init();  // initialise ADC 
