@@ -10,6 +10,7 @@ MouseSensor sensor;
 void mouse_sensor_task(void *args) {
 
   comms::USB_CDC.wait_for_CDC_connection();
+  comms::USB_CDC.printf("CDC Connected!\n");
   //usb::CDC *cdc = (usb::CDC *)args;
   if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.printf("SPI Initialization Failed!\n");
@@ -18,6 +19,7 @@ void mouse_sensor_task(void *args) {
   }
 
   sensor.init(-1, spi0);
+  comms::USB_CDC.printf("Mouse Sensor Initialised!\n");
   while (true) {
     gpio_put(LED_PIN, 1);
     vTaskDelay(pdMS_TO_TICKS(500));
