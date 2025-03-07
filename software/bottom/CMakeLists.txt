@@ -65,7 +65,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
 # Init PicoSDK
-# set(PICOTOOL_FORCE_FETCH_FROM_GIT ON)
+set(PICOTOOL_FORCE_FETCH_FROM_GIT ON)
 pico_sdk_init()
 
 # HACK: use external tinyusb (picosdk provided tinyusb hardcodes CFG_TUSB_OS as OPT_OS_PICO, but we want OPT_OS_FREERTOS)

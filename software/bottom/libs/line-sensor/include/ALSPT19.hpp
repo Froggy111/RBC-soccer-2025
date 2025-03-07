@@ -11,13 +11,13 @@ extern "C" {
 
 class LineSensor {
     public:
-        void init(types::u8 id);
+        void init(types::u8 id, spi_inst_t *spi_obj);
         uint16_t read_raw();
         float read_voltage();
 
     private:
         void select_channel(uint8_t channel);
-        
+        MCP23S17 dmux;
 };
 
 

@@ -10,17 +10,16 @@ extern "C" {
     #include <pico/stdio.h>
     #include <stdio.h>
 }
-LineSensor::LineSensor(uint8_t comm_pin)
-    : comm_pin(comm_pin) {} //pins 0-3 for output, comm pin is connected to ADC input
 
-
-void LineSensor::init(types::u8 id) {
+void LineSensor::init(types::u8 id, spi_inst_t *spi_obj) {
     printf("---> Initializing ALSPT19\n");
     
-    MCP23S17.init(types::u8 1, spi1);
+    dmux.init(1, spi_obj);
 
     adc_init();  // initialise ADC 
-    adc_gpio_init(comm_pin);  //Configures the amux com output pin as ADC input
+    adc_gpio_init();
+    adc_gpio_init(comm_pin);
+    adc_gpio_init(comm_pin);
 }
 
 void LineSensor::select_channel(uint8_t channel) {
