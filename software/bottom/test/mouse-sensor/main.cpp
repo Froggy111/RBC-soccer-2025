@@ -1,6 +1,7 @@
 #include "comms.hpp"
 #include "types.hpp"
 #include <hardware/gpio.h>
+#include <pico/time.h>
 #include "PMW3360.hpp"
 
 const types::u8 LED_PIN = 25;
@@ -22,7 +23,8 @@ void mouse_sensor_task(void *args) {
   comms::USB_CDC.printf("Mouse Sensor Initialised!\n");
   while (true) {
     gpio_put(LED_PIN, 1);
-    vTaskDelay(pdMS_TO_TICKS(500));
+    // vTaskDelay(pdMS_TO_TICKS(500));
+    sleep_ms(500);
     sensor.write8(0x02, 0, -1);
 
     comms::USB_CDC.printf("Motion detected? %d", (sensor.read8(0x02)));
