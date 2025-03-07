@@ -161,13 +161,13 @@ void MouseSensor::write8(uint8_t reg, uint8_t value, int8_t expected) {
 
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
   //busy_wait_ns(120); // Sleep for 120 nanoseconds
-  sleep_us(1);
+  busy_wait_us(1);
 
   spi_write_blocking(spi_obj, buffer, 2);
   inputControl.write_digital(pinSelector.get_pin(CS), 1);
   //busy_wait_ns(120);
   //std::this_thread::sleep_for(std::chrono::nanoseconds(120));
-  sleep_us(1);
+  busy_wait_us(1);
 }
 
 uint8_t MouseSensor::read8(uint8_t reg) {
@@ -177,15 +177,15 @@ uint8_t MouseSensor::read8(uint8_t reg) {
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
   //busy_wait_ns(120); // Sleep for 120 nanoseconds
   //std::this_thread::sleep_for(std::chrono::nanoseconds(120));
-  sleep_us(1);
+  busy_wait_us(1);
   
   spi_write_blocking(spi_obj, buffer, 1);
-  sleep_us(160); //atleast 160 us
+  busy_wait_us(160); //atleast 160 us
   spi_read_blocking(spi_obj, 0x00, &response, 1);
   inputControl.write_digital(pinSelector.get_pin(CS), 1);
   //busy_wait_ns(120); // Sleep for 120 nanoseconds
   //std::this_thread::sleep_for(std::chrono::nanoseconds(120));
-  sleep_us(1);
+  busy_wait_us(1);
 
   return response;
 }
@@ -200,7 +200,7 @@ void MouseSensor::read_motion_burst() {
   spi_write_blocking(spi_obj, &reg, 1); // 8-bit write
 
   // T_SRAD delay (at least 35μs)
-  sleep_us(35);
+  busy_wait_us(35);
 
   // Read burst data (12 bytes total)
   uint8_t temp_buffer[12];
@@ -218,7 +218,8 @@ void MouseSensor::read_motion_burst() {
 //   for (int i = 0; i < 4; i++)
 //     sleep_120ns(); //total 480
 //   sleep_20ns();
-  sleep_us(1);
+  busy_wait_us(1);
+  
 }
 
 //Return X_Delta Values
@@ -291,7 +292,7 @@ bool MouseSensor::init_registers() {
   for (int i = 0; i < firmware_length; i++) {
     spi_write_blocking(spi_obj, &firmware_data[i], 1);
     // Short delay between bytes if required
-    sleep_us(15); // Check datasheet for exact timing
+    busy_wait_us(15); // Check datasheet for exact timing
   }
   inputControl.write_digital(pinSelector.get_pin(CS), 1);
 
