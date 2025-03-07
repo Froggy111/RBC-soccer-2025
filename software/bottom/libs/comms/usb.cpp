@@ -191,8 +191,8 @@ bool CDC::printf(const char *format, ...) {
   va_start(args, format);
   u16 size = vsnprintf(formatted, sizeof(formatted), format, args);
   tud_cdc_write(formatted, size);
-  tud_cdc_write_flush();
   va_end(args);
+  tud_cdc_write_flush();
   return true;
 }
 
