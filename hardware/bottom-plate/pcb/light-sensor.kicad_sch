@@ -1929,7 +1929,7 @@
 				)
 			)
 		)
-		(property "Value" "2.8-3.4V 1400mcd@20mA"
+		(property "Value" "XL-2012UWC"
 			(at 178.7525 68.58 0)
 			(effects
 				(font
@@ -2696,7 +2696,7 @@
 				)
 			)
 		)
-		(property "Value" "130R"
+		(property "Value" "120R"
 			(at 160.02 68.58 90)
 			(effects
 				(font
