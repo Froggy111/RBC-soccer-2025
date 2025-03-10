@@ -1,5 +1,4 @@
 # ====================================================================================
-
 # ================================= HELPER FUNCTIONS =================================
 # Initialize the global libraries list
 set(GLOBAL_LIBS "" CACHE INTERNAL "List of global libraries")
@@ -38,37 +37,32 @@ project(bottom C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
-# ====================================================================================
+# ===================================================================================
+# ======================== CAMERA STREAMING DEPENDENCIES ============================
+# Find required packages
+find_package(OpenCV REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBCAMERA REQUIRED libcamera)
 
-# ===================================== RASPICAM =====================================
+pkg_check_modules(LIBWEBSOCKETS REQUIRED libwebsockets)
+message(STATUS "Using libwebsockets for web server")
+set(WEB_SERVER_LIBS ${LIBWEBSOCKETS_LIBRARIES})
+set(WEB_SERVER_INCLUDE_DIRS ${LIBWEBSOCKETS_INCLUDE_DIRS})
+set(WEB_SERVER_CFLAGS ${LIBWEBSOCKETS_CFLAGS})
+add_definitions(-DUSE_LIBWEBSOCKETS)
 
-# Define the path to raspicam
-set(RASPICAM_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../external/raspicam")
+# Find threading library
+find_package(Threads REQUIRED)
 
-# Set C++ standard to C++11 before building raspicam
-set(CMAKE_CXX_STANDARD_BACKUP ${CMAKE_CXX_STANDARD})
-set(CMAKE_CXX_STANDARD 11)
+# Add dependencies to include path
+include_directories(
+  ${OpenCV_INCLUDE_DIRS}
+  ${LIBCAMERA_INCLUDE_DIRS}
+  ${WEB_SERVER_INCLUDE_DIRS}
+)
 
-# First build the raspicam library
-add_subdirectory(${RASPICAM_SOURCE_DIR} ${CMAKE_BINARY_DIR}/raspicam)
-
-# Restore original C++ standard
-set(CMAKE_CXX_STANDARD ${CMAKE_CXX_STANDARD_BACKUP})
-
-# Make raspicam targets available directly
-if(TARGET raspicam)
-  add_global_library(raspicam)
-  message(STATUS "Found raspicam target")
-endif()
-
-if(TARGET raspicam_cv)
-  add_global_library(raspicam_cv)
-  message(STATUS "Found raspicam_cv target")
-endif()
-
-# Add include directories
-include_directories(${RASPICAM_SOURCE_DIR}/src)
-include_directories(${CMAKE_BINARY_DIR}/raspicam) # For generated files
+# Setup global compiler flags
+set(CMAKE_CXX_FLAGS "${LIBCAMERA_CFLAGS} ${WEB_SERVER_CFLAGS}")
 
 # Libraries
 add_subdirectory(libs) # global libs need to be explicitly linked to with target_link_globals(TARGET)

@@ -7,4 +7,4 @@ target_sources(camera_test
 )
 
 # Link against the camera library
-target_link_libraries(camera_test raspicam)
+target_link_libraries(camera_test)
