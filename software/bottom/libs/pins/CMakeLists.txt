@@ -5,10 +5,8 @@ target_sources(MCP23S17
   PUBLIC
     include/pins/MCP23S17.hpp
 )
-pico_enable_stdio_usb(MCP23S17 1)
-pico_enable_stdio_uart(MCP23S17 0)
 target_include_directories(MCP23S17 PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(MCP23S17 hardware_spi)
+target_link_libraries(MCP23S17 hardware_spi comms)
 target_link_globals(MCP23S17)
 
 add_library(digital_pins)

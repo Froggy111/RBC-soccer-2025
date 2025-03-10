@@ -1,16 +1,14 @@
 #include "pins/MCP23S17.hpp"
 #include "pinmap.hpp"
 #include "types.hpp"
-#include <cstdint>
 #include <pico/types.h>
+#include "comms.hpp"
 
 extern "C" {
 #include <hardware/spi.h>
 #include <hardware/gpio.h>
 #include <pico/stdlib.h>
-#include <pico/stdio.h>
 #include <pico/time.h>
-#include <stdio.h>
 #include <string.h>
 }
 
@@ -51,9 +49,9 @@ extern "C" {
 #define SPI_CMD_DEFAULT 0b01000000
 
 void MCP23S17::init(types::u8 device_id, spi_inst_t *spi_obj_touse) {
-  printf("-> Initializing MCP23S17\n");
+  comms::USB_CDC.printf("-> Initializing MCP23S17\r\n");
   if (device_id != 1 && device_id != 2) {
-    printf("Error: Invalid device ID\n");
+    comms::USB_CDC.printf("Error: Invalid device ID\r\n");
     return;
   }
   id = device_id;
@@ -61,14 +59,14 @@ void MCP23S17::init(types::u8 device_id, spi_inst_t *spi_obj_touse) {
   memset(pin_state, 0, sizeof(pin_state));
 
   // init gpio pins
-  printf("Initializing pins\n");
+  comms::USB_CDC.printf("Initializing pins\r\n");
   init_pins();
 
   // reset using the reset pin
   reset();
 
   // init spi
-  printf("Initializing SPI\n");
+  comms::USB_CDC.printf("Initializing SPI\r\n");
   spi_obj = spi_obj_touse;
   init_spi();
 }
@@ -98,7 +96,6 @@ void MCP23S17::write8(uint8_t device_address, uint8_t reg_address, uint8_t data,
                         reg_address,
                         (uint8_t)((current & ~mask) | (data & mask))};
 
-  
   gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 0);
   spi_write_blocking(spi_obj, tx_data, 3);
   gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 1);
@@ -109,12 +106,13 @@ void MCP23S17::write8(uint8_t device_address, uint8_t reg_address, uint8_t data,
     // print tx_data in binary
     for (int i = 0; i < 3; i++) {
       for (int j = 7; j >= 0; j--) {
-        printf("%d", (tx_data[i] >> j) & 1);
+        comms::USB_CDC.printf("%d", (tx_data[i] >> j) & 1);
       }
-      printf(" ");
+      comms::USB_CDC.printf(" ");
     }
-    printf("ERROR: MCP23S17 write8 to register failed. Expected %d, got %d\n",
-           tx_data[2], res);
+    comms::USB_CDC.printf(
+        "ERROR: MCP23S17 write8 to register failed. Expected %d, got %d\r\n",
+        tx_data[2], res);
   }
 }
 
@@ -156,7 +154,7 @@ void MCP23S17::reset() {
 
 void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
   if (pin < 0 || pin > 7) {
-    printf("Error: Invalid pin number\n");
+    comms::USB_CDC.printf("Error: Invalid pin number\r\n");
     return;
   }
 
@@ -168,12 +166,12 @@ void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
 
 void MCP23S17::write_gpio(uint8_t pin, bool on_A, bool value) {
   if (pin < 0 || pin > 7) {
-    printf("Error: Invalid pin number\n");
+    comms::USB_CDC.printf("Error: Invalid pin number\r\n");
     return;
   }
 
   if (pin_state[pin + (on_A ? 0 : 8)] != 1) {
-    printf("Error: Pin is not configured as output\n");
+    comms::USB_CDC.printf("Error: Pin is not configured as output\r\n");
     return;
   }
 
@@ -181,24 +179,26 @@ void MCP23S17::write_gpio(uint8_t pin, bool on_A, bool value) {
   write8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? GPIOA : GPIOB, value << pin,
          0b1 << pin);
 
-  // printf("Driver ID: %d, A: %d, Wrote to pin %d with value %d\n", id, on_A, pin, value);
+  // comms::USB_CDC.printf("Driver ID: %d, A: %d, Wrote to pin %d with value %d\r\n", id, on_A, pin, value);
 
   // check that OUTPUT_LATCH has the written bit
   uint8_t res = read8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? OLATA : OLATB);
 
   if ((res & (1 << pin)) != (value << pin)) {
-    printf("ERROR: Write to MCP23S17 GPIO failed. Expected %d, got %d\n", value << pin, res);
+    comms::USB_CDC.printf(
+        "ERROR: Write to MCP23S17 GPIO failed. Expected %d, got %d\r\n",
+        value << pin, res);
   }
 }
 
 bool MCP23S17::read_gpio(uint8_t pin, bool on_A) {
   if (pin < 0 || pin > 7) {
-    printf("Error: Invalid pin number\n");
+    comms::USB_CDC.printf("Error: Invalid pin number\r\n");
     return false;
   }
 
   if (pin_state[pin + (on_A ? 0 : 8)] != 0) {
-    printf("Error: Pin is not configured as input\n");
+    comms::USB_CDC.printf("Error: Pin is not configured as input\r\n");
     return false;
   }
 

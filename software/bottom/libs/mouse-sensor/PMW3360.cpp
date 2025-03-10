@@ -198,9 +198,7 @@ uint8_t MouseSensor::read8(uint8_t reg) {
 void MouseSensor::read_motion_burst() {
   uint8_t reg = MOTION_BURST;
 
-
   // Start burst mode - use 8-bit commands
-  write8(reg, 0, -1);
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
   spi_write_blocking(spi_obj, &reg, 1); // 8-bit write
 

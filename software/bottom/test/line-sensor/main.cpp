@@ -9,11 +9,18 @@ LineSensor line_sensor = LineSensor();
 
 void line_sensor_poll_task(void *args) {
   usb::CDC *cdc = (usb::CDC *)args;
+  cdc->wait_for_CDC_connection(0xFFFFFFFF);
+  if (!spi_init(spi0, 1000000)) {
+    comms::USB_CDC.printf("SPI Initialization Failed!\r\n");
+  } else {
+    comms::USB_CDC.printf("SPI Initialization Successful!\r\n");
+  }
+  line_sensor.init(1, spi0);
 
   while (true) {
     for (int i = 0; i < 48; i++) {
       uint16_t val = line_sensor.read_raw(i);
-      cdc->printf("Line sensor %d: %d\n", i, val);
+      cdc->printf("Line sensor %d: %d\r\n", i, val);
     }
     sleep_ms(1000);
   }
@@ -27,7 +34,6 @@ int main() {
   usb::CDC cdc = usb::CDC();
 
   cdc.init();
-  line_sensor.init(1, NULL);
 
   xTaskCreate(line_sensor_poll_task, "line_sensor_poll_task", 1024, &cdc, 10,
               NULL);
