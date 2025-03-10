@@ -86,7 +86,9 @@ add_global_library(pico_stdlib)
 # add tinyusb
 add_subdirectory(${PICO_TINYUSB_PATH}/src/ ${CMAKE_BINARY_DIR}/tinyusb)
 
-# add soniclib
+# ====================================================================================
+
+# ===================================== SONICLIB =====================================
 set(CHIRP_MAX_NUM_SENSORS 1 CACHE STRING "one sensor connected" FORCE)
 set(CHIRP_NUM_BUSES 1 CACHE STRING "one sensor connected" FORCE)
 set(INCLUDE_SHASTA_SUPPORT ON CACHE BOOL "using ICU sensors" FORCE)

@@ -9,5 +9,5 @@ target_sources(CH201
 pico_enable_stdio_usb(CH201 1)
 pico_enable_stdio_uart(CH201 0)
 target_include_directories(CH201 PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(CH201 soniclib)
-target_link_globals(CH201) 
+target_link_libraries(CH201 soniclib hardware_i2c)
+target_link_globals(CH201)
