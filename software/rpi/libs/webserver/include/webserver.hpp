@@ -58,23 +58,23 @@ public:
     int getViewerCount() const;
 
 private:
-    // Server configuration
+    // * Server configuration
     int m_port;
     int m_fps;
     std::atomic<bool> m_running;
     std::atomic<int> m_viewerCount;
     
-    // Frame data
+    // * Camera frame data
     cv::Mat m_currentFrame;
     std::vector<uchar> m_jpegBuffer;
     std::mutex m_frameMutex;
     
-    // Server thread
+    // * Libwebsocket server functions
     std::unique_ptr<std::thread> m_serverThread;
-    
-    // Implementation-specific private methods
     struct lws_context *m_context;
-    void serverLoop();
+    void runServer();
     static int handleLibwebsocketEvent(struct lws *wsi, enum lws_callback_reasons reason, 
                                       void *user, void *in, size_t len);
+
+    static struct lws_protocols protocols[2];
 };

@@ -6,7 +6,7 @@
 
 int main() {
     // Create a WebServer instance
-    WebServer server(9000, 30);
+    WebServer server(9000, 60);  
 
     // Start the server
     server.start();
