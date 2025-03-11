@@ -1,5 +1,7 @@
 #include "comms.hpp"
+#include "projdefs.h"
 #include "types.hpp"
+#include <cstddef>
 #include <hardware/gpio.h>
 #include <pico/time.h>
 #include "PMW3360.hpp"
@@ -7,6 +9,19 @@
 const types::u8 LED_PIN = 25;
 
 MouseSensor sensor;
+
+void led_blink_task(void *args){
+    gpio_init(LED_PIN);
+    gpio_set_dir(LED_PIN, GPIO_OUT);
+    gpio_put(LED_PIN, 1);
+
+    for(;;){
+        vTaskDelay(pdMS_TO_TICKS(500));
+        gpio_put(LED_PIN, 0);
+        vTaskDelay(pdMS_TO_TICKS(500));
+        gpio_put(LED_PIN, 1);
+    }
+}
 
 void mouse_sensor_task(void *args) {
 
@@ -23,19 +38,23 @@ void mouse_sensor_task(void *args) {
   comms::USB_CDC.printf("Mouse Sensor Initialised!\r\n");
   
   while (true) {
-      sleep_ms(500);
+      comms::USB_CDC.printf("DOING WHILE LOOP YAY \r\n");
+      //comms::USB_CDC.printf("YOOU MOM GA \r\n");
+      //vTaskDelay(pdMS_TO_TICKS(500));
+      busy_wait_ms(500);
+      comms::USB_CDC.printf("STOP SLEEPING >:( \r\n");
       sensor.read_motion_burst();
       types::u16 x_delta, y_delta, shutter;
       for(int j = 0;j < 12; j++){
-        comms::USB_CDC.printf("TERM %d: %d \r\n", j, sensor.motion_burst_buffer[j]);
+        comms::USB_CDC.printf("TERM %u: %u \r\n", j, sensor.motion_burst_buffer[j]);
       }
       x_delta = ((sensor.motion_burst_buffer[2] << 8) | sensor.motion_burst_buffer[3]);
       y_delta = ((sensor.motion_burst_buffer[4] << 8) | sensor.motion_burst_buffer[5]);
 
-      comms::USB_CDC.printf("X_L: %d | X_H: %d \r\n", sensor.motion_burst_buffer[2], sensor.motion_burst_buffer[3]);
-      comms::USB_CDC.printf("Y_L: %d | Y_H: %d \r\n", sensor.motion_burst_buffer[4], sensor.motion_burst_buffer[5]);
+      comms::USB_CDC.printf("X_L: %u | X_H: %u \r\n", sensor.motion_burst_buffer[2], sensor.motion_burst_buffer[3]);
+      comms::USB_CDC.printf("Y_L: %u | Y_H: %u \r\n", sensor.motion_burst_buffer[4], sensor.motion_burst_buffer[5]);
 
-      comms::USB_CDC.printf("X delta: %d | Y delta: %d \r\n", x_delta, y_delta);
+      comms::USB_CDC.printf("X delta: %u | Y delta: %u \r\n", x_delta, y_delta);
 
       //printf("Raw Data Sum: %d \n", sensor.motion_burst_buffer[7]);
       //printf("Minimum Raw Data: %d | Maximum Raw Data: %d \n", sensor.motion_burst_buffer[8], sensor.motion_burst_buffer[9]);
@@ -44,19 +63,12 @@ void mouse_sensor_task(void *args) {
 
       shutter = ((sensor.motion_burst_buffer[10] << 8) | sensor.motion_burst_buffer[11]);
 
+      
       //printf("Shutter Value: %d \n", shutter);
   }
 }
 
-void led_test(void *args) {
-  while (true) {
-    gpio_put(LED_PIN, 1);
-    // vTaskDelay(pdMS_TO_TICKS(500));
-    sleep_ms(500);
-    comms::USB_CDC.printf("hehe");
-    gpio_put(LED_PIN, 0);
-  }
-}
+
 
 int main() {
 
@@ -64,12 +76,12 @@ int main() {
   gpio_set_dir(LED_PIN, GPIO_OUT);
   gpio_put(LED_PIN, 1);
 
-  usb::CDC cdc = usb::CDC();
-  cdc.init();
+  comms::USB_CDC.init();
 
   //   xTaskCreate(mouse_sensor_task, "mouse_sensor_task", 1024, nullptr, 10, NULL);
 
-  xTaskCreate(mouse_sensor_task, "mouse_sensor_task", 1024, &cdc, 10, NULL);
+  xTaskCreate(led_blink_task, "led_blink_task", 1024, NULL, 10, NULL);
+  xTaskCreate(mouse_sensor_task, "mouse_sensor_task", 1024, NULL, 10, NULL);
   vTaskStartScheduler();
 
   //   comms::USB_CDC.init();

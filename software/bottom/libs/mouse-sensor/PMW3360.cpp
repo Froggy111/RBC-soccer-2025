@@ -1,3 +1,4 @@
+#include "projdefs.h"
 #include <cstdint>
 #include <pico/time.h>
 extern "C" {
@@ -135,17 +136,24 @@ void MouseSensor::init(int id, spi_inst_t *spi_obj_touse) {
   // Initialize SPI pins (except CS)
   //pinSelector.set_mouse_sensor_id(1);
   gpio_set_function(pinSelector.get_pin(SCLK), GPIO_FUNC_SPI);
+  comms::USB_CDC.printf("SPI SCLK ENABLED\n");
   gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
+  comms::USB_CDC.printf("SPI MOSI ENABLED\n");
   gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
+  comms::USB_CDC.printf("SPI MISO ENABLED\n");
 
   // Set SPI Object
   spi_obj = spi_obj_touse;
+  comms::USB_CDC.printf("SPI OBJ TRANSFERRED \n");
   // Initialize CS pin as GPIO
   inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS);
+  comms::USB_CDC.printf("INIT DIGITAL DONE");
 
   // Set SPI format
   spi_set_format(spi_obj, 8, SPI_CPOL_1, SPI_CPHA_1, SPI_MSB_FIRST);
+  comms::USB_CDC.printf("FORMAT SET");
   init_registers();
+  comms::USB_CDC.printf("REGS ENABLED");
 }
 
 void MouseSensor::init_pins() {
@@ -199,9 +207,13 @@ void MouseSensor::read_motion_burst() {
   uint8_t reg[1] = {MOTION_BURST};
 
   // Start burst mode - use 8-bit commands
+  comms::USB_CDC.printf("BEFORE FIRST WRITE \r\n");
   write8(reg[0], 20, -1); 
+  comms::USB_CDC.printf("AFTER FIRST WRITE \r\n");
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
+  comms::USB_CDC.printf("SET THE PIN TO 0 \r\n");
   spi_write_blocking(spi_obj, reg, 1); // 8-bit write
+  comms::USB_CDC.printf("I ALSO DONT KNOW \r\n");
 
   // T_SRAD delay (at least 35μs)
   busy_wait_us(35);
@@ -258,23 +270,32 @@ types::u16 MouseSensor::read_squal() {
 //! reading specific registers
 bool MouseSensor::init_registers() {
   // Step 1: Power-up reset
+  comms::USB_CDC.printf("HIHI \r\n");
   write8(POWER_UP_RESET, 0x5A, 0);
-
+  comms::USB_CDC.printf("1 \r\n");
   // Delay at least 50ms
   sleep_ms(50);
-
+  //vTaskDelay(pdMS_TO_TICKS(50));
+  comms::USB_CDC.printf("2 \r\n");
   // Step 2: Read motion register to clear it
   read8(MOTION);
+
+  comms::USB_CDC.printf("3 \r\n");
 
   // Step 3: SROM download sequence
   // First disable REST mode and prepare for SROM download
   write8(CONFIG2, 0x00, 0);
+  comms::USB_CDC.printf("4 \r\n");
   write8(SROM_ENABLE, 0x1D, 0);
+  comms::USB_CDC.printf("5 \r\n");
 
   // Wait 10ms
   sleep_ms(10);
+  //vTaskDelay(pdMS_TO_TICKS(10));
+  comms::USB_CDC.printf("6 \r\n");
 
   write8(SROM_ENABLE, 0x18, 0);
+  comms::USB_CDC.printf("7 \r\n");
 
   // Load the SROM firmware (this depends on the firmware - consult PMW3360 datasheet)
   // Usually involves writing multiple bytes to SROM_LOAD_BURST register
@@ -290,7 +311,9 @@ bool MouseSensor::init_registers() {
   // Begin SROM load
   uint8_t burst_cmd = SROM_LOAD_BURST;
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
+  comms::USB_CDC.printf("8\r\n");
   spi_write_blocking(spi_obj, &burst_cmd, 1);
+  comms::USB_CDC.printf("9\r\n");
 
   // Send all firmware bytes
   for (int i = 0; i < firmware_length; i++) {
@@ -298,15 +321,21 @@ bool MouseSensor::init_registers() {
     // Short delay between bytes if required
     busy_wait_us(15); // Check datasheet for exact timing
   }
+
   inputControl.write_digital(pinSelector.get_pin(CS), 1);
+  comms::USB_CDC.printf("10 \r\n");
 
   // Wait for the SROM to load
   sleep_ms(10);
+  //vTaskDelay(pdMS_TO_TICKS(10));
+  comms::USB_CDC.printf("11 \r\n");
 
   // Step 4: Configure sensor settings
   // Set CPI (counts per inch)
   write8(CONFIG5, 0x00, 0);
+  comms::USB_CDC.printf("12 \r\n");
   write8(CONFIG1, CONFIG1_RESET, 0);
+  comms::USB_CDC.printf("13 \r\n");
 
   //printf("Sensor initialization successful\n");
   return true;
