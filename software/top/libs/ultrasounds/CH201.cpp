@@ -6,14 +6,25 @@ extern "C" {
 }
 #include "CH201.hpp"
 #include "pinmap.hpp"
+#include "pins/MCP23S17.hpp"
 
-Ultrasound::init() {
+Ultrasound::group_init() {
+  dmux1.init(0, 0);
+  dmux2.init(1, 0);
+}
+
+Ultrasound::init(i2c_inst_t * i2c_inst, int device_id) {
+  i2c = i2c_inst;
+  id = device_id;
+
   // Configure I2C pins
   gpio_set_function(pinmap::Pico::I2C0_SDA, GPIO_FUNC_I2C);
   gpio_set_function(pinmap::Pico::I2C0_SCL, GPIO_FUNC_I2C);
   gpio_pull_up(pinmap::Pico::I2C0_SDA);
   gpio_pull_up(pinmap::Pico::I2C0_SCL);
 
-
-  
+  // Configure GPIO pins
+  gpio_init(pinmap::Pico::US_NRST);
+  gpio_set_dir(pinmap::Pico::US_NRST, GPIO_OUT);
 }
+
