@@ -73,6 +73,7 @@ add_compile_options(-UCFG_TUSB_OS -DCFG_TUSB_OS=OPT_OS_FREERTOS)
 
 # ====================================================================================
 # ===================================== SONICLIB =====================================
+# add_definitions(-DINCLUDE_WHITNEY_SUPPORT)
 set(CHIRP_MAX_NUM_SENSORS 1 CACHE STRING "one sensor connected" FORCE)
 set(CHIRP_NUM_BUSES 1 CACHE STRING "one sensor connected" FORCE)
 set(INCLUDE_SHASTA_SUPPORT ON CACHE BOOL "using ICU sensors" FORCE)

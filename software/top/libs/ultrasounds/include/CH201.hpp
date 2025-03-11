@@ -12,6 +12,8 @@ private:
   int id;
   i2c_inst_t *i2c;
 
+  // group vars
+  static ch_group_t ch201_group;
   static MCP23S17 *dmux1, *dmux2;
 
   /**
@@ -31,7 +33,12 @@ private:
   void set_int(uint8_t int_val, bool init = false);
 
 public:
+  /**
+   * @brief Group init, meant to be called before init.
+   * 
+   */
   static void group_init();
+  static void group_start();
 
   /**
    * @brief Init the dmux and the CH201 sensor
