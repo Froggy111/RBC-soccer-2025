@@ -11,8 +11,11 @@ set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
 if (EXISTS ${picoVscode})
   include(${picoVscode})
 endif()
-# ====================================================================================
 
+# warnings as errors, comment this out if needed
+add_compile_options(-Werror)
+
+# ====================================================================================
 # ================================= HELPER FUNCTIONS =================================
 # Initialize the global libraries list
 set(GLOBAL_LIBS "" CACHE INTERNAL "List of global libraries")
@@ -43,13 +46,11 @@ function(target_link_globals target_name)
     target_link_libraries(${target_name} ${lib})
   endforeach()
 endfunction()
-# ====================================================================================
 
+# ====================================================================================
 # ===================================== PICO SDK =====================================
 set(PICO_BOARD pico CACHE STRING "Board type")
 
-# use external tinyusb (picosdk provided tinyusb hardcodes CFG_TUSB_OS as OPT_OS_PICO, but we want OPT_OS_FREERTOS)
-# if testing without comms lib and freertos, comment this out
 set(PICO_SDK_TINYUSB_PATH "")
 set(PICO_TINYUSB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../external/tinyusb")
 
@@ -58,36 +59,25 @@ cmake_minimum_required(VERSION 3.23)
 include(pico_sdk_import.cmake)
 
 # Metadata
-project(top C CXX ASM)
+project(bottom C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
 # Init PicoSDK
 set(PICOTOOL_FORCE_FETCH_FROM_GIT ON)
 pico_sdk_init()
-# ====================================================================================
 
+# HACK: use external tinyusb (picosdk provided tinyusb hardcodes CFG_TUSB_OS as OPT_OS_PICO, but we want OPT_OS_FREERTOS)
+# HACK: if testing without comms lib and freertos, comment this out
+add_compile_options(-UCFG_TUSB_OS -DCFG_TUSB_OS=OPT_OS_FREERTOS)
+
+# ====================================================================================
 # ===================================== FREERTOS =====================================
-# event driven tusb tasks
-# HACK: picosdk injects -DCFG_TUSB_OS=OPT_OS_PICO to compilation commands, thus this is needed
-#add_compile_options(-DCFG_TUSB_OS=OPT_OS_FREERTOS)
-
 # FreeRTOS
-# if(NOT DEFINED FREERTOS_KERNEL_PATH)
-#   set(FREERTOS_KERNEL_PATH ${CMAKE_SOURCE_DIR}/external/freertos)
-# endif()
-# include(${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2040/FreeRTOS_Kernel_import.cmake)
-# ====================================================================================
-
-add_global_library(pico_stdlib)
-# add_global_library(pico_stdio_usb) # only include this for testing without using our own comms lib
-#add_global_library(FreeRTOS-Kernel-Heap4)
-
-# add tinyusb
-add_subdirectory(${PICO_TINYUSB_PATH}/src/ ${CMAKE_BINARY_DIR}/tinyusb)
+set(FREERTOS_KERNEL_PATH ${CMAKE_SOURCE_DIR}/../external/freertos)
+include(FreeRTOS_Kernel_import.cmake)
 
 # ====================================================================================
-
 # ===================================== SONICLIB =====================================
 set(CHIRP_MAX_NUM_SENSORS 1 CACHE STRING "one sensor connected" FORCE)
 set(CHIRP_NUM_BUSES 1 CACHE STRING "one sensor connected" FORCE)
@@ -97,7 +87,16 @@ set(CHIRP_SENSOR_TRIG_PIN 1 CACHE STRING "use INT1 in freerun mode" FORCE)
 set(CHIRP_INIT_FW_TYPE "NO_TX_OPTIMIZATION" CACHE STRING "using fw presencev2" FORCE)
 set(CHIRP_LOG_LEVEL 2 CACHE STRING "log=info" FORCE)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../external/ultrasonic.soniclib ${CMAKE_BINARY_DIR}/ultrasonic.soniclib)
+
+# ====================================================================================
 add_global_library(soniclib)
+add_global_library(pico_stdlib)
+# add_global_library(pico_stdio_usb) # only include this for testing without using our own comms lib
+add_global_library(pico_async_context_freertos)
+add_global_library(FreeRTOS-Kernel-Heap4)
+
+# add tinyusb
+add_subdirectory(${PICO_TINYUSB_PATH}/src/ ${CMAKE_BINARY_DIR}/tinyusb)
 
 # configs
 add_subdirectory(configs)

@@ -1,12 +1,35 @@
 #include "comms.hpp"
 #include "types.hpp"
-#include "CH201.hpp"  
+#include "CH201.hpp"
+#include <hardware/i2c.h>
+#include <hardware/spi.h>
 
 using namespace types;
 
 const u8 LED_PIN = 25;
 
-// remember to init!
+Ultrasound ultrasound_group[16];
+
+void ultrasounds_poll_task(void *args) {
+  usb::CDC *cdc = (usb::CDC *)args;
+  cdc->wait_for_CDC_connection(0xFFFFFFFF);
+
+  // Initialize SPI bus 0
+  if (!spi_init(spi0, 1000000)) {
+    comms::USB_CDC.printf("SPI Initialization Failed!\r\n");
+    return;
+  } else {
+    comms::USB_CDC.printf("SPI Initialization Successful!\r\n");
+  }
+
+  // Initialize I2C bus 0
+  if (!i2c_init(i2c0, 100000)) {
+    comms::USB_CDC.printf("I2C Initialization Failed!\r\n");
+    return;
+  } else {
+    comms::USB_CDC.printf("I2C Initialization Successful!\r\n");
+  }
+}
 
 int main() {
   gpio_init(LED_PIN);
