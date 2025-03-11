@@ -172,7 +172,7 @@ void MouseSensor::write8(uint8_t reg, uint8_t value, int8_t expected) {
 }
 
 uint8_t MouseSensor::read8(uint8_t reg) {
-  types::u8 buffer[2] = {(types::u8)(reg & 0x7F), 0x00};
+  types::u8 buffer = (types::u8)(reg & 0x7F);
   types::u8 response = 27;
 
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
