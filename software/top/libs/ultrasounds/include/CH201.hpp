@@ -18,6 +18,8 @@ public:
     static void group_init();
     void init(uint8_t id, uint8_t baudrate);
 
+    void reset();
+
     void set_max_range(uint8_t dist);
 
     void set_mode(ch_mode_t req_mode);

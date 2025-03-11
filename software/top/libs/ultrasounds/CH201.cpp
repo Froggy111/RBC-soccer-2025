@@ -26,5 +26,14 @@ Ultrasound::init(i2c_inst_t * i2c_inst, int device_id) {
   // Configure GPIO pins
   gpio_init(pinmap::Pico::US_NRST);
   gpio_set_dir(pinmap::Pico::US_NRST, GPIO_OUT);
+
+  // * Load firmware to CH201
+  
 }
 
+Ultrasound::reset() {
+  gpio_put(pinmap::Pico::US_NRST, 0);
+  sleep_ms(1);
+  gpio_put(pinmap::Pico::US_NRST, 1);
+  sleep_ms(1);
+}
