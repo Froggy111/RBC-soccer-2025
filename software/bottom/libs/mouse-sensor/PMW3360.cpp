@@ -180,7 +180,7 @@ uint8_t MouseSensor::read8(uint8_t reg) {
   //std::this_thread::sleep_for(std::chrono::nanoseconds(120));
   busy_wait_us(1);
   
-  spi_write_blocking(spi_obj, buffer, 1);
+  spi_write_blocking(spi_obj, &buffer, 1);
   busy_wait_us(160); //atleast 160 us
   spi_read_blocking(spi_obj, 0x00, &response, 1);
   inputControl.write_digital(pinSelector.get_pin(CS), 1);
