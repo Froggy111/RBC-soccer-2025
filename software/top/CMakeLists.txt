@@ -72,12 +72,6 @@ pico_sdk_init()
 add_compile_options(-UCFG_TUSB_OS -DCFG_TUSB_OS=OPT_OS_FREERTOS)
 
 # ====================================================================================
-# ===================================== FREERTOS =====================================
-# FreeRTOS
-set(FREERTOS_KERNEL_PATH ${CMAKE_SOURCE_DIR}/../external/freertos)
-include(FreeRTOS_Kernel_import.cmake)
-
-# ====================================================================================
 # ===================================== SONICLIB =====================================
 set(CHIRP_MAX_NUM_SENSORS 1 CACHE STRING "one sensor connected" FORCE)
 set(CHIRP_NUM_BUSES 1 CACHE STRING "one sensor connected" FORCE)
@@ -87,6 +81,12 @@ set(CHIRP_SENSOR_TRIG_PIN 1 CACHE STRING "use INT1 in freerun mode" FORCE)
 set(CHIRP_INIT_FW_TYPE "NO_TX_OPTIMIZATION" CACHE STRING "using fw presencev2" FORCE)
 set(CHIRP_LOG_LEVEL 2 CACHE STRING "log=info" FORCE)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../external/ultrasonic.soniclib ${CMAKE_BINARY_DIR}/ultrasonic.soniclib)
+
+# ====================================================================================
+# ===================================== FREERTOS =====================================
+add_compile_options(-UCFG_TUSB_OS -DCFG_TUSB_OS=OPT_OS_FREERTOS)
+set(FREERTOS_KERNEL_PATH ${CMAKE_SOURCE_DIR}/../external/freertos)
+include(FreeRTOS_Kernel_import.cmake)
 
 # ====================================================================================
 add_global_library(soniclib)
