@@ -9,20 +9,49 @@ class Ultrasound {
 
 private:
   ch_dev_t ch201_sensor;
-  int device_id;
+  int id;
   i2c_inst_t *i2c;
 
-  static MCP23S17* dmux1, dmux2;
+  static MCP23S17 *dmux1, *dmux2;
+
+  /**
+   * @brief Set the prog pin based on the device ID
+   * 
+   * @param prog 
+   * @param init 
+   */
+  void set_prog(uint8_t prog, bool init = false);
+
+  /**
+   * @brief Set the int pin based on the device ID
+   * 
+   * @param int_val 
+   * @param init 
+   */
+  void set_int(uint8_t int_val, bool init = false);
 
 public:
-    static void group_init();
-    void init(uint8_t id, uint8_t baudrate);
+  static void group_init();
 
-    void reset();
+  /**
+   * @brief Init the dmux and the CH201 sensor
+   * 
+   * @param i2c_inst 
+   * @param us_id (1-indexed)
+   */
+  void init(i2c_inst_t *i2c_inst, int us_id);
 
-    void set_max_range(uint8_t dist);
+  /**
+   * @brief Reset the CH201
+   * 
+   */
+  void reset();
 
-    void set_mode(ch_mode_t req_mode);
-
-    uint32_t get_dist(ch_range_t req_range);
-}
+  /**
+   * @brief Get the distance that the ch201 senses
+   * 
+   * @param req_range 
+   * @return uint32_t 
+   */
+  uint32_t get_dist(ch_range_t req_range);
+};
