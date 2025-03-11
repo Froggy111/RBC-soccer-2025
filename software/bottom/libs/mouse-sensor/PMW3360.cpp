@@ -196,11 +196,12 @@ uint8_t MouseSensor::read8(uint8_t reg) {
 //read_motion_burst return 12 bytes (description in datasheet)
 //The data is written into the array whose pointer is passed into the function as a parameter
 void MouseSensor::read_motion_burst() {
-  uint8_t reg = MOTION_BURST;
+  uint8_t reg[1] = {MOTION_BURST};
 
   // Start burst mode - use 8-bit commands
+  write8(reg[0], 20, -1); 
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
-  spi_write_blocking(spi_obj, &reg, 1); // 8-bit write
+  spi_write_blocking(spi_obj, reg, 1); // 8-bit write
 
   // T_SRAD delay (at least 35μs)
   busy_wait_us(35);
@@ -209,7 +210,7 @@ void MouseSensor::read_motion_burst() {
   uint8_t temp_buffer[12];
   spi_read_blocking(spi_obj, 0, temp_buffer, 12); // 8-bit reads
 
-  // Copy to buffer (assuming motion_burst_buffer is uint16_t[])
+  // Copy to buffer (assuming motion_burst_buffer is uint8_t[])
   for (int i = 0; i < 12; i++) {
     motion_burst_buffer[i] = temp_buffer[i];
   }
