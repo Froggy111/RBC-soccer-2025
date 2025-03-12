@@ -32,12 +32,19 @@ private:
    */
   void set_int(uint8_t int_val, bool init = false);
 
+  static void sensor_int_callback(ch_group_t *grp_ptr, uint8_t io_index);
+
 public:
   /**
-   * @brief Group init, meant to be called before init.
+   * @brief Group init, meant to be called before individual inits.
    * 
    */
   static void group_init();
+
+  /**
+   * @brief Group start, meant to be called last.
+   * 
+   */
   static void group_start();
 
   /**
@@ -53,12 +60,4 @@ public:
    * 
    */
   void reset();
-
-  /**
-   * @brief Get the distance that the ch201 senses
-   * 
-   * @param req_range 
-   * @return uint32_t 
-   */
-  uint32_t get_dist(ch_range_t req_range);
 };
