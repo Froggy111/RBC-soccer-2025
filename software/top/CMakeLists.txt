@@ -73,15 +73,14 @@ add_compile_options(-UCFG_TUSB_OS -DCFG_TUSB_OS=OPT_OS_FREERTOS)
 
 # ====================================================================================
 # ===================================== SONICLIB =====================================
-# add_definitions(-DINCLUDE_WHITNEY_SUPPORT)
-set(CHIRP_MAX_NUM_SENSORS 1 CACHE STRING "one sensor connected" FORCE)
+set(CHIRP_MAX_NUM_SENSORS 16 CACHE STRING "one sensor connected" FORCE)
 set(CHIRP_NUM_BUSES 1 CACHE STRING "one sensor connected" FORCE)
-set(INCLUDE_SHASTA_SUPPORT ON CACHE BOOL "using ICU sensors" FORCE)
-set(CHIRP_SENSOR_INT_PIN 1 CACHE STRING "use INT1 in freerun mode" FORCE)
-set(CHIRP_SENSOR_TRIG_PIN 1 CACHE STRING "use INT1 in freerun mode" FORCE)
+set(CHIRP_SENSOR_INT_PIN 0 CACHE STRING "use INT1 in freerun mode" FORCE)
+set(CHIRP_SENSOR_TRIG_PIN 0 CACHE STRING "use INT1 in freerun mode" FORCE)
 set(CHIRP_INIT_FW_TYPE "NO_TX_OPTIMIZATION" CACHE STRING "using fw presencev2" FORCE)
+set(CHIRP_MAIN_FW_TYPE "CH201_GPRMT" CACHE STRING "using CH201_GPRMT firmware" FORCE)
 set(CHIRP_LOG_LEVEL 2 CACHE STRING "log=info" FORCE)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../external/ultrasonic.soniclib ${CMAKE_BINARY_DIR}/ultrasonic.soniclib)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../external/ultrasonic.soniclib/ ${CMAKE_BINARY_DIR}/ultrasonic.soniclib)
 
 # ====================================================================================
 # ===================================== FREERTOS =====================================
