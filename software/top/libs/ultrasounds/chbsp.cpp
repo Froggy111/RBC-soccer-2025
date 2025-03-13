@@ -14,6 +14,12 @@ MCP23S17 *dmux1 = new MCP23S17();
 MCP23S17 *dmux2 = new MCP23S17();
 
 extern "C" {
+void chbsp_print_str(const char *str) { printf("%s", str); }
+
+void chbsp_debug_toggle(uint8_t dbg_pin_num) {
+  // Not used in this implementation
+}
+
 
 // Reset Functions (CH101/CH201)
 void chbsp_reset_assert(void) { gpio_put((uint)pinmap::Pico::US_NRST, 0); }
@@ -45,7 +51,6 @@ void chbsp_program_disable(ch_dev_t *dev_ptr) {
   }
 }
 
-// INT1 Direction Control
 void chbsp_set_int1_dir_out(ch_dev_t *dev_ptr) {
   uint8_t id = ch_get_dev_num(dev_ptr);
 
@@ -67,7 +72,6 @@ void chbsp_group_set_int1_dir_out(ch_group_t *grp_ptr) {
   }
 }
 
-// INT1 State Control
 void chbsp_int1_clear(ch_dev_t *dev_ptr) {
   uint8_t id = ch_get_dev_num(dev_ptr);
 
@@ -85,6 +89,26 @@ void chbsp_group_int1_clear(ch_group_t *grp_ptr) {
     ch_dev_t *dev_ptr = ch_get_dev_ptr(grp_ptr, i);
     if (dev_ptr != NULL) {
       chbsp_int1_clear(dev_ptr);
+    }
+  }
+}
+
+void chbsp_int1_set(ch_dev_t *dev_ptr) {
+  uint8_t id = ch_get_dev_num(dev_ptr);
+
+  // Use the same pin selection logic as in chbsp_int1_clear
+  if (id >= 1 && id <= 8) {
+    dmux1->write_gpio((id - 1) % 4 * 2, id >= 1 && id <= 4, 1);  // Set high (1)
+  } else if (id >= 9 && id <= 16) {
+    dmux2->write_gpio((id - 1) % 4 * 2, id >= 9 && id <= 12, 1);  // Set high (1)
+  }
+}
+
+void chbsp_group_int1_set(ch_group_t *grp_ptr) {
+  for (uint8_t i = 0; i < grp_ptr->num_ports; i++) {
+    ch_dev_t *dev_ptr = ch_get_dev_ptr(grp_ptr, i);
+    if (dev_ptr != NULL) {
+      chbsp_int1_set(dev_ptr);
     }
   }
 }
