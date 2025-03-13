@@ -204,7 +204,8 @@ uint8_t MouseSensor::read8(uint8_t reg) {
 //read_motion_burst return 12 bytes (description in datasheet)
 //The data is written into the array whose pointer is passed into the function as a parameter
 void MouseSensor::read_motion_burst() {
-  uint8_t reg[1] = {MOTION_BURST};
+  uint8_t reg[1] = {(MOTION_BURST | 0x80)};
+  //uint8_t some_buffer[2] = {(MOTION_BURST | 0x80), MOTION_BURST};
 
   // Start burst mode - use 8-bit commands
   comms::USB_CDC.printf("BEFORE FIRST WRITE \r\n");
