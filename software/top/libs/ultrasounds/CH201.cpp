@@ -20,16 +20,22 @@ extern "C" {
 
 ch_group_t Ultrasound::ch201_group;
 
-void Ultrasound::group_init() {
+bool Ultrasound::group_init() {
   chbsp_init();
   if (ch_group_init(&ch201_group, 16, 1,
                     CH201_RTC_PULSE_SEQUENCE_TIME_LENGTH)) {
-    comms::USB_CDC.printf("CH201 group init failed\n");
+    comms::USB_CDC.printf("CH201 group init failed\r\n");
+    return false;
   }
+  return true;
 }
 
-void Ultrasound::group_start() {
-  ch_group_start(&ch201_group);
+bool Ultrasound::group_start() {
+  if (ch_group_start(&ch201_group)) {
+    comms::USB_CDC.printf("CH201 group start failed\r\n");
+    return false;
+  }
+
   while (true) {
     // TODO: Reuse this
     // for (int i = 0; i < CH201_COUNT; i++)
@@ -39,7 +45,7 @@ void Ultrasound::group_start() {
   }
 }
 
-void Ultrasound::init(int us_id) {
+bool Ultrasound::init(int us_id) {
   id = us_id;
 
   //* PIN CONFIGURATION
@@ -49,15 +55,28 @@ void Ultrasound::init(int us_id) {
 
   //* ULTRASOUND INITIALIZATION
   // initialize using soniclib
-  ch_init(&ch201_sensor, &ch201_group, CH201_COUNT, ch201_gprmt_init);
-  ch_set_init_firmware(&ch201_sensor, ch201_gprmt_init);
+  if (ch_init(&ch201_sensor, &ch201_group, CH201_COUNT, ch201_gprmt_init)) {
+    comms::USB_CDC.printf("CH201 init failed\r\n");
+    return false;
+  }
+  if (ch_set_init_firmware(&ch201_sensor, ch201_gprmt_init)) {
+    comms::USB_CDC.printf("CH201 set init firmware failed\r\n");
+    return false;
+  }
 
   // set to free running mode
-  ch_set_freerun_interval(&ch201_sensor, CH201_FREERUN_INTERVAL);
-  ch_set_mode(&ch201_sensor, CH_MODE_FREERUN);
+  if (ch_set_freerun_interval(&ch201_sensor, CH201_FREERUN_INTERVAL)) {
+    comms::USB_CDC.printf("CH201 set freerun interval failed\r\n");
+    return false;
+  }
+  if (ch_set_mode(&ch201_sensor, CH_MODE_FREERUN)) {
+    comms::USB_CDC.printf("CH201 set mode failed\r\n");
+    return false;
+  }
 
   // set the interrupts
   // ch_io_int_callback_set(&ch201_group, sensor_int_callback);
+  return true;
 }
 
 void Ultrasound::sensor_int_callback(ch_group_t *grp_ptr, uint8_t io_index) {

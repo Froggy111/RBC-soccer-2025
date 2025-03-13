@@ -33,20 +33,20 @@ public:
    * @brief Group init, called first to initialize the ch201 group.
    * 
    */
-  static void group_init();
+  static bool group_init();
 
   /**
    * @brief Init the dmux and the CH201 sensor, called after group_init and before group_start.
    * 
    * @param us_id (1-indexed)
    */
-   void init(int us_id);
+   bool init(int us_id);
 
   /**
    * @brief Group start, called last to start the ch201 group.
    * 
    */
-  static void group_start();
+  static bool group_start();
 
   /**
    * @brief Reset the CH201

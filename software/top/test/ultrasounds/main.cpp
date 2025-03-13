@@ -36,16 +36,25 @@ void ultrasounds_poll_task(void *args) {
   }
 
   // group init
-  Ultrasound::group_init();
+  if (!Ultrasound::group_init()) {
+    comms::USB_CDC.printf("Ultrasound group init failed\r\n");
+    return;
+  }
 
   // init ultrasounds
   for (int i = 1; i <= 16; i++) {
     ultrasound_group[i] = new Ultrasound();
-    ultrasound_group[i]->init(i);
+    if (!ultrasound_group[i]->init(i)) {
+      comms::USB_CDC.printf("Ultrasound %d init failed\r\n", i);
+      return;
+    }
   }
 
   // group start
-  Ultrasound::group_start();
+  if (!Ultrasound::group_start()) {
+    comms::USB_CDC.printf("Ultrasound group start failed\r\n");
+    return;
+  }
 }
 
 int main() {
