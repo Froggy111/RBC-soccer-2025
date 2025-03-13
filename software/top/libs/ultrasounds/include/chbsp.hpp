@@ -5,6 +5,8 @@ extern "C" {
 #include <invn/soniclib/soniclib.h>
 #include <invn/soniclib/chirp_bsp.h>
 
+void chbsp_init();
+
 // * Debug/Print functions
 void chbsp_print_str(const char *str);
 void chbsp_debug_toggle(uint8_t dbg_pin_num);
@@ -27,9 +29,11 @@ void chbsp_delay_us(uint32_t us);
 void chbsp_delay_ms(uint32_t ms);
 uint32_t chbsp_timestamp_ms(void);
 int chbsp_i2c_write(ch_dev_t *dev_ptr, const uint8_t *data, uint16_t num_bytes);
-int chbsp_i2c_mem_write(ch_dev_t *dev_ptr, uint16_t mem_addr, uint8_t *data, uint16_t num_bytes);
+int chbsp_i2c_mem_write(ch_dev_t *dev_ptr, uint16_t mem_addr, uint8_t *data,
+                        uint16_t num_bytes);
 int chbsp_i2c_read(ch_dev_t *dev_ptr, uint8_t *data, uint16_t num_bytes);
-int chbsp_i2c_mem_read(ch_dev_t *dev_ptr, uint16_t mem_addr, uint8_t *data, uint16_t num_bytes);
+int chbsp_i2c_mem_read(ch_dev_t *dev_ptr, uint16_t mem_addr, uint8_t *data,
+                       uint16_t num_bytes);
 
 // * SPI communication
 void chbsp_spi_cs_on(ch_dev_t *dev_ptr);
@@ -38,7 +42,8 @@ int chbsp_spi_write(ch_dev_t *dev_ptr, const uint8_t *data, uint16_t num_bytes);
 
 // * I2C control
 void chbsp_i2c_reset(ch_dev_t *dev_ptr);
-uint8_t chbsp_i2c_get_info(ch_group_t *grp_ptr, uint8_t dev_num, ch_i2c_info_t *info_ptr);
+uint8_t chbsp_i2c_get_info(ch_group_t *grp_ptr, uint8_t dev_num,
+                           ch_i2c_info_t *info_ptr);
 }
 
 class MCP23S17;

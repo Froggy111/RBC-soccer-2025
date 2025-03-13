@@ -24,6 +24,22 @@ void chbsp_debug_toggle(uint8_t dbg_pin_num) {
   // NOT USED
 }
 
+// Init Pins
+void chbsp_init() {
+  // Initialize DMUX
+  dmux1->init(1, spi0);
+  dmux2->init(2, spi0);
+
+  // Init all dmux pins to output
+  for (int i = 0; i < 32; i++) {
+    if (i < 16) {
+      dmux1->init_gpio(i % 8, i < 8, 1);
+    } else {
+      dmux2->init_gpio(i % 8, i < 24, 1);
+    }
+  }
+}
+
 // Reset Functions (CH101/CH201)
 void chbsp_reset_assert(void) { gpio_put((uint)pinmap::Pico::US_NRST, 0); }
 
@@ -154,20 +170,6 @@ int chbsp_i2c_init(void) {
   // Configure GPIO pins
   gpio_init((uint)pinmap::Pico::US_NRST);
   gpio_set_dir((uint)pinmap::Pico::US_NRST, GPIO_OUT);
-
-  // Initialize DMUX
-  dmux1->init(1, spi0);
-  dmux2->init(2, spi0);
-
-  // Init all dmux pins to output
-  for (int i = 0; i < 32; i++) {
-    if (i < 16) {
-      dmux1->init_gpio(i, i < 8, 1);
-    } else {
-      dmux2->init_gpio(i, i < 24, 1);
-    }
-  }
-
   return 0;
 }
 

@@ -72,11 +72,13 @@ void MCP23S17::init(types::u8 device_id, spi_inst_t *spi_obj_touse) {
 
 void MCP23S17::init_pins() {
   // Initialize RESET
-  gpio_init((uint)pinmap::Pico::DMUX1_NRST);
-  gpio_set_dir((uint)pinmap::Pico::DMUX1_NRST, GPIO_OUT);
-
-  gpio_init((uint)pinmap::Pico::DMUX2_NRST);
-  gpio_set_dir((uint)pinmap::Pico::DMUX2_NRST, GPIO_OUT);
+  if (id == 1) {
+    gpio_init((uint)pinmap::Pico::DMUX1_NRST);
+    gpio_set_dir((uint)pinmap::Pico::DMUX1_NRST, GPIO_OUT);
+  } else {
+    gpio_init((uint)pinmap::Pico::DMUX2_NRST);
+    gpio_set_dir((uint)pinmap::Pico::DMUX2_NRST, GPIO_OUT);
+  }
 
   // TODO: initialize INTA
 }
@@ -99,6 +101,7 @@ void MCP23S17::write8(uint8_t device_address, uint8_t reg_address, uint8_t data,
                         (uint8_t)((current & ~mask) | (data & mask))};
 
   gpio_put((uint)pinmap::Pico::DMUX_SCS, 0);
+  sleep_us(1);
   spi_write_blocking(spi_obj, tx_data, 3);
   gpio_put((uint)pinmap::Pico::DMUX_SCS, 1);
 
@@ -126,6 +129,7 @@ uint8_t MCP23S17::read8(uint8_t device_address, uint8_t reg_address) {
   uint8_t rx_data;
 
   gpio_put((uint)pinmap::Pico::DMUX_SCS, 0);
+  sleep_us(1);
   spi_write_blocking(spi_obj, tx_data, 2);
   spi_read_blocking(spi_obj, 0xFF, &rx_data, 1);
   gpio_put((uint)pinmap::Pico::DMUX_SCS, 1);
@@ -160,7 +164,7 @@ void MCP23S17::reset() {
 
 void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
   if (pin < 0 || pin > 7) {
-    comms::USB_CDC.printf("Error: Invalid pin number\r\n");
+    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
     return;
   }
 
@@ -172,7 +176,7 @@ void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
 
 void MCP23S17::write_gpio(uint8_t pin, bool on_A, bool value) {
   if (pin < 0 || pin > 7) {
-    comms::USB_CDC.printf("Error: Invalid pin number\r\n");
+    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
     return;
   }
 
@@ -199,7 +203,7 @@ void MCP23S17::write_gpio(uint8_t pin, bool on_A, bool value) {
 
 bool MCP23S17::read_gpio(uint8_t pin, bool on_A) {
   if (pin < 0 || pin > 7) {
-    comms::USB_CDC.printf("Error: Invalid pin number\r\n");
+    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
     return false;
   }
 

@@ -1,3 +1,4 @@
+#include <pico/time.h>
 extern "C" {
 #include <pico/stdlib.h>
 
@@ -8,6 +9,7 @@ extern "C" {
 
 #include "hardware/gpio.h"
 }
+#include "chbsp.hpp"
 #include "CH201.hpp"
 #include "pinmap.hpp"
 #include "comms.hpp"
@@ -19,6 +21,7 @@ extern "C" {
 ch_group_t Ultrasound::ch201_group;
 
 void Ultrasound::group_init() {
+  chbsp_init();
   if (ch_group_init(&ch201_group, 16, 1,
                     CH201_RTC_PULSE_SEQUENCE_TIME_LENGTH)) {
     comms::USB_CDC.printf("CH201 group init failed\n");
@@ -32,6 +35,7 @@ void Ultrasound::group_start() {
     // for (int i = 0; i < CH201_COUNT; i++)
     //   sensor_int_callback(&ch201_group, i);
     sensor_int_callback(&ch201_group, 1);
+    sleep_ms(1000);
   }
 }
 
@@ -61,8 +65,8 @@ void Ultrasound::sensor_int_callback(ch_group_t *grp_ptr, uint8_t io_index) {
   ch_dev_t *dev_ptr = ch_get_dev_ptr(grp_ptr, io_index);
   if (dev_ptr != NULL) {
     int distance = ch_get_range(dev_ptr, CH_RANGE_ECHO_ONE_WAY);
-    // comms::USB_CDC.printf("Distance: %d mm\r\n", distance);
+    comms::USB_CDC.printf("Distance: %d mm\r\n", distance);
   } else {
-    // comms::USB_CDC.printf("Error: Could not get reading as dev_ptr is NULL\r\n");
+    comms::USB_CDC.printf("Error: Could not get reading as dev_ptr is NULL\r\n");
   }
 }
