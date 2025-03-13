@@ -31,6 +31,17 @@ bool Ultrasound::group_init() {
     comms::USB_CDC.printf("CH201 group init failed\r\n");
     return false;
   }
+
+  //* PIN CONFIGURATION
+  // init GPIO pins
+  gpio_init((uint)pinmap::Pico::US_NRST);
+  gpio_set_dir((uint)pinmap::Pico::US_NRST, GPIO_OUT);
+
+  // manually reset
+  gpio_put((uint)pinmap::Pico::US_NRST, 0); // Assert reset
+  sleep_ms(2);
+  gpio_put((uint)pinmap::Pico::US_NRST, 1); // Release reset
+
   return true;
 }
 
@@ -51,16 +62,6 @@ bool Ultrasound::group_start() {
 
 bool Ultrasound::init(int us_id) {
   id = us_id;
-
-  //* PIN CONFIGURATION
-  // init GPIO pins
-  gpio_init((uint)pinmap::Pico::US_NRST);
-  gpio_set_dir((uint)pinmap::Pico::US_NRST, GPIO_OUT);
-
-  // manually reset
-  gpio_put((uint)pinmap::Pico::US_NRST, 0); // Assert reset
-  sleep_ms(2);
-  gpio_put((uint)pinmap::Pico::US_NRST, 1); // Release reset
 
   //* ULTRASOUND INITIALIZATION
   ch201_sensor.io_index = id - 1;
