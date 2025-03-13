@@ -24,12 +24,14 @@ set(SONICLIB_SOURCES ${SONICLIB_SOURCES}
 add_library(CH201)
 target_sources(CH201
   PRIVATE
-    chbsp.cpp
     CH201.cpp
+    chbsp.cpp
+    pin_selector.cpp
     ${SONICLIB_SOURCES}
   PUBLIC
     include/CH201.hpp
     include/chbsp.hpp
+    include/pin_selector.hpp
 )
 
 # Include directories for your code and SonicLib

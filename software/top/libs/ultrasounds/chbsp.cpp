@@ -1,5 +1,6 @@
 #include "pinmap.hpp"
 #include "pins/MCP23S17.hpp"
+#include <cstdint>
 #include <hardware/gpio.h>
 
 extern "C" {
@@ -10,6 +11,7 @@ extern "C" {
 }
 
 #include "comms.hpp"
+#include "pin_selector.hpp"
 
 // Global DMUX instances
 MCP23S17 *dmux1 = new MCP23S17();
@@ -31,36 +33,50 @@ void chbsp_reset_release(void) { gpio_put((uint)pinmap::Pico::US_NRST, 1); }
 void chbsp_program_enable(ch_dev_t *dev_ptr) {
   uint8_t id = ch_get_dev_num(dev_ptr);
 
-  // TODO: Check if id is within that range
-  // TODO: FIX PIN SELECTION DUE TO WEIRD SCHEMATIC
-  if (id >= 1 && id <= 8) {
-    dmux1->write_gpio((id - 1) % 4 * 2 + 1, id >= 1 && id <= 4, 1);
-  } else if (id >= 9 && id <= 16) {
-    dmux2->write_gpio((id - 1) % 4 * 2 + 1, id >= 9 && id <= 12, 1);
+  int dmux_id, dmux_gpio_pin_no;
+  bool dmux_on_A;
+
+  DMUX_SELECTOR::select_dmux_pin(DMUX_SELECTOR::PIN_TYPE::PROG, id, dmux_id,
+                                 dmux_gpio_pin_no, dmux_on_A);
+  if (dmux_id == 1) {
+    dmux1->init_gpio(dmux_gpio_pin_no, dmux_on_A, 1);
+    dmux1->write_gpio(dmux_gpio_pin_no, dmux_on_A, 1);
+  } else if (dmux_id == 2) {
+    dmux2->init_gpio(dmux_gpio_pin_no, dmux_on_A, 1);
+    dmux2->write_gpio(dmux_gpio_pin_no, dmux_on_A, 1);
   }
 }
 
 void chbsp_program_disable(ch_dev_t *dev_ptr) {
   uint8_t id = ch_get_dev_num(dev_ptr);
 
-  // TODO: Check if id is within that range
-  // TODO: FIX PIN SELECTION DUE TO WEIRD SCHEMATIC
-  if (id >= 1 && id <= 8) {
-    dmux1->write_gpio((id - 1) % 4 * 2 + 1, id >= 1 && id <= 4, 0);
-  } else if (id >= 9 && id <= 16) {
-    dmux2->write_gpio((id - 1) % 4 * 2 + 1, id >= 9 && id <= 12, 0);
+  int dmux_id, dmux_gpio_pin_no;
+  bool dmux_on_A;
+
+  DMUX_SELECTOR::select_dmux_pin(DMUX_SELECTOR::PIN_TYPE::PROG, id, dmux_id,
+                                 dmux_gpio_pin_no, dmux_on_A);
+  if (dmux_id == 1) {
+    dmux1->init_gpio(dmux_gpio_pin_no, dmux_on_A, 1);
+    dmux1->write_gpio(dmux_gpio_pin_no, dmux_on_A, 0);
+  } else if (dmux_id == 2) {
+    dmux2->init_gpio(dmux_gpio_pin_no, dmux_on_A, 1);
+    dmux2->write_gpio(dmux_gpio_pin_no, dmux_on_A, 0);
   }
 }
 
 void chbsp_set_int1_dir_out(ch_dev_t *dev_ptr) {
   uint8_t id = ch_get_dev_num(dev_ptr);
 
-  // TODO: Check if id is within that range
-  // TODO: FIX PIN SELECTION DUE TO WEIRD SCHEMATIC
-  if (id >= 1 && id <= 8) {
-    dmux1->init_gpio((id - 1) % 4 * 2, id >= 1 && id <= 4, 1);
-  } else if (id >= 9 && id <= 16) {
-    dmux2->init_gpio((id - 1) % 4 * 2, id >= 9 && id <= 12, 1);
+  int dmux_id, dmux_gpio_pin_no;
+  bool dmux_on_A;
+
+  DMUX_SELECTOR::select_dmux_pin(DMUX_SELECTOR::PIN_TYPE::INT, id, dmux_id,
+                                 dmux_gpio_pin_no, dmux_on_A);
+
+  if (dmux_id == 1) {
+    dmux1->init_gpio(dmux_gpio_pin_no, dmux_on_A, 1);
+  } else if (dmux_id == 2) {
+    dmux2->init_gpio(dmux_gpio_pin_no, dmux_on_A, 1);
   }
 }
 
@@ -76,12 +92,18 @@ void chbsp_group_set_int1_dir_out(ch_group_t *grp_ptr) {
 void chbsp_int1_clear(ch_dev_t *dev_ptr) {
   uint8_t id = ch_get_dev_num(dev_ptr);
 
-  // TODO: Check if id is within that range
-  // TODO: FIX PIN SELECTION DUE TO WEIRD SCHEMATIC
-  if (id >= 1 && id <= 8) {
-    dmux1->write_gpio((id - 1) % 4 * 2, id >= 1 && id <= 4, 0);
-  } else if (id >= 9 && id <= 16) {
-    dmux2->write_gpio((id - 1) % 4 * 2, id >= 9 && id <= 12, 0);
+  int dmux_id, dmux_gpio_pin_no;
+  bool dmux_on_A;
+
+  DMUX_SELECTOR::select_dmux_pin(DMUX_SELECTOR::PIN_TYPE::INT, id, dmux_id,
+                                 dmux_gpio_pin_no, dmux_on_A);
+
+  if (dmux_id == 1) {
+    dmux1->init_gpio(dmux_gpio_pin_no, dmux_on_A, 1);
+    dmux1->write_gpio(dmux_gpio_pin_no, dmux_on_A, 0);
+  } else if (dmux_id == 2) {
+    dmux2->init_gpio(dmux_gpio_pin_no, dmux_on_A, 1);
+    dmux2->write_gpio(dmux_gpio_pin_no, dmux_on_A, 0);
   }
 }
 
@@ -97,11 +119,18 @@ void chbsp_group_int1_clear(ch_group_t *grp_ptr) {
 void chbsp_int1_set(ch_dev_t *dev_ptr) {
   uint8_t id = ch_get_dev_num(dev_ptr);
 
-  // Use the same pin selection logic as in chbsp_int1_clear
-  if (id >= 1 && id <= 8) {
-    dmux1->write_gpio((id - 1) % 4 * 2, id >= 1 && id <= 4, 1);  // Set high (1)
-  } else if (id >= 9 && id <= 16) {
-    dmux2->write_gpio((id - 1) % 4 * 2, id >= 9 && id <= 12, 1);  // Set high (1)
+  int dmux_id, dmux_gpio_pin_no;
+  bool dmux_on_A;
+
+  DMUX_SELECTOR::select_dmux_pin(DMUX_SELECTOR::PIN_TYPE::INT, id, dmux_id,
+                                 dmux_gpio_pin_no, dmux_on_A);
+
+  if (dmux_id == 1) {
+    dmux1->init_gpio(dmux_gpio_pin_no, dmux_on_A, 1);
+    dmux1->write_gpio(dmux_gpio_pin_no, dmux_on_A, 1);
+  } else if (dmux_id == 2) {
+    dmux2->init_gpio(dmux_gpio_pin_no, dmux_on_A, 1);
+    dmux2->write_gpio(dmux_gpio_pin_no, dmux_on_A, 1);
   }
 }
 

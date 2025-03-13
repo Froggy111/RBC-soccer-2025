@@ -154,7 +154,7 @@ void MCP23S17::reset() {
 
 void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
   if (pin < 0 || pin > 7) {
-    comms::USB_CDC.printf("Error: Invalid pin number\r\n");
+    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
     return;
   }
 

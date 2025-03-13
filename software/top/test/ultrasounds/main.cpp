@@ -8,7 +8,7 @@ using namespace types;
 
 const u8 LED_PIN = 25;
 
-Ultrasound *ultrasound_group[16];
+Ultrasound *ultrasound_group[20];
 
 void ultrasounds_poll_task(void *args) {
   usb::CDC *cdc = (usb::CDC *)args;
@@ -30,14 +30,21 @@ void ultrasounds_poll_task(void *args) {
     comms::USB_CDC.printf("I2C Initialization Successful!\r\n");
   }
 
+  // create ultrasound objects
+  for (int i = 0; i < 16; i++) {
+    ultrasound_group[i] = new Ultrasound();
+  }
+
+  // group init
   Ultrasound::group_init();
 
   // init ultrasounds
-  for (int i = 0; i < 16; i++) {
+  for (int i = 1; i <= 16; i++) {
     ultrasound_group[i] = new Ultrasound();
     ultrasound_group[i]->init(i);
   }
 
+  // group start
   Ultrasound::group_start();
 }
 
