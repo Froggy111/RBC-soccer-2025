@@ -80,7 +80,6 @@ set(CHIRP_SENSOR_TRIG_PIN 0 CACHE STRING "use INT1 in freerun mode" FORCE)
 set(CHIRP_INIT_FW_TYPE "NO_TX_OPTIMIZATION" CACHE STRING "using fw presencev2" FORCE)
 set(CHIRP_MAIN_FW_TYPE "CH201_GPRMT" CACHE STRING "using CH201_GPRMT firmware" FORCE)
 set(CHIRP_LOG_LEVEL 2 CACHE STRING "log=info" FORCE)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../external/ultrasonic.soniclib/ ${CMAKE_BINARY_DIR}/ultrasonic.soniclib)
 
 # ====================================================================================
 # ===================================== FREERTOS =====================================
@@ -89,7 +88,7 @@ set(FREERTOS_KERNEL_PATH ${CMAKE_SOURCE_DIR}/../external/freertos)
 include(FreeRTOS_Kernel_import.cmake)
 
 # ====================================================================================
-add_global_library(soniclib)
+# add_global_library(soniclib)
 add_global_library(pico_stdlib)
 # add_global_library(pico_stdio_usb) # only include this for testing without using our own comms lib
 add_global_library(pico_async_context_freertos)

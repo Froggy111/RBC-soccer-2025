@@ -1,8 +1,8 @@
+#include "chbsp.hpp"
 extern "C" {
 #include <pico/stdlib.h>
 
 #define LEN_THRESH 8 // whacky hack
-#include <invn/soniclib/chirp_bsp.h>
 #include <invn/soniclib/soniclib.h>
 #include <invn/soniclib/sensor_fw/ch201/ch201_gprmt.h>
 #include <invn/soniclib/ch_rangefinder.h>
@@ -25,11 +25,6 @@ MCP23S17 *Ultrasound::dmux1 = nullptr;
 MCP23S17 *Ultrasound::dmux2 = nullptr;
 
 void Ultrasound::group_init() {
-  dmux1 = new MCP23S17();
-  dmux1->init(1, 0);
-  dmux2 = new MCP23S17();
-  dmux2->init(2, 0);
-
   // init CH201 group
   if (ch_group_init(&ch201_group, 16, 1,
                     CH201_RTC_PULSE_SEQUENCE_TIME_LENGTH)) {
@@ -67,9 +62,6 @@ void Ultrasound::init(i2c_inst_t *i2c_inst, int us_id) {
   set_int(0, true);
 
   //* ULTRASOUND INITIALIZATION
-  // Reset the sensor before initializing
-  reset();
-
   // initialize using soniclib
   ch_init(&ch201_sensor, &ch201_group, CH201_COUNT, ch201_gprmt_init);
   ch_set_init_firmware(&ch201_sensor, ch201_gprmt_init);
@@ -114,11 +106,4 @@ void Ultrasound::sensor_int_callback(ch_group_t *grp_ptr, uint8_t io_index) {
   } else {
     comms::USB_CDC.printf("Error: Could not get reading as dev_ptr is NULL\n");
   }
-}
-
-void Ultrasound::reset() {
-  gpio_put((uint)pinmap::Pico::US_NRST, 0);
-  sleep_ms(1);
-  gpio_put((uint)pinmap::Pico::US_NRST, 1);
-  sleep_ms(1);
 }

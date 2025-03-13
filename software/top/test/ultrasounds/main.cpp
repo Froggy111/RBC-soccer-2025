@@ -30,11 +30,15 @@ void ultrasounds_poll_task(void *args) {
     comms::USB_CDC.printf("I2C Initialization Successful!\r\n");
   }
 
-  // create ultrasound classes
+  Ultrasound::group_init();
+
+  // init ultrasounds
   for (int i = 0; i < 16; i++) {
     ultrasound_group[i] = new Ultrasound();
+    ultrasound_group[i]->init(i2c0, i);
   }
-  ultrasound_group[0]->init(i2c0, 1);
+
+  Ultrasound::group_start();
 }
 
 int main() {
