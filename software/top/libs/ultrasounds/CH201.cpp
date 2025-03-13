@@ -38,9 +38,9 @@ bool Ultrasound::group_init() {
 
   // manually reset
   gpio_put((uint)pinmap::Pico::US_NRST, 0); // Assert reset
-  sleep_ms(2);
+  sleep_ms(10);
   gpio_put((uint)pinmap::Pico::US_NRST, 1); // Release reset
-  sleep_ms(2);
+  sleep_ms(50);
 
   return true;
 }
@@ -72,6 +72,8 @@ bool Ultrasound::init(int us_id) {
     comms::USB_CDC.printf("CH201 init failed\r\n");
     return false;
   }
+
+  sleep_ms(50);
   if (ch_set_init_firmware(&ch201_sensor, ch201_gprmt_init)) {
     comms::USB_CDC.printf("CH201 set init firmware failed\r\n");
     return false;

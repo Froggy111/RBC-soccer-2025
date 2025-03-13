@@ -302,7 +302,6 @@ uint8_t chbsp_i2c_get_info(ch_group_t *grp_ptr, uint8_t dev_num, ch_i2c_info_t *
   }
 
   ch_dev_t *dev_ptr = ch_get_dev_ptr(grp_ptr, dev_num);
-  comms::USB_CDC.printf("dev_ptr is null? %d\r\n", dev_ptr == NULL);
   
   // Hardcode I2C info during initialization if dev_ptr is NULL
   if (dev_ptr == NULL) {
@@ -310,7 +309,6 @@ uint8_t chbsp_i2c_get_info(ch_group_t *grp_ptr, uint8_t dev_num, ch_i2c_info_t *
     info_ptr->bus_num = 0;   // I2C0
     info_ptr->address = 0x45; // Default CH201 address
     info_ptr->drv_flags = 0;
-    comms::USB_CDC.printf("Using default I2C info for initialization\r\n");
     return 0; // Success with defaults
   }
 
