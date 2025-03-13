@@ -30,12 +30,19 @@ void chbsp_init() {
   dmux1->init(1, spi0);
   dmux2->init(2, spi0);
 
-  // Init all dmux pins to output
+  // Init all dmux pins to output, and 1
   for (int i = 0; i < 32; i++) {
+    // the sleep is to increase dmux reliability, else it sometimes fails
     if (i < 16) {
       dmux1->init_gpio(i % 8, i < 8, 1);
+      sleep_ms(25);
+      dmux1->write_gpio(i % 8, i < 8, 1);
+      sleep_ms(25);
     } else {
       dmux2->init_gpio(i % 8, i < 24, 1);
+      sleep_ms(25);
+      dmux2->write_gpio(i % 8, i < 24, 1);
+      sleep_ms(25);
     }
   }
 }
@@ -187,13 +194,15 @@ uint32_t chbsp_timestamp_ms(void) {
 
 // * I2C Functions
 // I2C Write Function
-int chbsp_i2c_write(ch_dev_t *dev_ptr, const uint8_t *data, uint16_t num_bytes) {
+int chbsp_i2c_write(ch_dev_t *dev_ptr, const uint8_t *data,
+                    uint16_t num_bytes) {
   uint8_t addr = ch_get_i2c_address(dev_ptr);
   comms::USB_CDC.printf("I2C Write: addr=0x%02X len=%d\r\n", addr, num_bytes);
-  
+
   int result = i2c_write_blocking(i2c0, addr, data, num_bytes, false);
   if (result != num_bytes) {
-    comms::USB_CDC.printf("I2C Write Failed: expected=%d actual=%d\r\n", num_bytes, result);
+    comms::USB_CDC.printf("I2C Write Failed: expected=%d actual=%d\r\n",
+                          num_bytes, result);
     return 1;
   }
   return 0;
@@ -213,10 +222,11 @@ int chbsp_i2c_mem_write(ch_dev_t *dev_ptr, uint16_t mem_addr, uint8_t *data,
 int chbsp_i2c_read(ch_dev_t *dev_ptr, uint8_t *data, uint16_t num_bytes) {
   uint8_t addr = ch_get_i2c_address(dev_ptr);
   comms::USB_CDC.printf("I2C Read: addr=0x%02X len=%d\r\n", addr, num_bytes);
-  
+
   int result = i2c_read_blocking(i2c0, addr, data, num_bytes, false);
   if (result != num_bytes) {
-    comms::USB_CDC.printf("I2C Read Failed: expected=%d actual=%d\r\n", num_bytes, result);
+    comms::USB_CDC.printf("I2C Read Failed: expected=%d actual=%d\r\n",
+                          num_bytes, result);
     return 1;
   }
   return 0;
@@ -241,15 +251,6 @@ int chbsp_i2c_mem_read(ch_dev_t *dev_ptr, uint16_t mem_addr, uint8_t *data,
 
 // I2C Reset Function
 void chbsp_i2c_reset(ch_dev_t *dev_ptr) {
-  // The dev_ptr might be needed in more advanced implementations
-  (void)dev_ptr; // Cast to void to avoid unused parameter warning
-  
-  // Reset the I2C bus by deinitializing and reinitializing
-  i2c_deinit(i2c0);
-  
-  // Reinitialize with standard settings (400 kHz)
-  i2c_init(i2c0, 400 * 1000);
-  
   // Reset GPIO functions for I2C pins
   gpio_set_function((uint)pinmap::Pico::I2C0_SDA, GPIO_FUNC_I2C);
   gpio_set_function((uint)pinmap::Pico::I2C0_SCL, GPIO_FUNC_I2C);
@@ -258,22 +259,23 @@ void chbsp_i2c_reset(ch_dev_t *dev_ptr) {
 }
 
 // I2C Get Info Function
-uint8_t chbsp_i2c_get_info(ch_group_t *grp_ptr, uint8_t dev_num, ch_i2c_info_t *info_ptr) {
+uint8_t chbsp_i2c_get_info(ch_group_t *grp_ptr, uint8_t dev_num,
+                           ch_i2c_info_t *info_ptr) {
   if (grp_ptr == NULL || info_ptr == NULL || dev_num >= grp_ptr->num_ports) {
-    return 1;  // Error
+    return 1; // Error
   }
-  
+
   ch_dev_t *dev_ptr = ch_get_dev_ptr(grp_ptr, dev_num);
   if (dev_ptr == NULL) {
-    return 1;  // Error
+    return 1; // Error
   }
-  
+
   // Fill in I2C information structure
-  info_ptr->bus_num = 0;        // Using I2C0
+  info_ptr->bus_num = 0; // Using I2C0
   info_ptr->address = ch_get_i2c_address(dev_ptr);
-  info_ptr->drv_flags = 0;      // No special flags
-  
-  return 0;  // Success
+  info_ptr->drv_flags = 0; // No special flags
+
+  return 0; // Success
 }
 
 // SPI Functions (for ICU sensors)

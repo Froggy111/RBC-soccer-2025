@@ -23,7 +23,7 @@ void ultrasounds_poll_task(void *args) {
   }
 
   // Initialize I2C bus 0
-  if (!i2c_init(i2c0, 100000)) {
+  if (!i2c_init(i2c0, 400 * 1000)) {
     comms::USB_CDC.printf("I2C Initialization Failed!\r\n");
     return;
   } else {
