@@ -42,7 +42,7 @@ void ultrasounds_poll_task(void *args) {
   }
 
   // init ultrasounds
-  for (int i = 1; i <= 16; i++) {
+  for (int i = 1; i <= 1; i++) {
     ultrasound_group[i] = new Ultrasound();
     if (!ultrasound_group[i]->init(i)) {
       comms::USB_CDC.printf("Ultrasound %d init failed\r\n", i);
