@@ -161,6 +161,8 @@ void chbsp_group_int1_set(ch_group_t *grp_ptr) {
 
 // I2C Initialization
 int chbsp_i2c_init(void) {
+  comms::USB_CDC.printf("-> Initializing I2C\r\n");
+
   // init I2C pins
   gpio_set_function((uint)pinmap::Pico::I2C0_SDA, GPIO_FUNC_I2C);
   gpio_set_function((uint)pinmap::Pico::I2C0_SCL, GPIO_FUNC_I2C);
@@ -185,12 +187,16 @@ uint32_t chbsp_timestamp_ms(void) {
 
 // * I2C Functions
 // I2C Write Function
-int chbsp_i2c_write(ch_dev_t *dev_ptr, const uint8_t *data,
-                    uint16_t num_bytes) {
+int chbsp_i2c_write(ch_dev_t *dev_ptr, const uint8_t *data, uint16_t num_bytes) {
   uint8_t addr = ch_get_i2c_address(dev_ptr);
-  return i2c_write_blocking(i2c0, addr, data, num_bytes, false) == num_bytes
-             ? 0
-             : 1;
+  comms::USB_CDC.printf("I2C Write: addr=0x%02X len=%d\r\n", addr, num_bytes);
+  
+  int result = i2c_write_blocking(i2c0, addr, data, num_bytes, false);
+  if (result != num_bytes) {
+    comms::USB_CDC.printf("I2C Write Failed: expected=%d actual=%d\r\n", num_bytes, result);
+    return 1;
+  }
+  return 0;
 }
 
 // I2C Memory Write Function
@@ -206,8 +212,14 @@ int chbsp_i2c_mem_write(ch_dev_t *dev_ptr, uint16_t mem_addr, uint8_t *data,
 // I2C Read Function
 int chbsp_i2c_read(ch_dev_t *dev_ptr, uint8_t *data, uint16_t num_bytes) {
   uint8_t addr = ch_get_i2c_address(dev_ptr);
-  return i2c_read_blocking(i2c0, addr, data, num_bytes, false) == num_bytes ? 0
-                                                                            : 1;
+  comms::USB_CDC.printf("I2C Read: addr=0x%02X len=%d\r\n", addr, num_bytes);
+  
+  int result = i2c_read_blocking(i2c0, addr, data, num_bytes, false);
+  if (result != num_bytes) {
+    comms::USB_CDC.printf("I2C Read Failed: expected=%d actual=%d\r\n", num_bytes, result);
+    return 1;
+  }
+  return 0;
 }
 
 // I2C Memory Read Function

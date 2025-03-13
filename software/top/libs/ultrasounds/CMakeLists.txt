@@ -48,7 +48,7 @@ target_compile_definitions(CH201
     PUBLIC -DINVN_SONICLIB_INTERNAL_BOARD_CONFIG
            -DCHIRP_MAX_NUM_SENSORS=16
            -DCHIRP_NUM_BUSES=1
-           -DCH_LOG_MODULE_LEVEL=2
+           -DCH_LOG_MODULE_LEVEL=4        
            -DINCLUDE_WHITNEY_SUPPORT
 )
 

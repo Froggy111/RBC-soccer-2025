@@ -25,6 +25,6 @@ void DMUX_SELECTOR::select_dmux_pin(PIN_TYPE pin_type, int device_id,
     // for all other configurations
     dmux_id = device_id > 8 ? 2 : 1;
     dmux_gpio_pin_no = ((device_id - 1) * 2 + (pin_type == PIN_TYPE::PROG)) % 8;
-    dmux_on_A = device_id <= 4 && device_id >= 1 && device_id >= 9 && device_id <= 12;
+    dmux_on_A = (device_id <= 4 && device_id >= 1) || (device_id >= 9 && device_id <= 12);
   }
 }

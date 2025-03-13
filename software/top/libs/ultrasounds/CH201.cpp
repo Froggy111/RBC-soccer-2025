@@ -15,14 +15,18 @@ extern "C" {
 #include "comms.hpp"
 
 #define CH201_RTC_PULSE_SEQUENCE_TIME_LENGTH 1 // in ms
-#define CH201_COUNT 16
+#define CH201_COUNT 1
 #define CH201_FREERUN_INTERVAL 1 // in ms
 
 ch_group_t Ultrasound::ch201_group;
 
 bool Ultrasound::group_init() {
   chbsp_init();
-  if (ch_group_init(&ch201_group, 16, 1,
+
+  chbsp_i2c_init();
+  sleep_ms(100); // Give I2C time to stabilize
+
+  if (ch_group_init(&ch201_group, CH201_COUNT, 1,
                     CH201_RTC_PULSE_SEQUENCE_TIME_LENGTH)) {
     comms::USB_CDC.printf("CH201 group init failed\r\n");
     return false;
@@ -49,11 +53,17 @@ bool Ultrasound::init(int us_id) {
   id = us_id;
 
   //* PIN CONFIGURATION
-  // Configure GPIO pins
+  // init GPIO pins
   gpio_init((uint)pinmap::Pico::US_NRST);
   gpio_set_dir((uint)pinmap::Pico::US_NRST, GPIO_OUT);
 
+  // manually reset
+  gpio_put((uint)pinmap::Pico::US_NRST, 0); // Assert reset
+  sleep_ms(2);
+  gpio_put((uint)pinmap::Pico::US_NRST, 1); // Release reset
+
   //* ULTRASOUND INITIALIZATION
+  ch201_sensor.io_index = id - 1;
   // initialize using soniclib
   if (ch_init(&ch201_sensor, &ch201_group, CH201_COUNT, ch201_gprmt_init)) {
     comms::USB_CDC.printf("CH201 init failed\r\n");
