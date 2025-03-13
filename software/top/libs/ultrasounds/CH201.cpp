@@ -1,4 +1,3 @@
-#include "chbsp.hpp"
 extern "C" {
 #include <pico/stdlib.h>
 
@@ -11,7 +10,6 @@ extern "C" {
 }
 #include "CH201.hpp"
 #include "pinmap.hpp"
-#include "pins/MCP23S17.hpp"
 #include "comms.hpp"
 
 #define CH201_RTC_PULSE_SEQUENCE_TIME_LENGTH 1 // in ms
@@ -33,7 +31,7 @@ void Ultrasound::group_start() {
     // TODO: Reuse this
     // for (int i = 0; i < CH201_COUNT; i++)
     //   sensor_int_callback(&ch201_group, i);
-    sensor_int_callback(&ch201_group, 0);
+    sensor_int_callback(&ch201_group, 1);
   }
 }
 
@@ -59,11 +57,12 @@ void Ultrasound::init(int us_id) {
 }
 
 void Ultrasound::sensor_int_callback(ch_group_t *grp_ptr, uint8_t io_index) {
+  // comms::USB_CDC.printf("CALLBACK: %d\r\n", io_index);
   ch_dev_t *dev_ptr = ch_get_dev_ptr(grp_ptr, io_index);
   if (dev_ptr != NULL) {
     int distance = ch_get_range(dev_ptr, CH_RANGE_ECHO_ONE_WAY);
-    comms::USB_CDC.printf("Distance: %d mm\n", distance);
+    // comms::USB_CDC.printf("Distance: %d mm\r\n", distance);
   } else {
-    comms::USB_CDC.printf("Error: Could not get reading as dev_ptr is NULL\n");
+    // comms::USB_CDC.printf("Error: Could not get reading as dev_ptr is NULL\r\n");
   }
 }
