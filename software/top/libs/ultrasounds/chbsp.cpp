@@ -32,14 +32,18 @@ void chbsp_init() {
 
   // Init all dmux pins to output, and 1
   for (int i = 0; i < 32; i++) {
+    // the sleep is to increase dmux reliability, else it sometimes fails
     if (i < 16) {
       dmux1->init_gpio(i % 8, i < 8, 1);
+      sleep_ms(25);
       dmux1->write_gpio(i % 8, i < 8, 1);
+      sleep_ms(25);
     } else {
       dmux2->init_gpio(i % 8, i < 24, 1);
+      sleep_ms(25);
       dmux2->write_gpio(i % 8, i < 24, 1);
+      sleep_ms(25);
     }
-    sleep_ms(50);
   }
 }
 
@@ -247,15 +251,6 @@ int chbsp_i2c_mem_read(ch_dev_t *dev_ptr, uint16_t mem_addr, uint8_t *data,
 
 // I2C Reset Function
 void chbsp_i2c_reset(ch_dev_t *dev_ptr) {
-  // The dev_ptr might be needed in more advanced implementations
-  (void)dev_ptr; // Cast to void to avoid unused parameter warning
-
-  // Reset the I2C bus by deinitializing and reinitializing
-  i2c_deinit(i2c0);
-
-  // Reinitialize with standard settings (400 kHz)
-  i2c_init(i2c0, 400 * 1000);
-
   // Reset GPIO functions for I2C pins
   gpio_set_function((uint)pinmap::Pico::I2C0_SDA, GPIO_FUNC_I2C);
   gpio_set_function((uint)pinmap::Pico::I2C0_SCL, GPIO_FUNC_I2C);

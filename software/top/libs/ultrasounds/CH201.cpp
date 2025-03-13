@@ -24,7 +24,6 @@ bool Ultrasound::group_init() {
   chbsp_init();
 
   chbsp_i2c_init();
-  sleep_ms(100); // Give I2C time to stabilize
 
   if (ch_group_init(&ch201_group, CH201_COUNT, 1,
                     CH201_RTC_PULSE_SEQUENCE_TIME_LENGTH)) {
@@ -41,6 +40,7 @@ bool Ultrasound::group_init() {
   gpio_put((uint)pinmap::Pico::US_NRST, 0); // Assert reset
   sleep_ms(2);
   gpio_put((uint)pinmap::Pico::US_NRST, 1); // Release reset
+  sleep_ms(2);
 
   return true;
 }
@@ -61,12 +61,14 @@ bool Ultrasound::group_start() {
 }
 
 bool Ultrasound::init(int us_id) {
+  comms::USB_CDC.printf("Initializing ultrasound sensor %d\r\n", us_id);
   id = us_id;
 
   //* ULTRASOUND INITIALIZATION
   ch201_sensor.io_index = id - 1;
+  ch201_sensor.i2c_address = 0x45; 
   // initialize using soniclib
-  if (ch_init(&ch201_sensor, &ch201_group, CH201_COUNT, ch201_gprmt_init)) {
+  if (ch_init(&ch201_sensor, &ch201_group, id - 1, ch201_gprmt_init)) {
     comms::USB_CDC.printf("CH201 init failed\r\n");
     return false;
   }
@@ -97,6 +99,7 @@ void Ultrasound::sensor_int_callback(ch_group_t *grp_ptr, uint8_t io_index) {
     int distance = ch_get_range(dev_ptr, CH_RANGE_ECHO_ONE_WAY);
     comms::USB_CDC.printf("Distance: %d mm\r\n", distance);
   } else {
-    comms::USB_CDC.printf("Error: Could not get reading as dev_ptr is NULL\r\n");
+    comms::USB_CDC.printf(
+        "Error: Could not get reading as dev_ptr is NULL\r\n");
   }
 }
