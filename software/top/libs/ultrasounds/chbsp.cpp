@@ -9,17 +9,18 @@ extern "C" {
 #include <pico/stdlib.h>
 }
 
+#include "comms.hpp"
+
 // Global DMUX instances
 MCP23S17 *dmux1 = new MCP23S17();
 MCP23S17 *dmux2 = new MCP23S17();
 
 extern "C" {
-void chbsp_print_str(const char *str) { printf("%s", str); }
+void chbsp_print_str(const char *str) { comms::USB_CDC.printf("%s", str); }
 
 void chbsp_debug_toggle(uint8_t dbg_pin_num) {
-  // Not used in this implementation
+  // NOT USED
 }
-
 
 // Reset Functions (CH101/CH201)
 void chbsp_reset_assert(void) { gpio_put((uint)pinmap::Pico::US_NRST, 0); }
@@ -115,6 +116,7 @@ void chbsp_group_int1_set(ch_group_t *grp_ptr) {
 
 // I2C Initialization
 int chbsp_i2c_init(void) {
+  // init I2C pins
   gpio_set_function((uint)pinmap::Pico::I2C0_SDA, GPIO_FUNC_I2C);
   gpio_set_function((uint)pinmap::Pico::I2C0_SCL, GPIO_FUNC_I2C);
   gpio_pull_up((uint)pinmap::Pico::I2C0_SDA);

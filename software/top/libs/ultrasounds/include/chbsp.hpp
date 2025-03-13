@@ -5,7 +5,6 @@ extern "C" {
 #include <invn/soniclib/soniclib.h>
 #include <invn/soniclib/chirp_bsp.h>
 
-// All function declarations here...
 void chbsp_print_str(const char *str);
 void chbsp_debug_toggle(uint8_t dbg_pin_num);
 

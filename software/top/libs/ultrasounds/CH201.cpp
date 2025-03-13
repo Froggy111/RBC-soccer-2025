@@ -8,7 +8,6 @@ extern "C" {
 #include <invn/soniclib/ch_rangefinder.h>
 
 #include "hardware/gpio.h"
-#include "hardware/i2c.h"
 }
 #include "CH201.hpp"
 #include "pinmap.hpp"
@@ -19,13 +18,9 @@ extern "C" {
 #define CH201_COUNT 16
 #define CH201_FREERUN_INTERVAL 1 // in ms
 
-// Add near the top of the file, after includes but before function definitions
 ch_group_t Ultrasound::ch201_group;
-MCP23S17 *Ultrasound::dmux1 = nullptr;
-MCP23S17 *Ultrasound::dmux2 = nullptr;
 
 void Ultrasound::group_init() {
-  // init CH201 group
   if (ch_group_init(&ch201_group, 16, 1,
                     CH201_RTC_PULSE_SEQUENCE_TIME_LENGTH)) {
     comms::USB_CDC.printf("CH201 group init failed\n");
@@ -42,24 +37,13 @@ void Ultrasound::group_start() {
   }
 }
 
-void Ultrasound::init(i2c_inst_t *i2c_inst, int us_id) {
-  i2c = i2c_inst;
+void Ultrasound::init(int us_id) {
   id = us_id;
 
   //* PIN CONFIGURATION
-  // Configure I2C pins
-  gpio_set_function((uint)pinmap::Pico::I2C0_SDA, GPIO_FUNC_I2C);
-  gpio_set_function((uint)pinmap::Pico::I2C0_SCL, GPIO_FUNC_I2C);
-  gpio_pull_up((uint)pinmap::Pico::I2C0_SDA);
-  gpio_pull_up((uint)pinmap::Pico::I2C0_SCL);
-
   // Configure GPIO pins
   gpio_init((uint)pinmap::Pico::US_NRST);
   gpio_set_dir((uint)pinmap::Pico::US_NRST, GPIO_OUT);
-
-  // init prog and int
-  set_prog(0, true);
-  set_int(0, true);
 
   //* ULTRASOUND INITIALIZATION
   // initialize using soniclib
@@ -72,30 +56,6 @@ void Ultrasound::init(i2c_inst_t *i2c_inst, int us_id) {
 
   // set the interrupts
   // ch_io_int_callback_set(&ch201_group, sensor_int_callback);
-}
-
-void Ultrasound::set_prog(uint8_t prog, bool init) {
-  if (id >= 1 && id <= 8) {
-    if (init)
-      dmux1->init_gpio((id - 1) % 4 * 2 + 1, id >= 1 && id <= 4, true);
-    dmux1->write_gpio((id - 1) % 4 * 2 + 1, id >= 1 && id <= 4, prog);
-  } else if (id >= 9 && id <= 16) {
-    if (init)
-      dmux2->init_gpio((id - 1) % 4 * 2 + 1, id >= 9 && id <= 12, true);
-    dmux2->write_gpio((id - 1) % 4 * 2 + 1, id >= 9 && id <= 12, prog);
-  }
-}
-
-void Ultrasound::set_int(uint8_t int_val, bool init) {
-  if (id >= 1 && id <= 8) {
-    if (init)
-      dmux1->init_gpio((id - 1) % 4 * 2, id >= 1 && id <= 4, true);
-    dmux1->write_gpio((id - 1) % 4 * 2, id >= 1 && id <= 4, int_val);
-  } else if (id >= 9 && id <= 16) {
-    if (init)
-      dmux2->init_gpio((id - 1) % 4 * 2, id >= 9 && id <= 12, true);
-    dmux2->write_gpio((id - 1) % 4 * 2, id >= 9 && id <= 12, int_val);
-  }
 }
 
 void Ultrasound::sensor_int_callback(ch_group_t *grp_ptr, uint8_t io_index) {

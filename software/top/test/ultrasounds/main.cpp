@@ -35,7 +35,7 @@ void ultrasounds_poll_task(void *args) {
   // init ultrasounds
   for (int i = 0; i < 16; i++) {
     ultrasound_group[i] = new Ultrasound();
-    ultrasound_group[i]->init(i2c0, i);
+    ultrasound_group[i]->init(i);
   }
 
   Ultrasound::group_start();

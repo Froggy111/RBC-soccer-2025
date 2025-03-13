@@ -1,20 +1,14 @@
 extern "C" {
 #include <pico/stdlib.h>
 #include <invn/soniclib/soniclib.h>
-#include "hardware/i2c.h"
 }
-#include "pins/MCP23S17.hpp"
 
 class Ultrasound {
 
 private:
-  ch_dev_t ch201_sensor;
   int id;
-  i2c_inst_t *i2c;
-
-  // group vars
+  ch_dev_t ch201_sensor;
   static ch_group_t ch201_group;
-  static MCP23S17 *dmux1, *dmux2;
 
   /**
    * @brief Set the prog pin based on the device ID
@@ -36,24 +30,23 @@ private:
 
 public:
   /**
-   * @brief Group init, meant to be called before individual inits.
+   * @brief Group init, called first to initialize the ch201 group.
    * 
    */
   static void group_init();
 
   /**
-   * @brief Group start, meant to be called last.
+   * @brief Init the dmux and the CH201 sensor, called after group_init and before group_start.
+   * 
+   * @param us_id (1-indexed)
+   */
+   void init(int us_id);
+
+  /**
+   * @brief Group start, called last to start the ch201 group.
    * 
    */
   static void group_start();
-
-  /**
-   * @brief Init the dmux and the CH201 sensor
-   * 
-   * @param i2c_inst 
-   * @param us_id (1-indexed)
-   */
-  void init(i2c_inst_t *i2c_inst, int us_id);
 
   /**
    * @brief Reset the CH201
