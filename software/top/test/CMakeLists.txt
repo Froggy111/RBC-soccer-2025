@@ -1,1 +1,2 @@
 add_subdirectory(ultrasounds)
+add_subdirectory(i2c-scanner)
