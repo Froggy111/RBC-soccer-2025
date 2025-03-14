@@ -9,6 +9,7 @@ target_sources(PMW3360
     include/PMW3360.hpp
     include/pin_selector.hpp
     include/dbg_pins.hpp
+    include/srom_firmware.hpp
 )
 target_include_directories(PMW3360 PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(PMW3360 hardware_spi hardware_pwm hardware_timer)

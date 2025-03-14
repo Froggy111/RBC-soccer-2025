@@ -15,7 +15,7 @@ public:
   void read_motion_burst();
   types::i16 read_X_motion();
   types::i16 read_Y_motion();
-  types::u16 read_squal();
+  types::u8 read_squal();
 
 private:
   //* init funcs
