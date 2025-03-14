@@ -35,13 +35,17 @@ void mouse_sensor_task(void *args) {
     comms::USB_CDC.printf("SPI Initialization Successful!\r\n");
   }
 
-  sensor.init(1, spi0);
-  comms::USB_CDC.printf("Mouse Sensor Initialised!\r\n");
+  if (!sensor.init(1, spi0)) {
+    comms::USB_CDC.printf("Mouse Sensor Initialization Failed!\r\n");
+    return;
+  } else {
+    comms::USB_CDC.printf("Mouse Sensor Initialised!\r\n");
+  }
   
   while (true) {
       comms::USB_CDC.printf("====================================\r\n");
 
-      busy_wait_ms(500);
+      sleep_ms(500);
       sensor.read_motion_burst();
 
       types::u16 x_delta, y_delta, shutter;

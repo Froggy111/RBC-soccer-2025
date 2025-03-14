@@ -109,7 +109,6 @@ bool MouseSensor::init(int id, spi_inst_t *spi_obj_touse) {
 
   // Initialize CS pin as GPIO
   inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS);
-  comms::USB_CDC.printf("INIT DIGITAL DONE");
 
   // Set SPI format
   spi_set_format(spi_obj, 8, SPI_CPOL_1, SPI_CPHA_1, SPI_MSB_FIRST);
@@ -122,6 +121,8 @@ bool MouseSensor::init(int id, spi_inst_t *spi_obj_touse) {
   if (!init_srom()) {
     return false;
   }
+
+  return true;
 }
 
 void MouseSensor::init_pins() {
@@ -133,20 +134,30 @@ void MouseSensor::init_pins() {
 }
 
 bool MouseSensor::init_registers() {
+  inputControl.write_digital(pinSelector.get_pin(CS), 1);
+  inputControl.write_digital(pinSelector.get_pin(CS), 0);
+
+  int res;
+
   write8(POWER_UP_RESET, 0x5A);
 
   sleep_ms(50);
 
   // read from registers 2 3 4 5 6
-  read8(0x02);
+  res = read8(0x02);
+  comms::USB_CDC.printf("%d\r\n", res);
   sleep_us(160);
-  read8(0x03);
+  res = read8(0x03);
+  comms::USB_CDC.printf("%d\r\n", res);
   sleep_us(160);
-  read8(0x04);
+  res = read8(0x04);
+  comms::USB_CDC.printf("%d\r\n", res);
   sleep_us(160);
-  read8(0x05);
+  res = read8(0x05);
+  comms::USB_CDC.printf("%d\r\n", res);
   sleep_us(160);
-  read8(0x06);
+  res = read8(0x06);
+  comms::USB_CDC.printf("%d\r\n", res);
   return true;
 }
 
@@ -168,24 +179,26 @@ bool MouseSensor::init_srom() {
   // Custom SPI write
   uint8_t srom_address = SROM_LOAD_BURST;
   inputControl.write_digital(pinSelector.get_pin(CS), 0);
+
   spi_write_blocking(spi_obj, &srom_address, 1);
 
   // Send all firmware bytes
   for (int i = 0; i < firmware_length; i++) {
     sleep_us(15); // delay required between bytes
-    spi_write_blocking(spi_obj, &firmware_data[i], 1);
+    uint8_t data = firmware_data[i];
+    spi_write_blocking(spi_obj, &data, 1);
   }
   sleep_us(15);
 
   inputControl.write_digital(pinSelector.get_pin(CS), 1);
 
   // Wait for the SROM to load
-  sleep_ms(10);
+  sleep_ms(1000);
 
   // read SROM register
   uint8_t srom_id = read8(SROM_ID);
   if (srom_id != firmware_ID) {
-    comms::USB_CDC.printf("SROM ID Mismatch: %d, expected: %d\n", srom_id,
+    comms::USB_CDC.printf("SROM ID Mismatch: %d, expected: %d\r\n", srom_id,
                           firmware_ID);
     return false;
   }
