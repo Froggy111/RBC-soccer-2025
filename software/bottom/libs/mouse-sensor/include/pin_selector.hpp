@@ -51,14 +51,6 @@ public:
     */
     void set_mouse_sensor_id(types::u8 id);
 
-    /**
-    * @brief Set the debug mode object
-    * 
-    * @param mode 
-    */
-    void set_debug_mode(bool mode);
-
 private:
     types::u8 mouseSensorId;
-    bool debugMode;
 };

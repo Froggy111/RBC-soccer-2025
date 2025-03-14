@@ -1,10 +1,6 @@
 #include "include/pin_selector.hpp"
 
 types::u8 PinSelector::get_pin(MouseSensorPinMap pin) {
-//   if (debugMode) {
-//     return debug_pins[static_cast<types::u8>(pin)];
-//   }
-
   switch (mouseSensorId) {
     case 1:
       return mouse_sensor1_pins[static_cast<types::u8>(pin)];
@@ -13,4 +9,8 @@ types::u8 PinSelector::get_pin(MouseSensorPinMap pin) {
     default:
       return mouse_sensor1_pins[static_cast<types::u8>(pin)];
   }
+}
+
+void PinSelector::set_mouse_sensor_id(types::u8 id) {
+  mouseSensorId = id;
 }
