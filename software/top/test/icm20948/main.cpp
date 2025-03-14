@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include "comms/usb.hpp"
 #include "hardware/i2c.h"
 #include "comms.hpp"
 #include "pinmap.hpp"
@@ -26,28 +27,45 @@ icm20984_data_t imu_data;
 // Task to read and display IMU data
 void imu_task(void *args) {
   usb::CDC *cdc = (usb::CDC *)args;
+  cdc->wait_for_CDC_connection(0xFFFFFFFF);
+
+  // Initialize IMU
+  int8_t result = icm20948_init(&imu_config);
+  if (result != 0) {
+    comms::USB_CDC.printf("Error initializing ICM20948: %d\r\n", result);
+    while (1) {
+      gpio_put(LED_PIN, 0);
+      sleep_ms(100);
+      gpio_put(LED_PIN, 1);
+      sleep_ms(100);
+    }
+  }
+
+  // Set magnetometer update rate (mode 0-4, where higher is faster)
+  icm20948_set_mag_rate(&imu_config, 2);
+  
   int16_t accel[3], gyro[3], mag[3];
   int16_t accel_bias[3] = {0}, gyro_bias[3] = {0}, mag_bias[3] = {0};
   int16_t raw_temp;
   float temp_c;
 
   // Calibrate sensors (this may take some time)
-  cdc->printf("Calibrating gyroscope...\n");
+  comms::USB_CDC.printf("Calibrating gyroscope...\r\n");
   icm20948_cal_gyro(&imu_config, gyro_bias);
-  cdc->printf("Gyro bias: [%d, %d, %d]\n", gyro_bias[0], gyro_bias[1],
-              gyro_bias[2]);
+  comms::USB_CDC.printf("Gyro bias: [%d, %d, %d]\r\n", gyro_bias[0], gyro_bias[1],
+                        gyro_bias[2]);
 
-  cdc->printf("Calibrating accelerometer...\n");
+  comms::USB_CDC.printf("Calibrating accelerometer...\r\n");
   icm20948_cal_accel(&imu_config, accel_bias);
-  cdc->printf("Accel bias: [%d, %d, %d]\n", accel_bias[0], accel_bias[1],
-              accel_bias[2]);
+  comms::USB_CDC.printf("Accel bias: [%d, %d, %d]\r\n", accel_bias[0],
+                        accel_bias[1], accel_bias[2]);
 
-  cdc->printf("Calibrating magnetometer...\n");
+  comms::USB_CDC.printf("Calibrating magnetometer...\r\n");
   icm20948_cal_mag_simple(&imu_config, mag_bias);
-  cdc->printf("Mag bias: [%d, %d, %d]\n", mag_bias[0], mag_bias[1],
-              mag_bias[2]);
+  comms::USB_CDC.printf("Mag bias: [%d, %d, %d]\r\n", mag_bias[0], mag_bias[1],
+                        mag_bias[2]);
 
-  cdc->printf("Starting IMU readings...\n");
+  comms::USB_CDC.printf("Starting IMU readings...\r\n");
 
   while (true) {
     // Toggle LED to indicate activity
@@ -60,12 +78,15 @@ void imu_task(void *args) {
     icm20948_read_temp_c(&imu_config, &temp_c);
 
     // Print sensor data
-    cdc->printf("IMU Data:\n");
-    cdc->printf("  Accel (raw): [%d, %d, %d]\n", accel[0], accel[1], accel[2]);
-    cdc->printf("  Gyro  (raw): [%d, %d, %d]\n", gyro[0], gyro[1], gyro[2]);
-    cdc->printf("  Mag   (raw): [%d, %d, %d]\n", mag[0], mag[1], mag[2]);
-    cdc->printf("  Temp  (°C):  %.2f\n", temp_c);
-    cdc->printf("\n");
+    comms::USB_CDC.printf("IMU Data:\r\n");
+    comms::USB_CDC.printf("  Accel (raw): [%d, %d, %d]\r\n", accel[0], accel[1],
+                          accel[2]);
+    comms::USB_CDC.printf("  Gyro  (raw): [%d, %d, %d]\r\n", gyro[0], gyro[1],
+                          gyro[2]);
+    comms::USB_CDC.printf("  Mag   (raw): [%d, %d, %d]\r\n", mag[0], mag[1],
+                          mag[2]);
+    comms::USB_CDC.printf("  Temp  (°C):  %.2f\r\n", temp_c);
+    comms::USB_CDC.printf("\r\n");
 
     // Wait before next reading
     vTaskDelay(pdMS_TO_TICKS(500));
@@ -81,7 +102,8 @@ int main() {
   // Initialize USB CDC for communication
   usb::CDC cdc = usb::CDC();
   cdc.init();
-  cdc.printf("ICM20948 IMU Test\n");
+
+  comms::USB_CDC.printf("ICM20948 IMU Test\r\n");
 
   // Initialize I2C (using I2C0)
   i2c_init(i2c0, I2C_FREQ);
@@ -95,22 +117,7 @@ int main() {
   imu_config.addr_mag = ICM20948_MAG_ADDR;
   imu_config.i2c = i2c0;
 
-  // Initialize IMU
-  int8_t result = icm20948_init(&imu_config);
-  if (result != 0) {
-    cdc.printf("Error initializing ICM20948: %d\n", result);
-    while (1) {
-      gpio_put(LED_PIN, 0);
-      sleep_ms(100);
-      gpio_put(LED_PIN, 1);
-      sleep_ms(100);
-    }
-  }
-
-  // Set magnetometer update rate (mode 0-4, where higher is faster)
-  icm20948_set_mag_rate(&imu_config, 2);
-
-  cdc.printf("IMU initialized successfully!\n");
+  comms::USB_CDC.printf("IMU initialized successfully!\r\n");
 
   // Create task for reading IMU data
   xTaskCreate(imu_task, "imu_task", 2048, &cdc, 1, NULL);
