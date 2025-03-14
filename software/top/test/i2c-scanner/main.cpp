@@ -15,13 +15,16 @@ void i2c_scan_task(void *args) {
   cdc->wait_for_CDC_connection(0xFFFFFFFF);
 
   // Initialize I2C bus 0
-  if (!i2c_init(i2c0, 100 * 1000)) {
+  if (!i2c_init(i2c0, 400 * 1000)) {
     comms::USB_CDC.printf("I2C Initialization Failed!\r\n");
     return;
   } else {
     comms::USB_CDC.printf("I2C Initialization Successful!\r\n");
   }
 
+  comms::USB_CDC.printf("I2C0_SDA: %d, I2C0_SCL: %d\r\n",
+                        (uint)pinmap::Pico::I2C0_SDA,
+                        (uint)pinmap::Pico::I2C0_SCL);
   gpio_set_function((uint)pinmap::Pico::I2C0_SDA, GPIO_FUNC_I2C);
   gpio_set_function((uint)pinmap::Pico::I2C0_SCL, GPIO_FUNC_I2C);
   gpio_pull_up((uint)pinmap::Pico::I2C0_SDA);
