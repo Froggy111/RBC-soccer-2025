@@ -88,6 +88,11 @@ set(FREERTOS_KERNEL_PATH ${CMAKE_SOURCE_DIR}/../external/freertos)
 include(FreeRTOS_Kernel_import.cmake)
 
 # ====================================================================================
+# ===================================== ICM20948 =====================================
+add_subdirectory(${CMAKE_SOURCE_DIR}/../external/pico-icm20948 ${CMAKE_BINARY_DIR}/icm20948)
+add_global_library(pico-icm20948)
+
+# ====================================================================================
 # add_global_library(soniclib)
 add_global_library(pico_stdlib)
 # add_global_library(pico_stdio_usb) # only include this for testing without using our own comms lib
