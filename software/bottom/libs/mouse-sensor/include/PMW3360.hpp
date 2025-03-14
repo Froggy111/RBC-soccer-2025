@@ -13,8 +13,8 @@ public:
   types::u8 motion_burst_buffer[12] = {99}; //Stores data read from data burst
 
   void read_motion_burst();
-  types::u16 read_X_motion();
-  types::u16 read_Y_motion();
+  types::i16 read_X_motion();
+  types::i16 read_Y_motion();
   types::u16 read_squal();
 
 private:

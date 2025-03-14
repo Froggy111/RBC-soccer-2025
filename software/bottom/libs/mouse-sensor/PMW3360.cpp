@@ -16,8 +16,7 @@ extern "C" {
 #define PRODUCT_ID 0x00
 #define MOTION 0x02
 
-//Movement data registers
-
+// Movement data registers
 #define DELTA_X_L 0x03
 #define DELTA_X_H 0x04 //must be read after DELTA_X_L
 #define DELTA_Y_L 0x05
@@ -88,7 +87,6 @@ extern "C" {
   0x3F00 // Mask for writing SPI register address bits
 #define SPI_ADDRESS_MASK_READ                                                  \
   0x7F00                     // Mask for reading SPI register address bits
-#define SPI_ADDRESS_POS 8    // Position for SPI register address bits
 #define SPI_DATA_MASK 0x00FF // Mask for SPI register data bits
 #define SPI_DATA_POS 0       // Position for SPI register data bits
 #define SPI_RW_BIT_MASK                                                        \
@@ -604,30 +602,31 @@ void MouseSensor::read_motion_burst() {
 }
 
 //Return X_Delta Values
-types::u16 MouseSensor::read_X_motion() {
-  types::u8 X_L = read8(
-      DELTA_X_L); // Important: DELTA_X_L Must be read first before DELTA_X_H
+types::i16 MouseSensor::read_X_motion() {
+  types::u8 X_L = read8(DELTA_X_L); // Important: DELTA_X_L Must be read first before DELTA_X_H
+
+  busy_wait_us(160); // 160 microseconds delay between reads
+  
   types::u8 X_H = read8(DELTA_X_H);
 
-  types::u16 X_Val = ((X_L << SPI_ADDRESS_POS) & X_H);
+  types::i16 X_Val = ((X_H << 8) | X_L);
 
   return X_Val;
 }
 
 types::u16 MouseSensor::read_Y_motion() {
-  types::u8 Y_L = read8(
-      DELTA_Y_L); // Important: DELTA_Y_L Must be read first before DELTA_Y_H
+  types::u8 Y_L = read8(DELTA_Y_L); // Important: DELTA_Y_L Must be read first before DELTA_Y_H
+
+  busy_wait_us(160); // 160 microseconds delay between reads
+  
   types::u8 Y_H = read8(DELTA_Y_H);
 
-  types::u16 Y_Val = ((Y_L << SPI_ADDRESS_POS) & Y_H);
+  types::i16 Y_Val = ((Y_H << 8) | Y_L);
 
   return Y_Val;
 }
 
-types::u16 MouseSensor::read_squal() {
+types::i16 MouseSensor::read_squal() {
   types::u8 squal = read8(SQUAL);
-  types::u16 num_features =
-      (squal << 3); // Number of features = SQUAL Register value * 8 (2^3)
-
-  return num_features;
+  return squal;
 }
