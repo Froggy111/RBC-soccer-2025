@@ -73,11 +73,10 @@ bool Ultrasound::init(int us_id) {
     return false;
   }
 
-  // TODO: TRY COMMENTING IT OUT
-  // if (ch_set_init_firmware(&ch201_sensor, ch201_cal_init)) {
-  //   comms::USB_CDC.printf("CH201 set init firmware failed\r\n");
-  //   return false;
-  // }
+  if (ch_set_init_firmware(&ch201_sensor, ch201_gprmt_init)) {
+    comms::USB_CDC.printf("CH201 set init firmware failed\r\n");
+    return false;
+  }
 
   // set to free running mode
   if (ch_set_freerun_interval(&ch201_sensor, CH201_FREERUN_INTERVAL)) {
@@ -86,7 +85,7 @@ bool Ultrasound::init(int us_id) {
   }
   if (ch_set_mode(&ch201_sensor, CH_MODE_FREERUN)) {
     comms::USB_CDC.printf("CH201 set mode failed\r\n");
-    return false;
+    return false; 
   }
 
   // set the interrupts

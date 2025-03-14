@@ -34,22 +34,6 @@ void chbsp_init() {
   // Initialize DMUX
   dmux1->init(1, spi0);
   dmux2->init(2, spi0);
-
-  // Init all dmux pins to output, and 1
-  for (int i = 0; i < 32; i++) {
-    // the sleep is to increase dmux reliability, else it sometimes fails
-    if (i < 16) {
-      dmux1->init_gpio(i % 8, i < 8, 1);
-      sleep_ms(25);
-      dmux1->write_gpio(i % 8, i < 8, 1);
-      sleep_ms(25);
-    } else {
-      dmux2->init_gpio(i % 8, i < 24, 1);
-      sleep_ms(25);
-      dmux2->write_gpio(i % 8, i < 24, 1);
-      sleep_ms(25);
-    }
-  }
 }
 
 // Reset Functions (CH101/CH201)
