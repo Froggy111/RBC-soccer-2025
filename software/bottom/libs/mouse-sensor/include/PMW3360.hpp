@@ -6,41 +6,29 @@
 #include <pico/types.h>
 #include <string>
 
-class MouseSensor{
-
-
+class MouseSensor {
 public:
-    MouseSensor(void) = default;
-    void init(int id, spi_inst_t *spi_obj_touse);
+  void init(int id, spi_inst_t *spi_obj_touse);
 
-    types::u8 motion_burst_buffer[12] = {99}; //Stores data read from data burst 
-    
-    void read_motion_burst();
-    types::u16 read_X_motion();
-    types::u16 read_Y_motion();
-    types::u16 read_squal();
+  types::u8 motion_burst_buffer[12] = {99}; //Stores data read from data burst
 
-    //TODO: Remove this from public and switch to private after testing
-    types::u8 read8(types::u8 reg);
-    void write8(types::u8 reg, types::u8 data, int8_t expected = -1);
+  void read_motion_burst();
+  types::u16 read_X_motion();
+  types::u16 read_Y_motion();
+  types::u16 read_squal();
 
+private:
+  //* init funcs
+  void init_pins();
+  bool init_registers();
+  bool init_srom();
 
-    bool init_registers();
+  types::u8 read8(types::u8 reg);
+  void write8(types::u8 reg, types::u8 data);
 
-    private:
-    void init_spi(types::u64 SPI_SPEED);
+  PinInputControl inputControl;
+  PinOutputControl outputControl;
+  PinSelector pinSelector;
 
-    void init_pins();
-
-    // types::u8 read8(types::u8 reg);
-
-    // void write8(types::u8 reg, types::u8 data, int8_t expected = -1);
-
-    bool check_config();
-
-    PinInputControl inputControl;
-    PinOutputControl outputControl;
-    PinSelector pinSelector;
-
-    spi_inst_t *spi_obj;
+  spi_inst_t *spi_obj;
 };
