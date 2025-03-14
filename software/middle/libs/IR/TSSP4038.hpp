@@ -6,24 +6,16 @@ extern "C" {
 
 }
 #include "types.hpp"
+#include "pins/MCP23S17.hpp"
+#define IR_SENSOR_HPP
 
 class IRsensor {
     public:
-        IRsensor();
-        bool begin();
-        void read();
-        void init(types::u8 id);
-        bool is_signal_detected();
-        void read_signal();
-        void start_reading();
-        void stop_reading();
-        void print_reading();
+        void init();
+        void read_raw();
+
     private:
-        bool _last_state();
-        bool _current_state();
-        uint32_t _raw_readings(200);
-        uint _reading_count
-        uint8_t _pin;
+        
 };
 
 

@@ -3,21 +3,38 @@
 #include "types.hpp"
 #include "stdio.h"
 #include <cstdio>
+#include "comms.hpp"
+#include "pinmap.hpp"
 
 void IRsensor::init(){
-    gpio_init(_pin)
-    gpio_set_dir(_pin, GPIO_IN);
+    comms::USB_CDC.printf("---> Initializing IR\r\n");
+    gpio_init(pinmap::Pico::IR1);
+    gpio_init(pinmap::Pico::IR2);
+    gpio_init(pinmap::Pico::IR3);
+    gpio_init(pinmap::Pico::IR4);
+    gpio_init(pinmap::Pico::IR5);
+    gpio_init(pinmap::Pico::IR6);
+    gpio_init(pinmap::Pico::IR7);
+    gpio_init(pinmap::Pico::IR8);
+    gpio_init(pinmap::Pico::IR9);
+    gpio_init(pinmap::Pico::IR10);
+    gpio_init(pinmap::Pico::IR11);
+    gpio_init(pinmap::Pico::IR12);
+    gpio_init(pinmap::Pico::IR13);
+    gpio_init(pinmap::Pico::IR14);
+    gpio_init(pinmap::Pico::IR15);
+    gpio_init(pinmap::Pico::IR16);
+    gpio_init(pinmap::Pico::IR17);
+    gpio_init(pinmap::Pico::IR18);
+    gpio_init(pinmap::Pico::IR19);
+    gpio_init(pinmap::Pico::IR20);
+    gpio_init(pinmap::Pico::IR21);
+    gpio_init(pinmap::Pico::IR22);
+    gpio_init(pinmap::Pico::IR23);
+    gpio_init(pinmap::Pico::IR24);
+
+
 }
 
-bool IRsensor::is_signal_detected(){
-    return gpio_get(_pin) == 0;
-}
 
-void IRsensor::read_signal(){
-    if (is_signal_detected()) {
-    printf("Signal detected\n");
-    } else {
-        printf("Signal is not detected\n");
-    }
-}
 
