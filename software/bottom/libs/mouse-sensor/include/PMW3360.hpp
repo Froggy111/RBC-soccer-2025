@@ -8,7 +8,7 @@
 
 class MouseSensor {
 public:
-  void init(int id, spi_inst_t *spi_obj_touse);
+  bool init(int id, spi_inst_t *spi_obj_touse);
 
   types::u8 motion_burst_buffer[12] = {99}; //Stores data read from data burst
 

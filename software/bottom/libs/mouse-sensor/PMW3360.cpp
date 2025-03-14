@@ -95,7 +95,7 @@ extern "C" {
 
 #define FAULT_SUMMARY_REG 0x01
 
-void MouseSensor::init(int id, spi_inst_t *spi_obj_touse) {
+bool MouseSensor::init(int id, spi_inst_t *spi_obj_touse) {
   pinSelector.set_mouse_sensor_id(id);
 
   // * init SPI
@@ -116,8 +116,12 @@ void MouseSensor::init(int id, spi_inst_t *spi_obj_touse) {
 
   // * init the rest
   init_pins();
-  init_registers();
-  init_srom();
+  if (!init_registers()) {
+    return false;
+  }
+  if (!init_srom()) {
+    return false;
+  }
 }
 
 void MouseSensor::init_pins() {
