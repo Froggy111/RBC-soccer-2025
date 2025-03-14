@@ -16,3 +16,6 @@
 [submodule "software/external/raspicam"]
 	path = software/external/raspicam
 	url = https://github.com/cedricve/raspicam
+[submodule "software/external/pico-icm20948"]
+	path = software/external/pico-icm20948
+	url = https://github.com/akionu/pico-icm20948
