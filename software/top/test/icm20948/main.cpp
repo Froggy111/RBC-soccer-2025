@@ -1,33 +1,38 @@
-#include <stdio.h>
-#include <math.h>
-#include "comms/usb.hpp"
-#include "hardware/i2c.h"
+#include <hardware/spi.h>
+#include <hardware/structs/io_bank0.h>
 #include "comms.hpp"
 #include "pinmap.hpp"
 #include "types.hpp"
+
 extern "C" {
 #include <pico/stdlib.h>
-#include "../../../external/pico-icm20948/src/pico-icm20948.h"
+#include "ICM20948.hpp"
 }
 
 using namespace types;
 
 // Configuration
 const u8 LED_PIN = 25;
-const u16 I2C_FREQ = (u16)400000; // 400 KHz
+const u16 SPI_FREQ = (u16)1000000; // 1 MHz
 
 // Default ICM20948 addresses
 const u8 ICM20948_ACCEL_GYRO_ADDR = 0x68; // Default accel/gyro address
 const u8 ICM20948_MAG_ADDR = 0x0C;        // Default magnetometer address
 
 // Global variables
-icm20948_config_t imu_config;
-icm20984_data_t imu_data;
+icm20948::icm20948_config_t imu_config;
+icm20948::icm20984_data_t imu_data;
 
 // Task to read and display IMU data
 void imu_task(void *args) {
   usb::CDC *cdc = (usb::CDC *)args;
   cdc->wait_for_CDC_connection(0xFFFFFFFF);
+
+  if (!spi_init(spi0, SPI_FREQ)) {
+    comms::USB_CDC.printf("Error initializing SPI\r\n");
+  } else {
+    comms::USB_CDC.printf("SPI initialized\r\n");
+  }
 
   // Initialize IMU
   int8_t result = icm20948_init(&imu_config);
@@ -105,19 +110,11 @@ int main() {
 
   comms::USB_CDC.printf("ICM20948 IMU Test\r\n");
 
-  // Initialize I2C (using I2C0)
-  i2c_init(i2c0, I2C_FREQ);
-  gpio_set_function((uint)pinmap::Pico::I2C0_SDA, GPIO_FUNC_I2C);
-  gpio_set_function((uint)pinmap::Pico::I2C0_SCL, GPIO_FUNC_I2C);
-  gpio_pull_up((uint)pinmap::Pico::I2C0_SDA);
-  gpio_pull_up((uint)pinmap::Pico::I2C0_SCL);
-
   // Configure IMU
   imu_config.addr_accel_gyro = ICM20948_ACCEL_GYRO_ADDR;
   imu_config.addr_mag = ICM20948_MAG_ADDR;
-  imu_config.i2c = i2c0;
-
-  comms::USB_CDC.printf("IMU initialized successfully!\r\n");
+  imu_config.spi = spi0;
+  imu_config.id = 1;
 
   // Create task for reading IMU data
   xTaskCreate(imu_task, "imu_task", 2048, &cdc, 1, NULL);

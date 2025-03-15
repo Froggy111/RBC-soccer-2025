@@ -1,12 +1,13 @@
-#ifndef PICO_ICM20948_H
-#define PICO_ICM20948_H
+#pragma  once
 
+#include <cstdint>
 extern "C" {
-#include "pico/stdlib.h"
-#include "hardware/i2c.h"
+#include "hardware/spi.h"
 }
 
+namespace icm20948 {
 typedef struct icm20948_config {
+    uint8_t id;
     // usual addr
     // addr_accel_gyro:  0x68
     // addr_mag:         0x0C
@@ -14,7 +15,7 @@ typedef struct icm20948_config {
     uint8_t    addr_mag;
     // example
     // i2c_inst_t icm20948_i2c = {i2c0_hw, false}
-    i2c_inst_t *i2c;
+    spi_inst_t *spi;
 } icm20948_config_t;
 
 typedef struct icm20984_data {
@@ -27,6 +28,10 @@ typedef struct icm20984_data {
     int16_t mag_bias[3];
     float temp_c;
 } icm20984_data_t;
+
+void spi_configure(icm20948_config_t *config);
+void spi_write(icm20948_config_t *config, uint8_t addr, const uint8_t * data, size_t len);
+void spi_read(icm20948_config_t *config, uint8_t addr, uint8_t * buffer, size_t len);
 
 int8_t icm20948_init(icm20948_config_t *config);
 void icm20948_set_mag_rate(icm20948_config_t *config, uint8_t mode);
@@ -44,5 +49,4 @@ void icm20948_read_cal_gyro(icm20948_config_t *config, int16_t gyro[3], int16_t 
 void icm20948_read_cal_accel(icm20948_config_t *config, int16_t accel[3], int16_t bias[3]);
 void icm20948_read_cal_mag(icm20948_config_t *config, int16_t mag[3], int16_t bias[3]);
 void icm20948_read_temp_c(icm20948_config_t *config, float* temp);
-
-#endif
+}
