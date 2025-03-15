@@ -9,14 +9,13 @@ extern "C" {
 #include "pins/MCP23S17.hpp"
 #define IR_SENSOR_HPP
 
-class IRsensor {
-    public:
-        void init();
-        void read_raw();
-
-    private:
-        
-};
+class Samples {
+    Samples(int n_samples);
+    void add(bool state);
+    float average(void);
+    void setup();
+    void loop();
+}
 
 
 
