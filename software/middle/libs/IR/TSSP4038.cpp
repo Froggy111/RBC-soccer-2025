@@ -10,10 +10,13 @@ extern "C"{
 
 const int freq = 40000; 
 const int period = 1000000 / freq; 
-const int waveform_freq = 1200; 
+const int waveform_freq = 1200; //mod frequency
 const float samples_per_window = freq / waveform_freq;
 
-//array of pins :D
+volatile int mod_step = 0; //keep track of which mod step we are on
+struct repeating_timer modulation_timer;
+
+//GPIO for array of pins :D
 const int ir_pins[] = {
     pinmap::Pico::IR1, pinmap::Pico::IR2, pinmap::Pico::IR3, pinmap::Pico::IR4,
     pinmap::Pico::IR5, pinmap::Pico::IR6, pinmap::Pico::IR7, pinmap::Pico::IR8,
@@ -51,7 +54,9 @@ float average = (float) total / (float) n_samples;
 return average; 
 }
 
+bool modulation_timer(struct repeating_timer *t) {
 
+}
 void rising_edge(unit gpio, uint32_t events) { 
     for (int i = 0; i<num_ir_sensors; i++) { 
         if (gpio == ir_pins[i]) { 
