@@ -40,35 +40,35 @@ project(bottom C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
-# # ===================================================================================
-# # ======================== CAMERA STREAMING DEPENDENCIES ============================
-# # Find required packages
-# find_package(OpenCV REQUIRED)
-# find_package(PkgConfig REQUIRED)
-# pkg_check_modules(LIBCAMERA REQUIRED libcamera)
+# ===================================================================================
+# ======================== CAMERA STREAMING DEPENDENCIES ============================
+# Find required packages
+find_package(OpenCV REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBCAMERA REQUIRED libcamera)
 
-# pkg_check_modules(LIBWEBSOCKETS REQUIRED libwebsockets)
-# message(STATUS "Using libwebsockets for web server")
-# set(WEB_SERVER_LIBS ${LIBWEBSOCKETS_LIBRARIES})
-# set(WEB_SERVER_INCLUDE_DIRS ${LIBWEBSOCKETS_INCLUDE_DIRS})
-# set(WEB_SERVER_CFLAGS ${LIBWEBSOCKETS_CFLAGS})
-# add_definitions(-DUSE_LIBWEBSOCKETS)
+pkg_check_modules(LIBWEBSOCKETS REQUIRED libwebsockets)
+message(STATUS "Using libwebsockets for web server")
+set(WEB_SERVER_LIBS ${LIBWEBSOCKETS_LIBRARIES})
+set(WEB_SERVER_INCLUDE_DIRS ${LIBWEBSOCKETS_INCLUDE_DIRS})
+set(WEB_SERVER_CFLAGS ${LIBWEBSOCKETS_CFLAGS})
+add_definitions(-DUSE_LIBWEBSOCKETS)
 
-# # Find threading library
-# find_package(Threads REQUIRED)
+# Find threading library
+find_package(Threads REQUIRED)
 
-# # Add dependencies to include path
-# include_directories(
-#   ${OpenCV_INCLUDE_DIRS}
-#   ${LIBCAMERA_INCLUDE_DIRS}
-#   ${WEB_SERVER_INCLUDE_DIRS}
-# )
+# Add dependencies to include path
+include_directories(
+  ${OpenCV_INCLUDE_DIRS}
+  ${LIBCAMERA_INCLUDE_DIRS}
+  ${WEB_SERVER_INCLUDE_DIRS}
+)
 
-# # Setup global compiler flags
-# set(CMAKE_CXX_FLAGS "${LIBCAMERA_CFLAGS} ${WEB_SERVER_CFLAGS}")
+# Setup global compiler flags
+set(CMAKE_CXX_FLAGS "${LIBCAMERA_CFLAGS} ${WEB_SERVER_CFLAGS}")
 
 # Libraries
-# add_subdirectory(libs) # global libs need to be explicitly linked to with target_link_globals(TARGET)
+add_subdirectory(libs) # global libs need to be explicitly linked to with target_link_globals(TARGET)
 
 # Main
 add_subdirectory(src)
