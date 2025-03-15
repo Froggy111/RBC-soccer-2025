@@ -73,13 +73,13 @@ add_compile_options(-UCFG_TUSB_OS -DCFG_TUSB_OS=OPT_OS_FREERTOS)
 
 # ====================================================================================
 # ===================================== SONICLIB =====================================
-set(CHIRP_MAX_NUM_SENSORS 16 CACHE STRING "one sensor connected" FORCE)
-set(CHIRP_NUM_BUSES 1 CACHE STRING "one sensor connected" FORCE)
-set(CHIRP_SENSOR_INT_PIN 0 CACHE STRING "use INT1 in freerun mode" FORCE)
-set(CHIRP_SENSOR_TRIG_PIN 0 CACHE STRING "use INT1 in freerun mode" FORCE)
-set(CHIRP_INIT_FW_TYPE "NO_TX_OPTIMIZATION" CACHE STRING "using fw presencev2" FORCE)
-set(CHIRP_MAIN_FW_TYPE "CH201_GPRMT" CACHE STRING "using CH201_GPRMT firmware" FORCE)
-set(CHIRP_LOG_LEVEL 2 CACHE STRING "log=info" FORCE)
+# set(CHIRP_MAX_NUM_SENSORS 16 CACHE STRING "one sensor connected" FORCE)
+# set(CHIRP_NUM_BUSES 1 CACHE STRING "one sensor connected" FORCE)
+# set(CHIRP_SENSOR_INT_PIN 0 CACHE STRING "use INT1 in freerun mode" FORCE)
+# set(CHIRP_SENSOR_TRIG_PIN 0 CACHE STRING "use INT1 in freerun mode" FORCE)
+# set(CHIRP_INIT_FW_TYPE "NO_TX_OPTIMIZATION" CACHE STRING "using fw presencev2" FORCE)
+# set(CHIRP_MAIN_FW_TYPE "CH201_GPRMT" CACHE STRING "using CH201_GPRMT firmware" FORCE)
+# set(CHIRP_LOG_LEVEL 2 CACHE STRING "log=info" FORCE)
 
 # ====================================================================================
 # ===================================== FREERTOS =====================================
@@ -93,9 +93,8 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/../external/pico-icm20948 ${CMAKE_BINARY_DI
 add_global_library(pico-icm20948)
 
 # ====================================================================================
-# add_global_library(soniclib)
+
 add_global_library(pico_stdlib)
-# add_global_library(pico_stdio_usb) # only include this for testing without using our own comms lib
 add_global_library(pico_async_context_freertos)
 add_global_library(FreeRTOS-Kernel-Heap4)
 
