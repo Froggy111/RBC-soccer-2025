@@ -31,6 +31,13 @@ const int num_ir_sensors = sizeof(ir_pins) / sizeof(ir_pins[0]);
 // Create array of Samples obj, each IR sensor??
 Samples* ir_samples[num_ir_sensors];
 
+//rising edge and falling edge timestamps
+volatile uint32_t rising_time[num_ir_sensors] = {0};
+volatile uint32_t falling_time[num_ir_sensors] = {0};
+
+//mod steps
+const float mod_duty_cycle[5] = {1.0, 0.25, 0.0625, 0.015625, 0.0}
+
 Samples::Samples(int n_samples) { 
     this->n_samples = n_samples; 
     this->samples = (bool*) malloc(n_samples * sizeof(bool)); 
@@ -54,9 +61,13 @@ float average = (float) total / (float) n_samples;
 return average; 
 }
 
-bool modulation_timer(struct repeating_timer *t) {
-
+//timer callback for mod
+bool modulation_timer_callback(struct repeating_timer *t) {
+    mod_step = (mod_step + 1) % 5;
+    return true; //keeps on repeating, non-blocking code
 }
+
+//interrupt when rising edge detected
 void rising_edge(unit gpio, uint32_t events) { 
     for (int i = 0; i<num_ir_sensors; i++) { 
         if (gpio == ir_pins[i]) { 
@@ -68,6 +79,7 @@ void rising_edge(unit gpio, uint32_t events) {
     return; 
 }
 
+//interrupt when falling edge detected
 void falling_edge(unit gpio, uint32_t events) { 
     for (int i = 0; i<num_ir_sensors; i++) { 
         if (gpio == ir_pins[i]) { 
@@ -79,6 +91,7 @@ void falling_edge(unit gpio, uint32_t events) {
     return; 
 }
 
+//initialise all the ir sensors hehe
 void setup() { 
 comms::USB_CDC.printf("\n\
 _____  ____   _____   _ __          _________   ___   ___ ___  _____ \n\
@@ -101,7 +114,8 @@ for (int i = 0; i < num_ir_sensors; i++) {
     gpio_set_irq_enabled_with_callback(ir_pins[i], GPIO_IRQ_EDGE_RISE, true, falling_edge);
     comms::USB_CDC.printf("IR Sensor %d initialized at GPIO pin %d\n", i + 1, ir_pins[i]);
     }
-    delay(2000); 
+    //start mod timer
+    add_repeating_timer_ms(-833, modulation_timer_callback, NULL, &modulation_timer); 
 } 
 
 void loop() { 
