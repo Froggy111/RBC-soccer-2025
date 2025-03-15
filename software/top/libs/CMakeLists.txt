@@ -10,4 +10,6 @@ add_subdirectory(comms) # this links debug
 # then pins
 add_subdirectory(pins)
 
+add_subdirectory(imu)
+
 # add_subdirectory(ultrasounds)
