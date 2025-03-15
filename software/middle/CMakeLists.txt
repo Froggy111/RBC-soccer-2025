@@ -11,6 +11,10 @@ set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
 if (EXISTS ${picoVscode})
   include(${picoVscode})
 endif()
+
+# warnings as errors, comment this out if needed
+add_compile_options(-Werror)
+
 # ====================================================================================
 
 # ================================= HELPER FUNCTIONS =================================
@@ -48,30 +52,43 @@ endfunction()
 # ===================================== PICO SDK =====================================
 set(PICO_BOARD pico CACHE STRING "Board type")
 
-# use external tinyusb (picosdk provided tinyusb hardcodes CFG_TUSB_OS as OPT_OS_PICO, but we want OPT_OS_FREERTOS)
-# if testing without comms lib and freertos, comment this out
 set(PICO_SDK_TINYUSB_PATH "")
-set(PICO_TINYUSB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/tinyusb")
+set(PICO_TINYUSB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../external/tinyusb")
 
 cmake_minimum_required(VERSION 3.23)
 
 include(pico_sdk_import.cmake)
 
 # Metadata
-project(bottom C CXX ASM)
+project(middle C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
 # Init PicoSDK
 set(PICOTOOL_FORCE_FETCH_FROM_GIT ON)
 pico_sdk_init()
+
+# HACK: use external tinyusb (picosdk provided tinyusb hardcodes CFG_TUSB_OS as OPT_OS_PICO, but we want OPT_OS_FREERTOS)
+# HACK: if testing without comms lib and freertos, comment this out
+add_compile_options(-UCFG_TUSB_OS -DCFG_TUSB_OS=OPT_OS_FREERTOS)
+# ====================================================================================
+
+# ===================================== FREERTOS =====================================
+# FreeRTOS
+set(FREERTOS_KERNEL_PATH ${CMAKE_SOURCE_DIR}/../external/freertos)
+include(FreeRTOS_Kernel_import.cmake)
 # ====================================================================================
 
 add_global_library(pico_stdlib)
 # add_global_library(pico_stdio_usb) # only include this for testing without using our own comms lib
+add_global_library(pico_async_context_freertos)
+add_global_library(FreeRTOS-Kernel-Heap4)
 
 # add tinyusb
 add_subdirectory(${PICO_TINYUSB_PATH}/src/ ${CMAKE_BINARY_DIR}/tinyusb)
+
+# configs
+add_subdirectory(configs)
 
 # Libraries
 add_subdirectory(libs) # global libs need to be explicitly linked to with target_link_globals(TARGET)

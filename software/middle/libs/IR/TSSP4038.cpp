@@ -1,8 +1,10 @@
 #include "TSSP4038.hpp"
 #include "include/IR.hpp"
-#include "types.hpp"
+extern "C"{
+#include "hardware/gpio.h"
 #include "stdio.h"
-#include <cstdio>
+}
+#include "types.hpp"
 #include "comms.hpp"
 #include "pinmap.hpp"
 
