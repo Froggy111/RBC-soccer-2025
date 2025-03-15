@@ -51,6 +51,29 @@ float average = (float) total / (float) n_samples;
 return average; 
 }
 
+
+void rising_edge(unit gpio, uint32_t events) { 
+    for (int i = 0; i<num_ir_sensors; i++) { 
+        if (gpio == ir_pins[i]) { 
+            ir_samples[i]->add(true); 
+            rising_time[i] = time_us_32();
+            return; 
+        } 
+    }
+    return; 
+}
+
+void falling_edge(unit gpio, uint32_t events) { 
+    for (int i = 0; i<num_ir_sensors; i++) { 
+        if (gpio == ir_pins[i]) { 
+            ir_samples[i]->add(false); 
+            falling_time[i] = time_us_32();
+            return; 
+        } 
+    }
+    return; 
+}
+
 void setup() { 
 comms::USB_CDC.printf("\n\
 _____  ____   _____   _ __          _________   ___   ___ ___  _____ \n\
@@ -67,7 +90,10 @@ comms::USB_CDC.printf("Initialising IR sensors...\n");
 for (int i = 0; i < num_ir_sensors; i++) {
     gpio_init(ir_pins[i]); // initialise the GPIO pin
     gpio_set_dir(ir_pins[i], GPIO_IN); // set the dir to input
-    ir_samples[i] = new Samples(samples_per_window);  // initialise each samples object
+    ir_samples[i] = new Samples(samples_per_window);  
+
+    gpio_set_irq_enabled_with_callback(ir_pins[i], GPIO_IRQ_EDGE_RISE, true, rising_edge);
+    gpio_set_irq_enabled_with_callback(ir_pins[i], GPIO_IRQ_EDGE_RISE, true, falling_edge);
     comms::USB_CDC.printf("IR Sensor %d initialized at GPIO pin %d\n", i + 1, ir_pins[i]);
     }
     delay(2000); 
@@ -89,44 +115,6 @@ void loop() {
     while (micros() - start_time < period) { continue; } 
 }
 
-
-/*
-void IRsensor::init(){
-    comms::USB_CDC.printf("---> Initializing IR\r\n");
-    gpio_init(pinmap::Pico::IR1);
-    gpio_init(pinmap::Pico::IR2);
-    gpio_init(pinmap::Pico::IR3);
-    gpio_init(pinmap::Pico::IR4);
-    gpio_init(pinmap::Pico::IR5);
-    gpio_init(pinmap::Pico::IR6);
-    gpio_init(pinmap::Pico::IR7);
-    gpio_init(pinmap::Pico::IR8);
-    gpio_init(pinmap::Pico::IR9);
-    gpio_init(pinmap::Pico::IR10);
-    gpio_init(pinmap::Pico::IR11);
-    gpio_init(pinmap::Pico::IR12);
-    gpio_init(pinmap::Pico::IR13);
-    gpio_init(pinmap::Pico::IR14);
-    gpio_init(pinmap::Pico::IR15);
-    gpio_init(pinmap::Pico::IR16);
-    gpio_init(pinmap::Pico::IR17);
-    gpio_init(pinmap::Pico::IR18);
-    gpio_init(pinmap::Pico::IR19);
-    gpio_init(pinmap::Pico::IR20);
-    gpio_init(pinmap::Pico::IR21);
-    gpio_init(pinmap::Pico::IR22);
-    gpio_init(pinmap::Pico::IR23);
-    gpio_init(pinmap::Pico::IR24);
-}
-
-uint16_t IRsensor::read_raw(uint8_t IRsensor_id) {
-    if IRsensor_id < 1 || IRsensor_id > 24 {
-        comms::USB_CDC.printf("Invalid IR sensor ID\r\n");
-        return 0;
-    uint16_t state = gpio.get(pinmap::Pico::IR1);
-
-    }
-}
 
 
 
