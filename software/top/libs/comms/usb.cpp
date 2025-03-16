@@ -121,8 +121,10 @@ bool CDC::write(const comms::SendIdentifiers identifier, const u8 *data,
   tud_cdc_write(&identifier, sizeof(identifier));
   tud_cdc_write(data, data_len);
 
+  tud_cdc_write_flush();
   xSemaphoreGive(_write_mutex);
 
+  taskYIELD(); // let tud_task() run
   return true;
 }
 
@@ -190,9 +192,12 @@ bool CDC::printf(const char *format, ...) {
   va_list args;
   va_start(args, format);
   u16 size = vsnprintf(formatted, sizeof(formatted), format, args);
+  xSemaphoreTake(_write_mutex, portMAX_DELAY);
   tud_cdc_write(formatted, size);
   va_end(args);
   tud_cdc_write_flush();
+  xSemaphoreGive(_write_mutex);
+  taskYIELD(); // let tud_task() run
   return true;
 }
 
@@ -220,6 +225,7 @@ void CDC::_IRQ_write_flusher(void *args) {
       u16 writable = MIN(tud_cdc_available(), remaining_len);
       tud_cdc_write(_interrupt_write_buffer, writable);
       tud_cdc_write_flush();
+      taskYIELD(); // let tud_task() run
       remaining_len -= writable;
     }
   }

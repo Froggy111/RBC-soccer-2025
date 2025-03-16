@@ -39,8 +39,6 @@ void imu_task(void *args) {
   }
 
   comms::USB_CDC.printf("Initializing IMU...\r\n");
-  // delay for things to print??
-  busy_wait_ms(20);
 
   // Initialize IMU
   int8_t result = icm20948::icm20948_init(&imu_config);
@@ -125,7 +123,7 @@ int main() {
   imu_config.id = 1;
 
   // Create task for reading IMU data
-  xTaskCreate(imu_task, "imu_task", 2048, &cdc, 10, NULL);
+  xTaskCreate(imu_task, "imu_task", 2048, NULL, 10, NULL);
 
   // Start FreeRTOS scheduler
   vTaskStartScheduler();
