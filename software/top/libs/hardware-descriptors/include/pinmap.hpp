@@ -72,8 +72,8 @@ enum class Pico : types::u8 {
   I2C0_SCL = 21,
   DMUX2_NRST = 22,
   DMUX2_INTA = 26,
-  IMU2_NCS = 27,
-  IMU2_INT = 28
+  IMU2_INT = 27,
+  IMU2_NCS = 28
 };
 
 } // namespace pinmap
