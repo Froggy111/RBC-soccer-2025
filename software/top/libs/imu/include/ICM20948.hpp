@@ -8,13 +8,6 @@ extern "C" {
 namespace icm20948 {
 typedef struct icm20948_config {
     uint8_t id;
-    // usual addr
-    // addr_accel_gyro:  0x68
-    // addr_mag:         0x0C
-    uint8_t    addr_accel_gyro;
-    uint8_t    addr_mag;
-    // example
-    // i2c_inst_t icm20948_i2c = {i2c0_hw, false}
     spi_inst_t *spi;
 } icm20948_config_t;
 
@@ -30,7 +23,7 @@ typedef struct icm20984_data {
 } icm20984_data_t;
 
 void spi_configure(icm20948_config_t *config);
-void spi_write(icm20948_config_t *config, uint8_t addr, const uint8_t * data, size_t len);
+void spi_write(icm20948_config_t *config, const uint8_t * data, size_t len);
 void spi_read(icm20948_config_t *config, uint8_t addr, uint8_t * buffer, size_t len_buffer);
 
 int8_t icm20948_init(icm20948_config_t *config);

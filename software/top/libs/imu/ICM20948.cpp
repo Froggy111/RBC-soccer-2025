@@ -18,7 +18,7 @@ void icm20948::spi_configure(icm20948_config_t *config) {
   spi_set_format(config->spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 }
 
-void icm20948::spi_write(icm20948_config_t *config, uint8_t addr,
+void icm20948::spi_write(icm20948_config_t *config,
                          const uint8_t *data, size_t len) {
   spi_configure(config);
 
@@ -34,8 +34,7 @@ void icm20948::spi_write(icm20948_config_t *config, uint8_t addr,
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
       0);
-  sleep_us(1);
-  spi_write_blocking(config->spi, buf, len + 1);
+  spi_write_blocking(config->spi, buf, len);
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
       1);
@@ -57,7 +56,6 @@ void icm20948::spi_read(icm20948_config_t *config, uint8_t addr, uint8_t * buffe
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
       0);
-  sleep_us(1);
   spi_write_read_blocking(config->spi, buf, buffer, 2 + len_buffer);
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
@@ -88,28 +86,28 @@ int8_t icm20948::icm20948_init(icm20948_config_t *config) {
   // first write register then, write value
   reg[0] = PWR_MGMT_1;
   reg[1] = 0x00;
-  spi_write(config, config->addr_accel_gyro, reg, 2);
+  spi_write(config, reg, 2);
 
   // switch to user bank to 0
   reg[0] = REG_BANK_SEL;
   reg[1] = 0x00;
-  spi_write(config, config->addr_accel_gyro, reg, 2);
+  spi_write(config, reg, 2);
 
   // auto select clock source
   reg[0] = PWR_MGMT_1;
   reg[1] = 0x01;
-  spi_write(config, config->addr_accel_gyro, reg, 2);
+  spi_write(config, reg, 2);
 
   // disable accel/gyro once
   reg[0] = PWR_MGMT_2;
   reg[1] = 0x3F;
-  spi_write(config, config->addr_accel_gyro, reg, 2);
+  spi_write(config, reg, 2);
   sleep_ms(10);
 
   // enable accel/gyro (again)
   reg[0] = PWR_MGMT_2;
   reg[1] = 0x00;
-  spi_write(config, config->addr_accel_gyro, reg, 2);
+  spi_write(config, reg, 2);
 
   // check if the accel/gyro could be accessed
   spi_read(config, WHO_AM_I_ICM20948, &buf, 1);
@@ -122,7 +120,7 @@ int8_t icm20948::icm20948_init(icm20948_config_t *config) {
   // switch to user bank 2
   reg[0] = REG_BANK_SEL;
   reg[1] = 0x20;
-  spi_write(config, config->addr_accel_gyro, reg, 2);
+  spi_write(config, reg, 2);
 
   // gyro config
   //
@@ -131,14 +129,14 @@ int8_t icm20948::icm20948_init(icm20948_config_t *config) {
   // smaller bandwidth means lower noise level & slower max sample rate
   reg[0] = GYRO_CONFIG_1;
   reg[1] = 0x29;
-  spi_write(config, config->addr_accel_gyro, reg, 2);
+  spi_write(config, reg, 2);
   //
   // set gyro output data rate to 100Hz
   // output_data_rate = 1.125kHz / (1 + GYRO_SMPLRT_DIV)
   // 1125 / 11 = 100
   reg[0] = GYRO_SMPLRT_DIV;
   reg[1] = 0x0A;
-  spi_write(config, config->addr_accel_gyro, reg, 2);
+  spi_write(config, reg, 2);
 
   // accel config
   //
@@ -146,24 +144,24 @@ int8_t icm20948::icm20948_init(icm20948_config_t *config) {
   // set noise bandwidth to 136Hz
   reg[0] = ACCEL_CONFIG;
   reg[1] = 0x11;
-  spi_write(config, config->addr_accel_gyro, reg, 2);
+  spi_write(config, reg, 2);
   //
   // set accel output data rate to 100Hz
   // output_data_rate = 1.125kHz / (1 + ACCEL_SMPLRT_DIV)
   // 16 bits for ACCEL_SMPLRT_DIV
   reg[0] = ACCEL_SMPLRT_DIV_2;
   reg[1] = 0x0A;
-  spi_write(config, config->addr_accel_gyro, reg, 2);
+  spi_write(config, reg, 2);
 
   // switch to user bank to 0
   reg[0] = REG_BANK_SEL;
   reg[1] = 0x00;
-  spi_write(config, config->addr_accel_gyro, reg, 2);
+  spi_write(config, reg, 2);
 
   // wake up mag! (INT_PIN_CFG, BYPASS_EN = 1)
   reg[0] = INT_PIN_CFG;
   reg[1] = 0x02;
-  spi_write(config, config->addr_accel_gyro, reg, 2);
+  spi_write(config, reg, 2);
 
   // check if the mag could be accessed
   spi_read(config, 0x01, &buf, 1);
@@ -178,7 +176,7 @@ int8_t icm20948::icm20948_init(icm20948_config_t *config) {
   // set mag mode, to measure continuously in 100Hz
   reg[0] = AK09916_CNTL2;
   reg[1] = 0x08;
-  spi_write(config, config->addr_mag, reg, 2);
+  spi_write(config, reg, 2);
 
   return 0;
 }
@@ -221,7 +219,7 @@ void icm20948::icm20948_set_mag_rate(icm20948_config_t *config, uint8_t mode) {
   }
 
   reg[0] = AK09916_CNTL2;
-  spi_write(config, config->addr_mag, reg, 2);
+  spi_write(config, reg, 2);
 
   return;
 }

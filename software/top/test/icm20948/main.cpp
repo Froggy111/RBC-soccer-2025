@@ -113,12 +113,15 @@ int main() {
   gpio_set_dir(LED_PIN, GPIO_OUT);
   gpio_put(LED_PIN, 1);
 
+  // Initialize CS pin for the other IMU
+  gpio_init((uint) pinmap::Pico::IMU2_NCS);
+  gpio_set_dir((uint) pinmap::Pico::IMU2_NCS, GPIO_OUT);
+  gpio_put((uint) pinmap::Pico::IMU2_NCS, 1);
+
   // Initialize USB CDC for communication
   comms::USB_CDC.init();
 
   // Configure IMU
-  imu_config.addr_accel_gyro = ICM20948_ACCEL_GYRO_ADDR;
-  imu_config.addr_mag = ICM20948_MAG_ADDR;
   imu_config.spi = spi0;
   imu_config.id = 1;
 
