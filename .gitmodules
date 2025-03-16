@@ -19,3 +19,15 @@
 [submodule "pico-icm20948"]
 	path = software/external/pico-icm20948
 	url = https://github.com/akionu/pico-icm20948
+[submodule "software/rpi/docker-crosstool-ng-multiarch"]
+	path = software/rpi/docker-crosstool-ng-multiarch
+	url = https://github.com/tttapa/docker-crosstool-ng-multiarch
+[submodule "software/rpi/docker-arm-cross-toolchain"]
+	path = software/rpi/docker-arm-cross-toolchain
+	url = https://github.com/tttapa/docker-arm-cross-toolchain
+[submodule "software/rpi/docker-arm-cross-build-scripts"]
+	path = software/rpi/docker-arm-cross-build-scripts
+	url = https://github.com/tttapa/docker-arm-cross-build-scripts
+[submodule "software/rpi/extra/python/cross-compile-module/py-build-cmake/qpalm/QPALM"]
+	path = software/rpi/extra/python/cross-compile-module/py-build-cmake/qpalm/QPALM
+	url = https://github.com/kul-optec/QPALM
