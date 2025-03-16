@@ -44,7 +44,7 @@ void imu_task(void *args) {
   // Initialize IMU
   int8_t result = icm20948::icm20948_init(&imu_config);
   if (result != 0) {
-    comms::USB_CDC.printf("Error initializing ICM20948: %d\r\n", result);
+    comms::USB_CDC.printf("Error initializing ICM20948, Error Code: %d\r\n", result);
     while (1) {
       gpio_put(LED_PIN, 0);
       sleep_ms(100);

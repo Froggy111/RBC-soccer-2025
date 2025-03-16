@@ -22,14 +22,14 @@ void icm20948::spi_write(icm20948_config_t *config, uint8_t addr,
                          const uint8_t *data, size_t len) {
   spi_configure(config);
 
-  uint8_t buf[len + 1];
-  buf[0] = addr & 0x7F;
+  uint8_t buf[len];
   for (uint8_t i = 0; i < len; i++)
-    buf[i + 1] = data[i];
+    buf[i] = data[i];
+  buf[0] = buf[0] & 0x7F;
 
-  for (uint8_t i = 0; i < len + 1; i++)
+  for (uint8_t i = 0; i < len; i++)
     comms::USB_CDC.printf("SPI Write - Sent: 0x%02X\r\n", buf[i]);
-  comms::USB_CDC.printf("SPI Write - Length: %d\r\n", len + 1);
+  comms::USB_CDC.printf("SPI Write - Length: %d\r\n", len);
 
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
@@ -44,25 +44,21 @@ void icm20948::spi_write(icm20948_config_t *config, uint8_t addr,
   return;
 }
 
-void icm20948::spi_read(icm20948_config_t *config, uint8_t addr,
-                        const uint8_t *data, uint8_t *buffer, size_t len_data,
-                        size_t len_buffer) {
+void icm20948::spi_read(icm20948_config_t *config, uint8_t addr, uint8_t * buffer, size_t len_buffer) {
   spi_configure(config);
 
-  uint8_t buf[len_data + 1];
+  uint8_t buf[2];
   buf[0] = addr | 0x80;
-  for (uint8_t i = 0; i < len_data; i++)
-    buf[i + 1] = data[i];
+  buf[1] = 0x00; // dummy data
 
-  for (uint8_t i = 0; i < len_data + 1; i++)
+  for (uint8_t i = 0; i < 2; i++)
     comms::USB_CDC.printf("SPI Read - Sent: 0x%02X\r\n", buf[i]);
-  comms::USB_CDC.printf("SPI Read - Length: %d\r\n", len_data + len_buffer + 1);
 
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
       0);
   sleep_us(1);
-  spi_write_read_blocking(config->spi, buf, buffer, len_data + len_buffer + 1);
+  spi_write_read_blocking(config->spi, buf, buffer, 2 + len_buffer);
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
       1);
@@ -116,8 +112,7 @@ int8_t icm20948::icm20948_init(icm20948_config_t *config) {
   spi_write(config, config->addr_accel_gyro, reg, 2);
 
   // check if the accel/gyro could be accessed
-  reg[0] = WHO_AM_I_ICM20948;
-  spi_read(config, config->addr_accel_gyro, reg, &buf, 1, 1);
+  spi_read(config, WHO_AM_I_ICM20948, &buf, 1);
 #ifndef NDEBUG
   printf("AG. WHO_AM_I: 0x%X\n", buf);
 #endif
@@ -171,8 +166,7 @@ int8_t icm20948::icm20948_init(icm20948_config_t *config) {
   spi_write(config, config->addr_accel_gyro, reg, 2);
 
   // check if the mag could be accessed
-  reg[0] = 0x01;
-  spi_read(config, config->addr_mag, reg, &buf, 1, 1);
+  spi_read(config, 0x01, &buf, 1);
 #ifndef NDEBUG
   printf("MAG. WHO_AM_I: 0x%X\n", buf);
 #endif
@@ -237,8 +231,7 @@ void icm20948::icm20948_read_raw_accel(icm20948_config_t *config,
   uint8_t buf[6];
 
   // accel: 2 bytes each axis
-  uint8_t reg = ACCEL_XOUT_H;
-  spi_read(config, config->addr_accel_gyro, &reg, buf, 1, 6);
+  spi_read(config, ACCEL_XOUT_H, buf, 6);
 
   for (uint8_t i = 0; i < 3; i++)
     accel[i] = (buf[i * 2] << 8 | buf[(i * 2) + 1]);
@@ -251,8 +244,7 @@ void icm20948::icm20948_read_raw_gyro(icm20948_config_t *config,
   uint8_t buf[6];
 
   // gyro: 2byte each axis
-  uint8_t reg = GYRO_XOUT_H;
-  spi_read(config, config->addr_accel_gyro, &reg, buf, 1, 6);
+  spi_read(config, GYRO_XOUT_H, buf, 6);
 
   for (uint8_t i = 0; i < 3; i++)
     gyro[i] = (buf[i * 2] << 8 | buf[(i * 2) + 1]);
@@ -262,8 +254,8 @@ void icm20948::icm20948_read_raw_gyro(icm20948_config_t *config,
 
 void icm20948::icm20948_read_raw_temp(icm20948_config_t *config,
                                       int16_t *temp) {
-  uint8_t reg = TEMP_OUT_H, buf[2];
-  spi_read(config, config->addr_accel_gyro, &reg, buf, 1, 2);
+  uint8_t buf[2];
+  spi_read(config, TEMP_OUT_H, buf, 2);
 
   *temp = (buf[0] << 8 | buf[1]);
 
@@ -274,8 +266,7 @@ void icm20948::icm20948_read_raw_mag(icm20948_config_t *config,
                                      int16_t mag[3]) {
   uint8_t buf[8];
 
-  uint8_t reg = AK09916_XOUT_L;
-  spi_read(config, config->addr_mag, &reg, buf, 1, 8);
+  spi_read(config, AK09916_XOUT_L, buf, 8);
 
   for (int i = 0; i < 3; i++)
     mag[i] = (buf[(i * 2) + 1] << 8 | buf[(i * 2)]);
