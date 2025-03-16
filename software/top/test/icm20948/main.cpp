@@ -25,6 +25,7 @@ icm20948::icm20984_data_t imu_data;
 // Task to read and display IMU data
 void imu_task(void *args) {
   comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
+  comms::USB_CDC.printf("ICM20948 IMU Test\r\n");
 
   if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.printf("Error initializing SPI\r\n");
@@ -114,7 +115,6 @@ int main() {
 
   // Initialize USB CDC for communication
   comms::USB_CDC.init();
-  comms::USB_CDC.printf("ICM20948 IMU Test\r\n");
 
   // Configure IMU
   imu_config.addr_accel_gyro = ICM20948_ACCEL_GYRO_ADDR;
