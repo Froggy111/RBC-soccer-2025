@@ -31,7 +31,7 @@ typedef struct icm20984_data {
 
 void spi_configure(icm20948_config_t *config);
 void spi_write(icm20948_config_t *config, uint8_t addr, const uint8_t * data, size_t len);
-void spi_read(icm20948_config_t *config, uint8_t addr, uint8_t * buffer, size_t len);
+void spi_read(icm20948_config_t *config, uint8_t addr, const uint8_t *data, uint8_t * buffer, size_t len_data, size_t len_buffer);
 
 int8_t icm20948_init(icm20948_config_t *config);
 void icm20948_set_mag_rate(icm20948_config_t *config, uint8_t mode);

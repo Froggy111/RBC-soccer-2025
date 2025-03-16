@@ -27,7 +27,7 @@ void imu_task(void *args) {
   comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
   comms::USB_CDC.printf("ICM20948 IMU Test\r\n");
 
-  if (!spi_init(spi0, 1000000)) {
+  if (!spi_init(spi0, 4000000)) {
     comms::USB_CDC.printf("Error initializing SPI\r\n");
     while (1) {
       gpio_put(LED_PIN, 0);

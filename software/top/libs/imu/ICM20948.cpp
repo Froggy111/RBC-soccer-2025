@@ -2,6 +2,7 @@
 #include "comms.hpp"
 #include "pinmap.hpp"
 #include "registers.hpp"
+#include <cstddef>
 
 extern "C" {
 #include "hardware/spi.h"
@@ -14,7 +15,7 @@ void icm20948::spi_configure(icm20948_config_t *config) {
   gpio_set_function((uint)pinmap::Pico::SPI0_SCLK, GPIO_FUNC_SPI);
   gpio_set_function((uint)pinmap::Pico::SPI0_MISO, GPIO_FUNC_SPI);
   gpio_set_function((uint)pinmap::Pico::SPI0_MOSI, GPIO_FUNC_SPI);
-  spi_set_format(config->spi, 8, SPI_CPOL_0, SPI_CPHA_1, SPI_MSB_FIRST);
+  spi_set_format(config->spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 }
 
 void icm20948::spi_write(icm20948_config_t *config, uint8_t addr,
@@ -22,6 +23,9 @@ void icm20948::spi_write(icm20948_config_t *config, uint8_t addr,
   spi_configure(config);
 
   comms::USB_CDC.printf("SPI Write - Sent: 0x%02X\r\n", addr);
+  for (uint8_t i = 0; i < len; i++)
+    comms::USB_CDC.printf("SPI Write - Sent: 0x%02X\r\n", data[i]);
+
   uint8_t buf[len + 1];
   buf[0] = addr & 0x7F;
   for (uint8_t i = 0; i < len; i++)
@@ -30,33 +34,37 @@ void icm20948::spi_write(icm20948_config_t *config, uint8_t addr,
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
       0);
+  busy_wait_us(1);
   spi_write_blocking(config->spi, buf, len + 1);
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
       1);
   comms::USB_CDC.printf("SPI Write - Done\r\n");
-  
+
   return;
 }
 
-void icm20948::spi_read(icm20948_config_t *config, uint8_t addr,
-                        uint8_t *buffer, size_t len) {
+void icm20948::spi_read(icm20948_config_t *config, uint8_t addr, const uint8_t *data,
+                        uint8_t *buffer, size_t len_data, size_t len_buffer) {
   spi_configure(config);
 
   comms::USB_CDC.printf("SPI Read - Sent: 0x%02X\r\n", addr);
-  uint8_t buf[1];
+  uint8_t buf[len_data + 1];
   buf[0] = addr | 0x80;
+  for (uint8_t i = 0; i < len_data; i++)
+    buf[i + 1] = data[i];
 
   gpio_put(
-    (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
-    0);
-  spi_write_read_blocking(config->spi, buf, buffer, len + 1);
+      (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
+      0);
+  busy_wait_us(1);
+  spi_write_read_blocking(config->spi, buf, buffer, len_data + len_buffer + 1);
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
       1);
 
   // print what was received
-  for (uint8_t i = 0; i < len; i++)
+  for (uint8_t i = 0; i < len_buffer; i++)
     comms::USB_CDC.printf("SPI Read - Received: 0x%02X\r\n", buffer[i]);
   comms::USB_CDC.printf("SPI Read - Done\r\n");
 }
@@ -74,6 +82,7 @@ int8_t icm20948::icm20948_init(icm20948_config_t *config) {
     gpio_set_dir((uint)pinmap::Pico::IMU2_NCS, GPIO_OUT);
     gpio_put((uint)pinmap::Pico::IMU2_NCS, 1);
   }
+  spi_configure(config);
 
   // wake up accel/gyro!
   // first write register then, write value
@@ -104,8 +113,7 @@ int8_t icm20948::icm20948_init(icm20948_config_t *config) {
 
   // check if the accel/gyro could be accessed
   reg[0] = WHO_AM_I_ICM20948;
-  spi_write(config, config->addr_accel_gyro, reg, 1);
-  spi_read(config, config->addr_accel_gyro, &buf, 1);
+  spi_read(config, config->addr_accel_gyro, reg, &buf, 1, 1);
 #ifndef NDEBUG
   printf("AG. WHO_AM_I: 0x%X\n", buf);
 #endif
@@ -160,8 +168,7 @@ int8_t icm20948::icm20948_init(icm20948_config_t *config) {
 
   // check if the mag could be accessed
   reg[0] = 0x01;
-  spi_write(config, config->addr_mag, reg, 1);
-  spi_read(config, config->addr_mag, &buf, 1);
+  spi_read(config, config->addr_mag, reg, &buf, 1, 1);
 #ifndef NDEBUG
   printf("MAG. WHO_AM_I: 0x%X\n", buf);
 #endif
@@ -227,8 +234,7 @@ void icm20948::icm20948_read_raw_accel(icm20948_config_t *config,
 
   // accel: 2 bytes each axis
   uint8_t reg = ACCEL_XOUT_H;
-  spi_write(config, config->addr_accel_gyro, &reg, 1);
-  spi_read(config, config->addr_accel_gyro, buf, 6);
+  spi_read(config, config->addr_accel_gyro, &reg, buf, 1, 6);
 
   for (uint8_t i = 0; i < 3; i++)
     accel[i] = (buf[i * 2] << 8 | buf[(i * 2) + 1]);
@@ -242,8 +248,7 @@ void icm20948::icm20948_read_raw_gyro(icm20948_config_t *config,
 
   // gyro: 2byte each axis
   uint8_t reg = GYRO_XOUT_H;
-  spi_write(config, config->addr_accel_gyro, &reg, 1);
-  spi_read(config, config->addr_accel_gyro, buf, 6);
+  spi_read(config, config->addr_accel_gyro, &reg, buf, 1, 6);
 
   for (uint8_t i = 0; i < 3; i++)
     gyro[i] = (buf[i * 2] << 8 | buf[(i * 2) + 1]);
@@ -254,8 +259,7 @@ void icm20948::icm20948_read_raw_gyro(icm20948_config_t *config,
 void icm20948::icm20948_read_raw_temp(icm20948_config_t *config,
                                       int16_t *temp) {
   uint8_t reg = TEMP_OUT_H, buf[2];
-  spi_write(config, config->addr_accel_gyro, &reg, 1);
-  spi_read(config, config->addr_accel_gyro, buf, 2);
+  spi_read(config, config->addr_accel_gyro, &reg, buf, 1, 2);
 
   *temp = (buf[0] << 8 | buf[1]);
 
@@ -267,8 +271,7 @@ void icm20948::icm20948_read_raw_mag(icm20948_config_t *config,
   uint8_t buf[8];
 
   uint8_t reg = AK09916_XOUT_L;
-  spi_write(config, config->addr_mag, &reg, 1);
-  spi_read(config, config->addr_mag, buf, 8);
+  spi_read(config, config->addr_mag, &reg, buf, 1, 8);
 
   for (int i = 0; i < 3; i++)
     mag[i] = (buf[(i * 2) + 1] << 8 | buf[(i * 2)]);
