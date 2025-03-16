@@ -1,4 +1,4 @@
-#include "comms/usb.hpp"
+#include "comms.hpp"
 #include "types.hpp"
 
 using namespace types;
@@ -15,7 +15,6 @@ u8 blink_on_cmd_data_buffer[sizeof(BlinkOnCmdData)] = {0};
 SemaphoreHandle_t blink_on_cmd_data_mutex = nullptr;
 
 void blink_on_cmd(void *args) {
-  usb::CDC cdc = *(usb::CDC *)args;
   for (;;) {
     blink_on_cmd_data.reset();
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
@@ -35,10 +34,9 @@ int main() {
   gpio_init(LED_PIN);
   gpio_set_dir(LED_PIN, GPIO_OUT);
   gpio_put(LED_PIN, 0);
-  usb::CDC cdc = usb::CDC();
-  cdc.init();
+  comms::USB_CDC.init();
   blink_on_cmd_data_mutex = xSemaphoreCreateMutex();
-  xTaskCreate(blink_on_cmd, "blink_on_cmd", 1024, &cdc, 10,
+  xTaskCreate(blink_on_cmd, "blink_on_cmd", 1024, NULL, 10,
               &blink_on_cmd_handle);
   if (!blink_on_cmd_handle) {
     while (true) {
@@ -48,10 +46,10 @@ int main() {
       sleep_ms(100);
     }
   }
-  bool attached =
-      cdc.attach_listener(comms::RecvIdentifiers::DEBUG_TEST_BLINK,
-                          blink_on_cmd_handle, blink_on_cmd_data_mutex,
-                          blink_on_cmd_data_buffer, sizeof(blink_on_cmd_data));
+  bool attached = comms::USB_CDC.attach_listener(
+      comms::RecvIdentifiers::DEBUG_TEST_BLINK, blink_on_cmd_handle,
+      blink_on_cmd_data_mutex, blink_on_cmd_data_buffer,
+      sizeof(blink_on_cmd_data));
   if (!attached) {
     while (true) {
       gpio_put(LED_PIN, 1);
