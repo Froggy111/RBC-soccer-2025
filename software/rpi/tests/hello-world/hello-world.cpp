@@ -1,4 +1,4 @@
-#include <greeter/greeter.hpp> // Our own custom library
+#include <greeter.hpp> // Our own custom library
 
 #include <iostream> // std::cout, std::cin
 #include <string>   // std::getline

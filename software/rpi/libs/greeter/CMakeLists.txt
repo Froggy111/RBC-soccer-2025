@@ -1,8 +1,8 @@
 # Add a new library with the name "greeter" that is compiled from the source 
 # file "src/greeter.cpp".
 add_library(greeter
-    "src/greeter.cpp"
-    "include/greeter/greeter.hpp"
+    greeter.cpp
+    include/greeter.hpp
 )
 
 # The public header files for greeter can be found in the "include" folder, and 
@@ -26,13 +26,3 @@ target_include_directories(greeter
 )
 # Enable C++17
 target_compile_features(greeter PUBLIC cxx_std_17)
-
-# Add an alias with the proper namespace to prevent collisions with other
-# packages.
-add_library(greeter::greeter ALIAS greeter)
-
-# Include the rules for installing the library
-include(cmake/Install.cmake)
-
-# Include the tests in the "test" folder.
-add_subdirectory("test")

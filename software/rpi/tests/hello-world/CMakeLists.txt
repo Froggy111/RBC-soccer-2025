@@ -10,7 +10,5 @@ add_executable(hello-world
 # library as well.
 target_link_libraries(hello-world 
     PRIVATE
-        greeter::greeter
+        greeter
 )
-
-include("cmake/Install.cmake")

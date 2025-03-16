@@ -1,4 +1,4 @@
-#include <greeter/greeter.hpp>
+#include <greeter.hpp>
 #include <iostream> // std::endl, <<
 
 namespace greeter {
