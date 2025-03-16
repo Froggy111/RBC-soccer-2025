@@ -3,6 +3,7 @@
 #include "pinmap.hpp"
 #include "registers.hpp"
 #include <cstddef>
+#include <cstdint>
 
 extern "C" {
 #include "hardware/spi.h"
@@ -46,29 +47,43 @@ void icm20948::spi_write(icm20948_config_t *config,
 void icm20948::spi_read(icm20948_config_t *config, uint8_t addr, uint8_t * buffer, size_t len_buffer) {
   spi_configure(config);
 
-  uint8_t buf[2];
-  buf[0] = addr | 0x80;
-  buf[1] = 0x00; // dummy data
+  uint8_t total_length = MAX(len_buffer, 2);
 
-  for (uint8_t i = 0; i < 2; i++)
-    comms::USB_CDC.printf("SPI Read - Sent: 0x%02X\r\n", buf[i]);
+  // prepare buffer to send
+  uint8_t buf_send[total_length];
+  buf_send[0] = addr | 0x80;
+  for (uint8_t i = 1; i < total_length; i++)
+    buf_send[i] = 0x00;
+
+  for (uint8_t i = 0; i < total_length; i++)
+    comms::USB_CDC.printf("SPI Read - Sent: 0x%02X\r\n", buf_send[i]);
+
+  // prepare buffer for receiving
+  
 
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
       0);
-  spi_write_read_blocking(config->spi, buf, buffer, 2 + len_buffer);
+  spi_write_read_blocking(config->spi, buf_send, buffer, total_length);
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
       1);
 
   // print what was received
-  for (uint8_t i = 0; i < len_buffer; i++)
+  for (uint8_t i = 0; i < total_length; i++)
     comms::USB_CDC.printf("SPI Read - Received: 0x%02X\r\n", buffer[i]);
   comms::USB_CDC.printf("SPI Read - Done\r\n");
+
+  // write the last len_buffer bytes to buffer
+  for (uint8_t i = total_length - len_buffer; i < total_length; i++) {
+    buffer[i - (total_length - len_buffer)] = buf_send[i];
+    comms::USB_CDC.printf("SPI to Buffer on index %d from index %d: 0x%02X\r\n",
+                          i - (total_length - len_buffer), i, buffer[i - (total_length - len_buffer)]);
+  }
 }
 
 int8_t icm20948::icm20948_init(icm20948_config_t *config) {
-  uint8_t reg[2], buf;
+  uint8_t reg[2], buf[1];
 
   // init gpio pins
   if (config->id == 1) {
@@ -110,11 +125,11 @@ int8_t icm20948::icm20948_init(icm20948_config_t *config) {
   spi_write(config, reg, 2);
 
   // check if the accel/gyro could be accessed
-  spi_read(config, WHO_AM_I_ICM20948, &buf, 1);
+  spi_read(config, WHO_AM_I_ICM20948, buf, 1);
 #ifndef NDEBUG
   printf("AG. WHO_AM_I: 0x%X\n", buf);
 #endif
-  if (buf != 0xEA)
+  if (buf[0] != 0xEA)
     return -1;
 
   // switch to user bank 2
@@ -164,11 +179,11 @@ int8_t icm20948::icm20948_init(icm20948_config_t *config) {
   spi_write(config, reg, 2);
 
   // check if the mag could be accessed
-  spi_read(config, 0x01, &buf, 1);
+  spi_read(config, 0x01, buf, 1);
 #ifndef NDEBUG
   printf("MAG. WHO_AM_I: 0x%X\n", buf);
 #endif
-  if (buf != 0x09)
+  if (buf[0] != 0x09)
     return -1;
 
   // config mag
