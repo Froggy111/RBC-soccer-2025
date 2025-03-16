@@ -3,10 +3,10 @@
 #include "comms.hpp"
 #include "pinmap.hpp"
 #include "types.hpp"
+#include "ICM20948.hpp"
 
 extern "C" {
 #include <pico/stdlib.h>
-#include "ICM20948.hpp"
 }
 
 using namespace types;

@@ -2,7 +2,6 @@
 #include "comms.hpp"
 #include "pinmap.hpp"
 #include "registers.hpp"
-#include <hardware/gpio.h>
 
 extern "C" {
 #include "hardware/spi.h"
