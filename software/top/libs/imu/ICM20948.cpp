@@ -19,8 +19,8 @@ void icm20948::spi_configure(icm20948_config_t *config) {
   spi_set_format(config->spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 }
 
-void icm20948::spi_write(icm20948_config_t *config,
-                         const uint8_t *data, size_t len) {
+void icm20948::spi_write(icm20948_config_t *config, const uint8_t *data,
+                         size_t len) {
   spi_configure(config);
 
   uint8_t buf[len];
@@ -30,7 +30,6 @@ void icm20948::spi_write(icm20948_config_t *config,
 
   for (uint8_t i = 0; i < len; i++)
     comms::USB_CDC.printf("SPI Write - Sent: 0x%02X\r\n", buf[i]);
-  comms::USB_CDC.printf("SPI Write - Length: %d\r\n", len);
 
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
@@ -44,41 +43,40 @@ void icm20948::spi_write(icm20948_config_t *config,
   return;
 }
 
-void icm20948::spi_read(icm20948_config_t *config, uint8_t addr, uint8_t * buffer, size_t len_buffer) {
+void icm20948::spi_read(icm20948_config_t *config, uint8_t addr,
+                        uint8_t *buffer, size_t len_buffer) {
   spi_configure(config);
 
-  uint8_t total_length = MAX(len_buffer, 2);
+  uint8_t total_length = len_buffer + 1;
 
   // prepare buffer to send
   uint8_t buf_send[total_length];
   buf_send[0] = addr | 0x80;
-  for (uint8_t i = 1; i < total_length; i++)
-    buf_send[i] = 0x00;
 
+  // print what is being sent
   for (uint8_t i = 0; i < total_length; i++)
     comms::USB_CDC.printf("SPI Read - Sent: 0x%02X\r\n", buf_send[i]);
 
   // prepare buffer for receiving
-  
+  volatile uint8_t buf_recv[total_length];
 
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
       0);
-  spi_write_read_blocking(config->spi, buf_send, buffer, total_length);
+  spi_write_read_blocking(config->spi, buf_send, (uint8_t *)buf_recv,
+                          total_length);
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
       1);
 
   // print what was received
   for (uint8_t i = 0; i < total_length; i++)
-    comms::USB_CDC.printf("SPI Read - Received: 0x%02X\r\n", buffer[i]);
-  comms::USB_CDC.printf("SPI Read - Done\r\n");
+    comms::USB_CDC.printf("SPI Read - Received: 0x%02X\r\n", buf_recv[i]);
 
-  // write the last len_buffer bytes to buffer
-  for (uint8_t i = total_length - len_buffer; i < total_length; i++) {
-    buffer[i - (total_length - len_buffer)] = buf_send[i];
-    comms::USB_CDC.printf("SPI to Buffer on index %d from index %d: 0x%02X\r\n",
-                          i - (total_length - len_buffer), i, buffer[i - (total_length - len_buffer)]);
+  // copy received data to buffer
+  // comms::USB_CDC.printf("SPI Read - Length: %d\r\n", len_buffer);
+  for (uint8_t i = 0; i < len_buffer; i++) {
+    buffer[i] = buf_recv[i + 1];
   }
 }
 
