@@ -22,19 +22,19 @@ void icm20948::spi_write(icm20948_config_t *config, uint8_t addr,
                          const uint8_t *data, size_t len) {
   spi_configure(config);
 
-  comms::USB_CDC.printf("SPI Write - Sent: 0x%02X\r\n", addr);
-  for (uint8_t i = 0; i < len; i++)
-    comms::USB_CDC.printf("SPI Write - Sent: 0x%02X\r\n", data[i]);
-
   uint8_t buf[len + 1];
   buf[0] = addr & 0x7F;
   for (uint8_t i = 0; i < len; i++)
     buf[i + 1] = data[i];
 
+  for (uint8_t i = 0; i < len + 1; i++)
+    comms::USB_CDC.printf("SPI Write - Sent: 0x%02X\r\n", buf[i]);
+  comms::USB_CDC.printf("SPI Write - Length: %d\r\n", len + 1);
+
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
       0);
-  busy_wait_us(1);
+  sleep_us(1);
   spi_write_blocking(config->spi, buf, len + 1);
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
@@ -44,20 +44,24 @@ void icm20948::spi_write(icm20948_config_t *config, uint8_t addr,
   return;
 }
 
-void icm20948::spi_read(icm20948_config_t *config, uint8_t addr, const uint8_t *data,
-                        uint8_t *buffer, size_t len_data, size_t len_buffer) {
+void icm20948::spi_read(icm20948_config_t *config, uint8_t addr,
+                        const uint8_t *data, uint8_t *buffer, size_t len_data,
+                        size_t len_buffer) {
   spi_configure(config);
 
-  comms::USB_CDC.printf("SPI Read - Sent: 0x%02X\r\n", addr);
   uint8_t buf[len_data + 1];
   buf[0] = addr | 0x80;
   for (uint8_t i = 0; i < len_data; i++)
     buf[i + 1] = data[i];
 
+  for (uint8_t i = 0; i < len_data + 1; i++)
+    comms::USB_CDC.printf("SPI Read - Sent: 0x%02X\r\n", buf[i]);
+  comms::USB_CDC.printf("SPI Read - Length: %d\r\n", len_data + len_buffer + 1);
+
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
       0);
-  busy_wait_us(1);
+  sleep_us(1);
   spi_write_read_blocking(config->spi, buf, buffer, len_data + len_buffer + 1);
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),

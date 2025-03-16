@@ -52,7 +52,7 @@ void imu_task(void *args) {
       sleep_ms(100);
     }
   } else {
-    comms::USB_CDC.printf("ICM20948 initialized\r\n");
+    comms::USB_CDC.printf("ICM20948 initialized!! :D\r\n");
   }
 
   // Set magnetometer update rate (mode 0-4, where higher is faster)
