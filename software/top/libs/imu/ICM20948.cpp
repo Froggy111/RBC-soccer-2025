@@ -1,4 +1,5 @@
 #include "ICM20948.hpp"
+#include "comms.hpp"
 #include "pinmap.hpp"
 #include "registers.hpp"
 #include <hardware/gpio.h>
@@ -20,6 +21,8 @@ void icm20948::spi_configure(icm20948_config_t *config) {
 void icm20948::spi_write(icm20948_config_t *config, uint8_t addr,
                          const uint8_t *data, size_t len) {
   spi_configure(config);
+
+  comms::USB_CDC.printf("SPI Write - Sent: 0x%02X\n", addr);
   uint8_t buf[len + 1];
   buf[0] = addr & 0x7F;
   for (uint8_t i = 0; i < len; i++)
@@ -30,14 +33,18 @@ void icm20948::spi_write(icm20948_config_t *config, uint8_t addr,
       0);
   spi_write_blocking(config->spi, buf, len + 1);
   gpio_put(
-    (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
-    1);
+      (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
+      1);
+  comms::USB_CDC.printf("SPI Write - Done\n");
+  
   return;
 }
 
 void icm20948::spi_read(icm20948_config_t *config, uint8_t addr,
                         uint8_t *buffer, size_t len) {
   spi_configure(config);
+
+  comms::USB_CDC.printf("SPI Read - Sent: 0x%02X\n", addr);
   uint8_t buf[1];
   buf[0] = addr | 0x80;
 
@@ -46,12 +53,15 @@ void icm20948::spi_read(icm20948_config_t *config, uint8_t addr,
     0);
   spi_write_read_blocking(config->spi, buf, buffer, 1);
   gpio_put(
-    (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
-    1);
+      (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
+      1);
+  comms::USB_CDC.printf("SPI Read - Done\n");
 }
 
 int8_t icm20948::icm20948_init(icm20948_config_t *config) {
   uint8_t reg[2], buf;
+
+  comms::USB_CDC.printf("1\r\n");
 
   // init gpio pins
   if (config->id == 1) {
@@ -63,6 +73,8 @@ int8_t icm20948::icm20948_init(icm20948_config_t *config) {
     gpio_set_dir((uint)pinmap::Pico::IMU2_NCS, GPIO_OUT);
     gpio_put((uint)pinmap::Pico::IMU2_NCS, 1);
   }
+
+  comms::USB_CDC.printf("2\r\n");
 
   // wake up accel/gyro!
   // first write register then, write value
