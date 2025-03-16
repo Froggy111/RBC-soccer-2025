@@ -28,8 +28,8 @@ void icm20948::spi_write(icm20948_config_t *config, const uint8_t *data,
     buf[i] = data[i];
   buf[0] = buf[0] & 0x7F;
 
-  for (uint8_t i = 0; i < len; i++)
-    comms::USB_CDC.printf("SPI Write - Sent: 0x%02X\r\n", buf[i]);
+  // for (uint8_t i = 0; i < len; i++)
+  //   comms::USB_CDC.printf("SPI Write - Sent: 0x%02X\r\n", buf[i]);
 
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
@@ -38,7 +38,7 @@ void icm20948::spi_write(icm20948_config_t *config, const uint8_t *data,
   gpio_put(
       (uint)(config->id == 1 ? pinmap::Pico::IMU1_NCS : pinmap::Pico::IMU2_NCS),
       1);
-  comms::USB_CDC.printf("SPI Write - Done\r\n");
+  // comms::USB_CDC.printf("SPI Write - Done\r\n");
 
   return;
 }
@@ -54,8 +54,8 @@ void icm20948::spi_read(icm20948_config_t *config, uint8_t addr,
   buf_send[0] = addr | 0x80;
 
   // print what is being sent
-  for (uint8_t i = 0; i < total_length; i++)
-    comms::USB_CDC.printf("SPI Read - Sent: 0x%02X\r\n", buf_send[i]);
+  // for (uint8_t i = 0; i < total_length; i++)
+  //   comms::USB_CDC.printf("SPI Read - Sent: 0x%02X\r\n", buf_send[i]);
 
   // prepare buffer for receiving
   volatile uint8_t buf_recv[total_length];
@@ -70,8 +70,8 @@ void icm20948::spi_read(icm20948_config_t *config, uint8_t addr,
       1);
 
   // print what was received
-  for (uint8_t i = 0; i < total_length; i++)
-    comms::USB_CDC.printf("SPI Read - Received: 0x%02X\r\n", buf_recv[i]);
+  // for (uint8_t i = 0; i < total_length; i++)
+  //   comms::USB_CDC.printf("SPI Read - Received: 0x%02X\r\n", buf_recv[i]);
 
   // copy received data to buffer
   // comms::USB_CDC.printf("SPI Read - Length: %d\r\n", len_buffer);
@@ -181,8 +181,8 @@ int8_t icm20948::icm20948_init(icm20948_config_t *config) {
 #ifndef NDEBUG
   printf("MAG. WHO_AM_I: 0x%X\n", buf);
 #endif
-  if (buf[0] != 0x09)
-    return -1;
+  // if (buf[0] != 0x09)
+  //   return -1;
 
   // config mag
   //
