@@ -1,5 +1,6 @@
+*.tar
+*.tar.gz
+*.tar.bz2
 build
-# .clangd requires arm-none-eabi sysroot path to be manually input, copy from .clangd-template
-.clangd
-
-cross-pi-gcc-14.2.0-64
+.*cache
+!/.vscode

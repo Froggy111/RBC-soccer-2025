@@ -1,2 +1,1 @@
-add_subdirectory(camera)
-add_subdirectory(webserver)
+add_subdirectory(greeter)
