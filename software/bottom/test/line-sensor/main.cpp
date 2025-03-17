@@ -8,8 +8,7 @@ const u8 LED_PIN = 25;
 LineSensor line_sensor = LineSensor();
 
 void line_sensor_poll_task(void *args) {
-  usb::CDC *cdc = (usb::CDC *)args;
-  cdc->wait_for_CDC_connection(0xFFFFFFFF);
+  comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
   if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.printf("SPI Initialization Failed!\r\n");
   } else {
@@ -20,7 +19,7 @@ void line_sensor_poll_task(void *args) {
   while (true) {
     for (int i = 0; i < 48; i++) {
       uint16_t val = line_sensor.read_raw(i);
-      cdc->printf("Line sensor %d: %d\r\n", i, val);
+      comms::USB_CDC.printf("Line sensor %d: %d\r\n", i, val);
     }
     sleep_ms(1000);
   }
@@ -31,11 +30,9 @@ int main() {
   gpio_set_dir(LED_PIN, GPIO_OUT);
   gpio_put(LED_PIN, 1);
 
-  usb::CDC cdc = usb::CDC();
+  comms::USB_CDC.init();
 
-  cdc.init();
-
-  xTaskCreate(line_sensor_poll_task, "line_sensor_poll_task", 1024, &cdc, 10,
+  xTaskCreate(line_sensor_poll_task, "line_sensor_poll_task", 1024, NULL, 10,
               NULL);
 
   vTaskStartScheduler();

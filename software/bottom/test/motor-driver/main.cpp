@@ -1,35 +1,42 @@
 #include "DRV8244.hpp"
+#include "comms/usb.hpp"
 // #include "pin_selector.hpp"
 // #include "pins/digital_pins.hpp"
 extern "C" {
   #include <pico/stdlib.h>
   #include <pico/stdio_usb.h>
   #include <hardware/spi.h>
-  #include <pico/stdio.h>
-  #include <stdio.h>
 }
+#include "comms.hpp"
 
 MotorDriver driver;
-// Pins::DigitalPins digital_pins;
 
-int main() {
-  stdio_init_all();
-  while (!stdio_usb_connected())
-    continue;
+const int LED_PIN = 25;
 
-  // digital_pins.init();
+void motor_driver_task(void *args) {
+  usb::CDC *cdc = (usb::CDC *)args;
+  comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
   if (!spi_init(spi0, 1000000)) {
-    printf("SPI Initialization Failed!\n");
+    comms::USB_CDC.printf("SPI Initialization Failed!\n");
   }
     
   driver.init(-1, spi0);
 
-  // digital_pins.attach_interrupt(DriverDbgPinMap::NFAULT, Pins::DigitalPinInterruptState::EDGE_FALL, driver.handle_error , &driver);
-  // digital_pins.enable_interrupt(DriverDbgPinMap::NFAULT);
-
-  for (int i = 0; i <= 625; i++) {
-    if (!driver.command(i * 10)) break;
-    sleep_ms(100);
+  while (true) {
+    for (int i = 0; i <= 625; i++) {
+      if (!driver.command(i * 10)) break;
+      vTaskDelay(pdMS_TO_TICKS(10));
+    }
   }
-  return 0;
+}
+
+int main() {
+  gpio_init(LED_PIN);
+  gpio_set_dir(LED_PIN, GPIO_OUT);
+  gpio_put(LED_PIN, 1);
+  
+  comms::USB_CDC.init();
+  xTaskCreate(motor_driver_task, "motor_driver_task", 1024, NULL, 10, NULL);
+
+  vTaskStartScheduler();
 }
