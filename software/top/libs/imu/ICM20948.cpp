@@ -11,7 +11,7 @@ extern "C" {
 #include <pico/time.h>
 }
 
-void icm20948::spi_configure(icm20948_config_t *config) {
+void icm20948::spi_configure(config_t *config) {
   // init spi
   gpio_set_function((uint)pinmap::Pico::SPI0_SCLK, GPIO_FUNC_SPI);
   gpio_set_function((uint)pinmap::Pico::SPI0_MISO, GPIO_FUNC_SPI);
@@ -19,7 +19,7 @@ void icm20948::spi_configure(icm20948_config_t *config) {
   spi_set_format(config->spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 }
 
-void icm20948::spi_write(icm20948_config_t *config, const uint8_t *data,
+void icm20948::spi_write(config_t *config, const uint8_t *data,
                          size_t len) {
   spi_configure(config);
 
@@ -43,7 +43,7 @@ void icm20948::spi_write(icm20948_config_t *config, const uint8_t *data,
   return;
 }
 
-void icm20948::spi_read(icm20948_config_t *config, uint8_t addr,
+void icm20948::spi_read(config_t *config, uint8_t addr,
                         uint8_t *buffer, size_t len_buffer) {
   spi_configure(config);
 
@@ -80,7 +80,7 @@ void icm20948::spi_read(icm20948_config_t *config, uint8_t addr,
   }
 }
 
-int8_t icm20948::icm20948_init(icm20948_config_t *config) {
+int8_t icm20948::init(config_t *config) {
   uint8_t reg[2], buf[1];
 
   // init gpio pins
@@ -194,7 +194,7 @@ int8_t icm20948::icm20948_init(icm20948_config_t *config) {
   return 0;
 }
 
-void icm20948::icm20948_set_mag_rate(icm20948_config_t *config, uint8_t mode) {
+void icm20948::set_mag_rate(config_t *config, uint8_t mode) {
   // Single measurement              : mode = 0
   // Continuous measurement in  10 Hz: mode = 10
   // Continuous measurement in  20 Hz: mode = 20
@@ -226,7 +226,7 @@ void icm20948::icm20948_set_mag_rate(icm20948_config_t *config, uint8_t mode) {
     break;
   default:
 #ifndef NDEBUG
-    printf("error at icm20948_set_mag_mode: wrong mode %d\n", mode);
+    printf("error at set_mag_mode: wrong mode %d\n", mode);
 #endif
     return;
   }
@@ -237,7 +237,7 @@ void icm20948::icm20948_set_mag_rate(icm20948_config_t *config, uint8_t mode) {
   return;
 }
 
-void icm20948::icm20948_read_raw_accel(icm20948_config_t *config,
+void icm20948::read_raw_accel(config_t *config,
                                        int16_t accel[3]) {
   uint8_t buf[6];
 
@@ -250,7 +250,7 @@ void icm20948::icm20948_read_raw_accel(icm20948_config_t *config,
   return;
 }
 
-void icm20948::icm20948_read_raw_gyro(icm20948_config_t *config,
+void icm20948::read_raw_gyro(config_t *config,
                                       int16_t gyro[3]) {
   uint8_t buf[6];
 
@@ -263,7 +263,7 @@ void icm20948::icm20948_read_raw_gyro(icm20948_config_t *config,
   return;
 }
 
-void icm20948::icm20948_read_raw_temp(icm20948_config_t *config,
+void icm20948::read_raw_temp(config_t *config,
                                       int16_t *temp) {
   uint8_t buf[2];
   spi_read(config, TEMP_OUT_H, buf, 2);
@@ -273,7 +273,7 @@ void icm20948::icm20948_read_raw_temp(icm20948_config_t *config,
   return;
 }
 
-void icm20948::icm20948_read_raw_mag(icm20948_config_t *config,
+void icm20948::read_raw_mag(config_t *config,
                                      int16_t mag[3]) {
   uint8_t buf[8];
 
@@ -294,13 +294,13 @@ void icm20948::icm20948_read_raw_mag(icm20948_config_t *config,
   return;
 }
 
-void icm20948::icm20948_cal_gyro(icm20948_config_t *config,
+void icm20948::cal_gyro(config_t *config,
                                  int16_t gyro_bias[3]) {
   int16_t buf[3] = {0};
   int32_t bias[3] = {0};
 
   for (uint8_t i = 0; i < 200; i++) {
-    icm20948_read_raw_gyro(config, buf);
+    read_raw_gyro(config, buf);
     for (uint8_t j = 0; j < 3; j++) {
       bias[j] += buf[j];
     }
@@ -312,21 +312,21 @@ void icm20948::icm20948_cal_gyro(icm20948_config_t *config,
   return;
 }
 
-void icm20948::icm20948_read_cal_gyro(icm20948_config_t *config,
+void icm20948::read_cal_gyro(config_t *config,
                                       int16_t gyro[3], int16_t bias[3]) {
-  icm20948_read_raw_gyro(config, gyro);
+  read_raw_gyro(config, gyro);
   for (uint8_t i = 0; i < 3; i++)
     gyro[i] -= bias[i];
   return;
 }
 
-void icm20948::icm20948_cal_accel(icm20948_config_t *config,
+void icm20948::cal_accel(config_t *config,
                                   int16_t accel_bias[3]) {
   int16_t buf[3] = {0};
   int32_t bias[3] = {0};
 
   for (uint8_t i = 0; i < 200; i++) {
-    icm20948_read_raw_accel(config, buf);
+    read_raw_accel(config, buf);
     for (uint8_t j = 0; j < 3; j++) {
       if (j == 2)
         bias[j] += (buf[j] - 16384);
@@ -340,22 +340,22 @@ void icm20948::icm20948_cal_accel(icm20948_config_t *config,
   return;
 }
 
-void icm20948::icm20948_read_cal_accel(icm20948_config_t *config,
+void icm20948::read_cal_accel(config_t *config,
                                        int16_t accel[3], int16_t bias[3]) {
-  icm20948_read_raw_accel(config, accel);
+  read_raw_accel(config, accel);
   for (uint8_t i = 0; i < 3; i++)
     accel[i] -= bias[i];
   return;
 }
 
-void icm20948::icm20948_cal_mag_simple(icm20948_config_t *config,
+void icm20948::cal_mag_simple(config_t *config,
                                        int16_t mag_bias[3]) {
   int16_t buf[3] = {0}, max[3] = {0}, min[3] = {0};
 #ifndef NDEBUG
   printf("mag calibration: \nswing sensor for 360 deg\n");
 #endif
   for (int i = 0; i < 1000; i++) {
-    icm20948_read_raw_mag(config, buf);
+    read_raw_mag(config, buf);
     for (int j = 0; j < 3; j++) {
       if (buf[j] > max[j])
         max[j] = buf[j];
@@ -369,17 +369,17 @@ void icm20948::icm20948_cal_mag_simple(icm20948_config_t *config,
   return;
 }
 
-void icm20948::icm20948_read_cal_mag(icm20948_config_t *config, int16_t mag[3],
+void icm20948::read_cal_mag(config_t *config, int16_t mag[3],
                                      int16_t bias[3]) {
-  icm20948_read_raw_mag(config, mag);
+  read_raw_mag(config, mag);
   for (uint8_t i = 0; i < 3; i++)
     mag[i] -= bias[i];
   return;
 }
 
-void icm20948::icm20948_read_temp_c(icm20948_config_t *config, float *temp) {
+void icm20948::read_temp_c(config_t *config, float *temp) {
   int16_t tmp;
-  icm20948_read_raw_temp(config, &tmp);
+  read_raw_temp(config, &tmp);
   // temp  = ((raw_value - ambient_temp) / speed_of_sound) + 21
   *temp = (((float)tmp - 21.0f) / 333.87) + 21.0f;
   return;

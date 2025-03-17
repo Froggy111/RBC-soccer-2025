@@ -15,12 +15,12 @@ using namespace types;
 const u8 LED_PIN = 25;
 
 // Default ICM20948 addresses
-const u8 ICM20948_ACCEL_GYRO_ADDR = 0x68; // Default accel/gyro address
-const u8 ICM20948_MAG_ADDR = 0x0C;        // Default magnetometer address
+const u8 ACCEL_GYRO_ADDR = 0x68; // Default accel/gyro address
+const u8 MAG_ADDR = 0x0C;        // Default magnetometer address
 
 // Global variables
-icm20948::icm20948_config_t imu_config;
-icm20948::icm20984_data_t imu_data;
+icm20948::config_t imu_config;
+icm20948::data_t imu_data;
 
 // Task to read and display IMU data
 void imu_task(void *args) {
@@ -42,7 +42,7 @@ void imu_task(void *args) {
   comms::USB_CDC.printf("Initializing IMU...\r\n");
 
   // Initialize IMU
-  int8_t result = icm20948::icm20948_init(&imu_config);
+  int8_t result = icm20948::init(&imu_config);
   if (result != 0) {
     comms::USB_CDC.printf("Error initializing ICM20948, Error Code: %d\r\n", result);
     while (1) {
@@ -56,7 +56,7 @@ void imu_task(void *args) {
   }
 
   // Set magnetometer update rate (mode 0-4, where higher is faster)
-  icm20948::icm20948_set_mag_rate(&imu_config, 2);
+  icm20948::set_mag_rate(&imu_config, 2);
 
   int16_t accel[3], gyro[3], mag[3];
   int16_t accel_bias[3] = {0}, gyro_bias[3] = {0}, mag_bias[3] = {0};
@@ -65,17 +65,17 @@ void imu_task(void *args) {
 
   // Calibrate sensors (this may take some time)
   comms::USB_CDC.printf("Calibrating gyroscope...\r\n");
-  icm20948::icm20948_cal_gyro(&imu_config, gyro_bias);
+  icm20948::cal_gyro(&imu_config, gyro_bias);
   comms::USB_CDC.printf("Gyro bias: [%d, %d, %d]\r\n", gyro_bias[0],
                         gyro_bias[1], gyro_bias[2]);
 
   comms::USB_CDC.printf("Calibrating accelerometer...\r\n");
-  icm20948::icm20948_cal_accel(&imu_config, accel_bias);
+  icm20948::cal_accel(&imu_config, accel_bias);
   comms::USB_CDC.printf("Accel bias: [%d, %d, %d]\r\n", accel_bias[0],
                         accel_bias[1], accel_bias[2]);
 
   comms::USB_CDC.printf("Calibrating magnetometer...\r\n");
-  icm20948::icm20948_cal_mag_simple(&imu_config, mag_bias);
+  icm20948::cal_mag_simple(&imu_config, mag_bias);
   comms::USB_CDC.printf("Mag bias: [%d, %d, %d]\r\n", mag_bias[0], mag_bias[1],
                         mag_bias[2]);
 
@@ -86,10 +86,10 @@ void imu_task(void *args) {
     gpio_put(LED_PIN, !gpio_get(LED_PIN));
 
     // Read calibrated sensor values
-    icm20948::icm20948_read_cal_accel(&imu_config, accel, accel_bias);
-    icm20948::icm20948_read_cal_gyro(&imu_config, gyro, gyro_bias);
-    icm20948::icm20948_read_cal_mag(&imu_config, mag, mag_bias);
-    icm20948::icm20948_read_temp_c(&imu_config, &temp_c);
+    icm20948::read_cal_accel(&imu_config, accel, accel_bias);
+    icm20948::read_cal_gyro(&imu_config, gyro, gyro_bias);
+    icm20948::read_cal_mag(&imu_config, mag, mag_bias);
+    icm20948::read_temp_c(&imu_config, &temp_c);
 
     // Print sensor data
     comms::USB_CDC.printf("IMU Data:\r\n");
