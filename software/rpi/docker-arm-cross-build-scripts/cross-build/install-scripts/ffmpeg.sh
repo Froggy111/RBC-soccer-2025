@@ -3,7 +3,7 @@
 set -ex
 
 # Download
-version=4.4.2
+version=7.1.1
 URL="https://ffmpeg.org/releases/ffmpeg-$version.tar.bz2"
 pushd "${DOWNLOADS}"
 wget -N "$URL"
