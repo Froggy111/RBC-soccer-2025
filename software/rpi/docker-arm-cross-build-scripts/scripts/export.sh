@@ -10,7 +10,7 @@ function export_all {
     container=$(docker run -d $image \
         bash -c "tar cf RPi-staging.tar RPi-staging & \
                 tar cf RPi-sysroot.tar RPi-sysroot & \
-                tar cf x-tools.tar x-tools & \
+                tar cf x-tools.tar opt & \
                 wait")
     status=$(docker wait $container)
     if [ $status -ne 0 ]; then
@@ -35,7 +35,9 @@ function export_all {
     echo "Extracting toolchain"
     chmod -fR u+w x-tools/$target || :
     rm -rf x-tools/$target
+    mkdir -p x-tools
     tar xf x-tools-$name.tar
     rm x-tools-$name.tar
-
+    mv opt/x-tools/$target x-tools/$target
+    rm -rf opt
 }
