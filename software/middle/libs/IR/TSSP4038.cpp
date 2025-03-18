@@ -28,7 +28,7 @@ const int ir_pins[] = {
 const int num_ir_sensors = sizeof(ir_pins) / sizeof(ir_pins[0]);
 
 // Create array of Samples obj, each IR sensor??
-Samples* ir_samples[num_ir_sensors];
+IRSensor* ir_samples[num_ir_sensors];
 
 //rising edge and falling edge timestamps
 volatile uint32_t rising_time[num_ir_sensors] = {0};
@@ -61,13 +61,13 @@ float IRSensor::average(void) {
 }
 
 //timer callback for mod
-bool IRSensor::modulation_timer_callback(struct repeating_timer *t) {
+static bool IRSensor::modulation_timer_callback(struct repeating_timer *t) {
     mod_step = (mod_step + 1) % 5;
     return true; //keeps on repeating, non-blocking code
 }
 
 //interrupt when rising edge detected
-void IRSensor::rising_edge(unit gpio, uint32_t events) { 
+static void IRSensor::rising_edge(unit gpio, uint32_t events) { 
     for (int i = 0; i<num_ir_sensors; i++) { 
         if (gpio == ir_pins[i]) { 
             ir_samples[i]->add(true); 
@@ -79,7 +79,7 @@ void IRSensor::rising_edge(unit gpio, uint32_t events) {
 }
 
 //interrupt when falling edge detected
-void IRSensor::falling_edge(unit gpio, uint32_t events) { 
+static void IRSensor::falling_edge(unit gpio, uint32_t events) { 
     for (int i = 0; i<num_ir_sensors; i++) { 
         if (gpio == ir_pins[i]) { 
             ir_samples[i]->add(false); 

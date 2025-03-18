@@ -2,11 +2,12 @@
 #include "types.hpp"
 #include "TSSP4038.hpp"
 #include "hardware/gpio.h"
+#include "hardware/timer.h"
 
 using namespace types;
 
 const u8 LED_PIN = 25;
-IRSensor ir_sensor = IRSensor();
+IRSensor ir_sensor = IRSensor(100);
 
 void ir_sensor_poll_task(void *args) { 
   comms::USB_CDC.printf("Initialising IR sensors...\n");
@@ -15,16 +16,16 @@ void ir_sensor_poll_task(void *args) {
   for (int i = 0; i < num_ir_sensors; i++) {
       gpio_init(ir_pins[i]); // initialise the GPIO pin
       gpio_set_dir(ir_pins[i], GPIO_IN); // set the dir to input
-      ir_samples[i] = new Samples(samples_per_window);  
+      ir_samples[i] = new IRSensor(samples_per_window);  
 
-      gpio_set_irq_enabled_with_callback(ir_pins[i], GPIO_IRQ_EDGE_RISE, true, rising_edge);
-      gpio_set_irq_enabled_with_callback(ir_pins[i], GPIO_IRQ_EDGE_RISE, true, falling_edge);
+      gpio_set_irq_enabled_with_callback(ir_pins[i], GPIO_IRQ_EDGE_RISE, true, ir_sensor.rising_edge(17, GPIO_IRQ_EDGE_RISE));
+      gpio_set_irq_enabled_with_callback(ir_pins[i], GPIO_IRQ_EDGE_RISE, true, ir_sensor.falling_edge(17, GPIO_IRQ_EDGE_FALL));
       comms::USB_CDC.printf("IR Sensor %d initialized at GPIO pin %d\n", i + 1, ir_pins[i]);
       }
       //start mod timer
-      add_repeating_timer_ms(-833, modulation_timer_callback, NULL, &modulation_timer); 
+      add_repeating_timer_ms(833, IRSensor::modulation_timer_callback, NULL, &modulation_timer); 
 
-      while (true){
+      while (true){ 
           uint64_t start_time = time_us_64();
 
           for (int i = 0; i < num_ir_sensors; i++) {
@@ -39,7 +40,6 @@ void ir_sensor_poll_task(void *args) {
               continue; 
           }
       }
-      return 0;
 
 } 
 
@@ -50,7 +50,7 @@ int main() {
 
   comms::USB_CDC.init();
 
-  xTaskCreate(ir_sensor_poll_task(void *args), "ir_sensor_poll_task", 1024, NULL, 10,
+  xTaskCreate(ir_sensor_poll_task, "ir_sensor_poll_task", 1024, NULL, 10,
               NULL);
 
   vTaskStartScheduler();
