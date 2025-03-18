@@ -4,7 +4,6 @@
 using namespace types;
 
 const u8 LED_PIN = 25;
-LineSensor line_sensor = LineSensor();
 
 void led_shiny_shiny(void *args) {
   comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
