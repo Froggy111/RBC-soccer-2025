@@ -94,7 +94,7 @@ private:
 
   PinInputControl inputControl;
   PinOutputControl outputControl;
-  PinSelector pinSelector;
+  Pins pins;
 
   types::i16 duty_cycle_cache;
   spi_inst_t *spi_obj;

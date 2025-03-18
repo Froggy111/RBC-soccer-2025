@@ -96,19 +96,19 @@ extern "C" {
 #define FAULT_SUMMARY_REG 0x01
 
 bool MouseSensor::init(int id, spi_inst_t *spi_obj_touse) {
-  pinSelector.set_mouse_sensor_id(id);
+  pins.set_mouse_sensor_id(id);
 
   // * init SPI
   // Initialize SPI pins (except CS)
-  gpio_set_function(pinSelector.get_pin(SCLK), GPIO_FUNC_SPI);
-  gpio_set_function(pinSelector.get_pin(MOSI), GPIO_FUNC_SPI);
-  gpio_set_function(pinSelector.get_pin(MISO), GPIO_FUNC_SPI);
+  gpio_set_function(pins.get_pin(SCLK), GPIO_FUNC_SPI);
+  gpio_set_function(pins.get_pin(MOSI), GPIO_FUNC_SPI);
+  gpio_set_function(pins.get_pin(MISO), GPIO_FUNC_SPI);
 
   // Set SPI Object
   spi_obj = spi_obj_touse;
 
   // Initialize CS pin as GPIO
-  inputControl.init_digital(pinSelector.get_pin(CS), DEFAULT_CS);
+  inputControl.init_digital(pins.get_pin(CS), DEFAULT_CS);
 
   // Set SPI format
   spi_set_format(spi_obj, 8, SPI_CPOL_1, SPI_CPHA_1, SPI_MSB_FIRST);
@@ -127,15 +127,15 @@ bool MouseSensor::init(int id, spi_inst_t *spi_obj_touse) {
 
 void MouseSensor::init_pins() {
   // MOT
-  outputControl.init_digital(pinSelector.get_pin(MOT));
+  outputControl.init_digital(pins.get_pin(MOT));
 
   // RST
-  inputControl.init_digital(pinSelector.get_pin(RST), true);
+  inputControl.init_digital(pins.get_pin(RST), true);
 }
 
 bool MouseSensor::init_registers() {
-  inputControl.write_digital(pinSelector.get_pin(CS), 1);
-  inputControl.write_digital(pinSelector.get_pin(CS), 0);
+  inputControl.write_digital(pins.get_pin(CS), 1);
+  inputControl.write_digital(pins.get_pin(CS), 0);
 
   int res;
 
@@ -178,7 +178,7 @@ bool MouseSensor::init_srom() {
   // * Load the SROM firmware
   // Custom SPI write
   uint8_t srom_address = SROM_LOAD_BURST;
-  inputControl.write_digital(pinSelector.get_pin(CS), 0);
+  inputControl.write_digital(pins.get_pin(CS), 0);
 
   spi_write_blocking(spi_obj, &srom_address, 1);
 
@@ -190,7 +190,7 @@ bool MouseSensor::init_srom() {
   }
   sleep_us(15);
 
-  inputControl.write_digital(pinSelector.get_pin(CS), 1);
+  inputControl.write_digital(pins.get_pin(CS), 1);
 
   // Wait for the SROM to load
   sleep_ms(1000);
@@ -211,25 +211,25 @@ bool MouseSensor::init_srom() {
 void MouseSensor::write8(uint8_t reg, uint8_t value) {
   types::u8 buffer[2] = {(types::u8)(reg | 0x80), value};
 
-  inputControl.write_digital(pinSelector.get_pin(CS), 0);
+  inputControl.write_digital(pins.get_pin(CS), 0);
 
   spi_write_blocking(spi_obj, buffer, 2);
   sleep_us(35);
 
-  inputControl.write_digital(pinSelector.get_pin(CS), 1);
+  inputControl.write_digital(pins.get_pin(CS), 1);
 }
 
 uint8_t MouseSensor::read8(uint8_t reg) {
   types::u8 buffer = (types::u8)(reg & 0x7F);
   types::u8 response;
 
-  inputControl.write_digital(pinSelector.get_pin(CS), 0);
+  inputControl.write_digital(pins.get_pin(CS), 0);
 
   spi_write_blocking(spi_obj, &buffer, 1);
   sleep_us(160);
   spi_read_blocking(spi_obj, 0x00, &response, 1);
 
-  inputControl.write_digital(pinSelector.get_pin(CS), 1);
+  inputControl.write_digital(pins.get_pin(CS), 1);
 
   return response;
 }
@@ -241,7 +241,7 @@ void MouseSensor::read_motion_burst() {
   uint8_t reg[1] = {MOTION_BURST};
   uint8_t temp_buffer[12];
 
-  inputControl.write_digital(pinSelector.get_pin(CS), 0);
+  inputControl.write_digital(pins.get_pin(CS), 0);
 
   // write, wait 35 us, read
   spi_write_blocking(spi_obj, reg, 1);
@@ -253,7 +253,7 @@ void MouseSensor::read_motion_burst() {
     motion_burst_buffer[i] = temp_buffer[i];
   }
 
-  inputControl.write_digital(pinSelector.get_pin(CS), 1); // Release CS pin
+  inputControl.write_digital(pins.get_pin(CS), 1); // Release CS pin
 }
 
 //Return X_Delta Values

@@ -2,12 +2,11 @@
 #include "pins/MCP23S17.hpp"
 #include "pinmap.hpp"
 #include "types.hpp"
-#include <cstdint>
 #include "comms.hpp"
 
 extern "C" {
+#include <cstdint>
 #include "hardware/adc.h"
-#include "hardware/gpio.h"
 #include <pico/stdlib.h>
 }
 
@@ -62,9 +61,4 @@ uint16_t LineSensor::read_raw(uint8_t line_sensor_id) {
     adc_select_input(0);
     return adc_read();
   }
-}
-
-float LineSensor::read_voltage() {
-  // TODO: Implement this function
-  return 0;
 }

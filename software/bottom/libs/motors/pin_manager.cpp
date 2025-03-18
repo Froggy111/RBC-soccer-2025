@@ -1,11 +1,10 @@
 #include "pin_manager.hpp"
 #include "pins/MCP23S17.hpp"
 #include "pin_selector.hpp"
+#include "comms.hpp"
 extern "C" {
 #include <hardware/gpio.h>
 #include <pico/stdlib.h>
-#include <pico/stdio.h>
-#include <stdio.h>
 #include <hardware/pwm.h>
 }
 
@@ -52,7 +51,7 @@ void PinInputControl::init_analog(types::u8 pin, int value) {
 
 void PinInputControl::write_digital(types::u8 pin, bool value, PinInterface interface) {
   if (this->digital_cache.find(pin) == this->digital_cache.end()) {
-    printf("Pin not initialized! pin %d\n", pin);
+    comms::USB_CDC.printf("Pin not initialized! pin %d\n", pin);
     return;
   }
 
@@ -65,24 +64,24 @@ void PinInputControl::write_digital(types::u8 pin, bool value, PinInterface inte
       dmux2.write_gpio(pin, interface == MUX2A, value);
   }
 
-  // printf("%d has been written to pin %d\n", value, pin);
+  // comms::USB_CDC.printf("%d has been written to pin %d\n", value, pin);
   this->digital_cache[pin] = value;
 }
 
 void PinInputControl::write_analog(types::u8 pin, int value) {
   if (this->analog_cache.find(pin) == this->analog_cache.end()) {
-    printf("Pin not initialized! pin %d\n", pin);
+    comms::USB_CDC.printf("Pin not initialized! pin %d\n", pin);
     return;
   }
   uint slice_num = pwm_gpio_to_slice_num(pin);
   uint channel = pwm_gpio_to_channel(pin);
-  // printf("%d has been written to pin %d\n", value, pin);
+  // comms::USB_CDC.printf("%d has been written to pin %d\n", value, pin);
   pwm_set_chan_level(slice_num, channel, value);
 }
 
 bool PinInputControl::get_last_value_digital(types::u8 pin) {
   if (this->digital_cache.find(pin) == this->digital_cache.end()) {
-    printf("Pin not initialized! pin %d\n", pin);
+    comms::USB_CDC.printf("Pin not initialized! pin %d\n", pin);
     // TODO: Fix return value
     return false;
   }
@@ -92,7 +91,7 @@ bool PinInputControl::get_last_value_digital(types::u8 pin) {
 
 bool PinInputControl::get_last_value_analog(types::u8 pin) {
   if (this->analog_cache.find(pin) == this->analog_cache.end()) {
-    printf("Pin not initialized! pin %d\n", pin);
+    comms::USB_CDC.printf("Pin not initialized! pin %d\n", pin);
     // TODO: Fix return value
     return false;
   }
@@ -124,7 +123,7 @@ void PinOutputControl::init_digital(types::u8 pin, PinInterface interface) {
 bool PinOutputControl::read_digital(types::u8 pin, PinInterface interface) {
   if (debug) {
     bool result = gpio_get(pin);
-    // printf("%d has been read from pin %d\n", result, pin);
+    // comms::USB_CDC.printf("%d has been read from pin %d\n", result, pin);
     return result;
   } else {
     if (interface == MUX1A || interface == MUX1B)

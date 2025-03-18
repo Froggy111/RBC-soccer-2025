@@ -28,7 +28,7 @@ private:
 
   PinInputControl inputControl;
   PinOutputControl outputControl;
-  PinSelector pinSelector;
+  Pins pins;
 
   spi_inst_t *spi_obj;
 };

@@ -9,6 +9,8 @@ LineSensor line_sensor = LineSensor();
 
 void line_sensor_poll_task(void *args) {
   comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
+
+  // for mux
   if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.printf("SPI Initialization Failed!\r\n");
   } else {

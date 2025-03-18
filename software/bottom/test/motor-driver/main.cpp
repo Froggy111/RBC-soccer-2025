@@ -1,10 +1,8 @@
 #include "DRV8244.hpp"
 #include "comms/usb.hpp"
-// #include "pin_selector.hpp"
-// #include "pins/digital_pins.hpp"
+
 extern "C" {
   #include <pico/stdlib.h>
-  #include <pico/stdio_usb.h>
   #include <hardware/spi.h>
 }
 #include "comms.hpp"
@@ -19,7 +17,8 @@ void motor_driver_task(void *args) {
   if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.printf("SPI Initialization Failed!\n");
   }
-    
+
+  // init as debug
   driver.init(-1, spi0);
 
   while (true) {
