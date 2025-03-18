@@ -4,5 +4,5 @@ target_sources(led-test
     main.cpp
 )
 pico_enable_stdio_usb(led-test 1)
-target_link_libraries(led-test comms)
+target_link_libraries(led-test comms WS2812)
 pico_add_extra_outputs(led-test)

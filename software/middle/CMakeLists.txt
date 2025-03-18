@@ -16,7 +16,6 @@ endif()
 add_compile_options(-Werror)
 
 # ====================================================================================
-
 # ================================= HELPER FUNCTIONS =================================
 # Initialize the global libraries list
 set(GLOBAL_LIBS "" CACHE INTERNAL "List of global libraries")
@@ -47,8 +46,8 @@ function(target_link_globals target_name)
     target_link_libraries(${target_name} ${lib})
   endforeach()
 endfunction()
-# ====================================================================================
 
+# ====================================================================================
 # ===================================== PICO SDK =====================================
 set(PICO_BOARD pico CACHE STRING "Board type")
 
@@ -68,15 +67,16 @@ set(CMAKE_CXX_STANDARD 17)
 set(PICOTOOL_FORCE_FETCH_FROM_GIT ON)
 pico_sdk_init()
 
+# ====================================================================================
+# ===================================== FREERTOS =====================================
 # HACK: use external tinyusb (picosdk provided tinyusb hardcodes CFG_TUSB_OS as OPT_OS_PICO, but we want OPT_OS_FREERTOS)
 # HACK: if testing without comms lib and freertos, comment this out
 add_compile_options(-UCFG_TUSB_OS -DCFG_TUSB_OS=OPT_OS_FREERTOS)
-# ====================================================================================
 
-# ===================================== FREERTOS =====================================
 # FreeRTOS
 set(FREERTOS_KERNEL_PATH ${CMAKE_SOURCE_DIR}/../external/freertos)
 include(FreeRTOS_Kernel_import.cmake)
+
 # ====================================================================================
 
 add_global_library(pico_stdlib)
