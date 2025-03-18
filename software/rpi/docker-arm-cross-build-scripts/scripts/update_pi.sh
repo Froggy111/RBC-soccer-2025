@@ -9,7 +9,7 @@ scp ./docker-arm-cross-build-scripts/staging-aarch64-rpi3-linux-gnu.tar botbywir
 ssh -t botbywire@192.168.210.239 "sudo tar xf /tmp/staging-aarch64-rpi3-linux-gnu.tar \
     -C / --strip-components=1 --keep-directory-symlink \
     --no-same-owner --no-same-permissions --no-overwrite-dir"
-
+*
 # Configure dynamic linker run-time bindings so newly installed libraries
 # are found by the linker
 # Enter the sudo password of the Pi if necessary

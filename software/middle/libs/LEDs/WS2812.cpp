@@ -114,3 +114,21 @@ void WS2812::show() {
         pio_sm_put_blocking(pio, sm, data[i]);
     }
 }
+
+uint32_t WS2812::hue_to_rgb(uint8_t hue) {
+    uint8_t region = hue / 43;
+    uint8_t remainder = (hue - (region * 43)) * 6;
+
+    uint8_t p = 0;
+    uint8_t q = 255 - remainder;
+    uint8_t t = remainder;
+
+    switch (region) {
+        case 0: return WS2812::RGB(255, t, 0);
+        case 1: return WS2812::RGB(q, 255, 0);
+        case 2: return WS2812::RGB(0, 255, t);
+        case 3: return WS2812::RGB(0, q, 255);
+        case 4: return WS2812::RGB(t, 0, 255);
+        default: return WS2812::RGB(255, 0, q);
+    }
+}
