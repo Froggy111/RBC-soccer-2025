@@ -85,6 +85,9 @@ RUN sudo apt-get update && sudo apt-get install -y \
     python3-yaml \
     python3-ply \
     python3-mako \
+    python3-jinja2 \
+    python3-yaml \
+    python3-ply \
     pkg-config \
     && sudo rm -rf /var/lib/apt/lists/*
 
