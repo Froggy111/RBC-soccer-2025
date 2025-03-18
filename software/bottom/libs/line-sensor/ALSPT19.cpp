@@ -5,12 +5,11 @@
 #include "comms.hpp"
 
 extern "C" {
-#include <cstdint>
 #include "hardware/adc.h"
 #include <pico/stdlib.h>
 }
 
-void LineSensor::init(types::u8 id, spi_inst_t *spi_obj) {
+void LineSensor::init(spi_inst_t *spi_obj) {
   comms::USB_CDC.printf("---> Initializing ALSPT19\r\n");
 
   //init dmux
