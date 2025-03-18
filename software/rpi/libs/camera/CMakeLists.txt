@@ -1,6 +1,7 @@
 add_library(bbw_camera
     camera.cpp
     include/camera.hpp
+    include/config.hpp
 )
 
 find_package(OpenCV REQUIRED)
