@@ -8,6 +8,10 @@ extern "C" {
 #include "pinmap.hpp"
 
 
+//rising edge and falling edge timestamps
+volatile uint32_t rising_time[num_ir_sensors] = {0};
+volatile uint32_t falling_time[num_ir_sensors] = {0};
+
 IRSensor::IRSensor(int n_samples) { 
     this->n_samples = n_samples; 
     this->samples = (bool*) malloc(n_samples * sizeof(bool)); 
@@ -41,7 +45,7 @@ static bool IRSensor::modulation_timer_callback(struct repeating_timer *t) {
 void IRSensor::rising_edge(uint8_t gpio, uint32_t events) { 
     for (int i = 0; i<num_ir_sensors; i++) { 
         if (gpio == ir_pins[i]) { 
-            n_samples[i]->add(true); 
+            ir_samples[i]->add(true); 
             rising_time[i] = time_us_32();
             return; 
         } 
@@ -53,7 +57,7 @@ void IRSensor::rising_edge(uint8_t gpio, uint32_t events) {
 void IRSensor::falling_edge(uint8_t gpio, uint32_t events) { 
     for (int i = 0; i<num_ir_sensors; i++) { 
         if (gpio == ir_pins[i]) { 
-            n_samples[i]->add(false); 
+            ir_samples[i]->add(false); 
             falling_time[i] = time_us_32();
             return; 
         } 

@@ -18,8 +18,8 @@ void ir_sensor_poll_task(void *args) {
       gpio_set_dir(ir_pins[i], GPIO_IN); // set the dir to input
       ir_samples[i] = new IRSensor(samples_per_window);  
 
-      gpio_set_irq_enabled_with_callback(ir_pins[i], GPIO_IRQ_EDGE_RISE, true, ir_sensor.rising_edge(17, GPIO_IRQ_EDGE_RISE));
-      gpio_set_irq_enabled_with_callback(ir_pins[i], GPIO_IRQ_EDGE_RISE, true, ir_sensor.falling_edge(17, GPIO_IRQ_EDGE_FALL));
+      gpio_set_irq_enabled_with_callback(ir_pins[i], GPIO_IRQ_EDGE_RISE, true, IRSensor::rising_edge);
+      gpio_set_irq_enabled_with_callback(ir_pins[i], GPIO_IRQ_EDGE_FALL, true, IRSensor::falling_edge);
       comms::USB_CDC.printf("IR Sensor %d initialized at GPIO pin %d\n", i + 1, ir_pins[i]);
       }
       //start mod timer
