@@ -2,19 +2,26 @@
 #include <cstdint>
 #include <stdlib.h>
 extern "C" {
-    #include <hardware/pwm.h>
-    //idk it works like that for me and ajar, idk cause whenever i include libs, always shows not found??
-} //yea wait why is it like that, hmmmm oh wait try refresh window lmaoooo
+    #include <hardware/gpio.h>
+} 
 #include "types.hpp"
 #include "pins/MCP23S17.hpp"
 #define IR_SENSOR_HPP
 
-class Samples {
-    Samples(int n_samples);
-    void add(bool state);
-    float average(void);
-    void setup();
-    void loop();
+class IRSensor {
+    public:
+        IRSensor(int n_samples);
+        void add(bool state);
+        float average(void);
+        void modulation_timer_callback(struct repeating_timer *t);
+        void rising_edge(uint gpio, uint32_t events);
+        void falling_edge(uint gpio, uint32_t events);
+        void setup();
+        void loop();
+    private:
+        int n_samples;
+        bool *samples;
+        int current_idx;
 }
 
 
