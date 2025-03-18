@@ -16,10 +16,16 @@ void ir_sensor_poll_task(void *args) {
   for (int i = 0; i < num_ir_sensors; i++) {
       gpio_init(ir_pins[i]); // initialise the GPIO pin
       gpio_set_dir(ir_pins[i], GPIO_IN); // set the dir to input
-      ir_samples[i] = new IRSensor(samples_per_window);  
+      ir_sensor.ir_samples[i] = new IRSensor(samples_per_window);  
 
-      gpio_set_irq_enabled_with_callback(ir_pins[i], GPIO_IRQ_EDGE_RISE, true, IRSensor::rising_edge);
-      gpio_set_irq_enabled_with_callback(ir_pins[i], GPIO_IRQ_EDGE_FALL, true, IRSensor::falling_edge);
+      //combined callback:
+      gpio_set_irq_enabled_with_callback(
+        ir_pins[i],
+        GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL,
+        true,
+        (gpio_irq_callback_t)IRSensor::gpio_callback
+        );
+      
       comms::USB_CDC.printf("IR Sensor %d initialized at GPIO pin %d\n", i + 1, ir_pins[i]);
       }
       //start mod timer
@@ -30,11 +36,11 @@ void ir_sensor_poll_task(void *args) {
 
           for (int i = 0; i < num_ir_sensors; i++) {
               bool state = gpio_get(ir_pins[i]); 
-              ir_samples[i]->add(state); 
+              ir_sensor.ir_samples[i]->add(state); 
               
               // Output the state and average for each IR sensor
               comms::USB_CDC.printf(">IR%d: s: %d\n", i + 1, state);
-              comms::USB_CDC.printf(">IR%d: avg: %.2f\n", i + 1, ir_samples[i]->average());
+              comms::USB_CDC.printf(">IR%d: avg: %.2f\n", i + 1, ir_sensor.ir_samples[i]->average());
           }
           while (time_us_64() - start_time < period) { 
               continue; 

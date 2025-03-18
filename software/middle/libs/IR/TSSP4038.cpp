@@ -1,5 +1,6 @@
 #include "TSSP4038.hpp"
 #include "include/TSSP4038.hpp"
+#include <pico/time.h>
 extern "C" {
 #include "hardware/gpio.h"
 }
@@ -12,17 +13,14 @@ extern "C" {
 volatile uint32_t rising_time[num_ir_sensors] = {0};
 volatile uint32_t falling_time[num_ir_sensors] = {0};
 
+
+struct repeating_timer modulation_timer;
+
 IRSensor::IRSensor(int n_samples) { 
     this->n_samples = n_samples; 
     this->samples = (bool*) malloc(n_samples * sizeof(bool)); 
     memset((void*) this->samples, 0, n_samples * sizeof(bool)); 
     this->current_idx = 0; 
-    return; 
-} 
-  
-void IRSensor::add(bool state) { 
-    this->samples[this->current_idx] = state; 
-    this->current_idx = (this->current_idx + 1) % n_samples; 
     return; 
 } 
 
@@ -36,7 +34,7 @@ float IRSensor::average(void) {
 }
 
 //timer callback for mod
-static bool IRSensor::modulation_timer_callback(struct repeating_timer *t) {
+bool IRSensor::modulation_timer_callback(struct repeating_timer *t) {
     mod_step = (mod_step + 1) % 5;
     return true; //keeps on repeating, non-blocking code
 }
