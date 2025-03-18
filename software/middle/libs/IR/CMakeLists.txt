@@ -7,5 +7,5 @@ target_sources(TSSP4038
 )
 
 target_include_directories(TSSP4038 PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(TSSP4038 hardware-descriptors hardware_gpio)
+target_link_libraries(TSSP4038 hardware-descriptors hardware_gpio comms)
 target_link_globals(TSSP4038)

@@ -1,27 +1,21 @@
 #include "comms.hpp"
 #include "types.hpp"
 #include "TSSP4038.hpp"
+#include "hardware/gpio.h"
 
 using namespace types;
 
 const u8 LED_PIN = 25;
 IRSensor ir_sensor = IRSensor();
 
-void line_sensor_poll_task(void *args) {
+void ir_sensor_poll_task(void *args) {
   comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
 
-  // for mux
-  if (!spi_init(spi0, 1000000)) {
-    comms::USB_CDC.printf("SPI Initialization Failed!\r\n");
-  } else {
-    comms::USB_CDC.printf("SPI Initialization Successful!\r\n");
-  }
-  line_sensor.init(1, spi0);
-
   while (true) {
-    for (int i = 0; i < 48; i++) {
-      uint16_t val = line_sensor.read_raw(i);
-      comms::USB_CDC.printf("Line sensor %d: %d\r\n", i, val);
+    ir_sensor.read_raw();
+
+    for (int i = 0; i < 24; i++) {
+      comms::USB_CDC.printf("IR sensor %d: %d\r\n", i+1, avg_values[i]);
     }
     sleep_ms(1000);
   }
@@ -34,7 +28,7 @@ int main() {
 
   comms::USB_CDC.init();
 
-  xTaskCreate(line_sensor_poll_task, "line_sensor_poll_task", 1024, NULL, 10,
+  xTaskCreate(ir_sensor_poll_task(void *args), "ir_sensor_poll_task", 1024, NULL, 10,
               NULL);
 
   vTaskStartScheduler();

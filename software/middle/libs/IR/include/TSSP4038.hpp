@@ -16,8 +16,8 @@ class IRSensor {
         void modulation_timer_callback(struct repeating_timer *t);
         void rising_edge(uint gpio, uint32_t events);
         void falling_edge(uint gpio, uint32_t events);
-        void setup();
-        void loop();
+        void init();
+        void read_raw();
     private:
         int n_samples;
         bool *samples;

@@ -137,10 +137,9 @@ void loop() {
     for (int i = 0; i < num_ir_sensors; i++) {
         bool state = gpio_get(ir_pins[i]); 
         ir_samples[i]->add(state); 
-        
-        // Output the state and average for each IR sensor
-        comms::USB_CDC.printf(">IR%d: s: %d\n", i + 1, state);
-        comms::USB_CDC.printf(">IR%d: avg: %.2f\n", i + 1, ir_samples[i]->average());
+
+        //store av values into an array
+        avg_values[i] = ir_samples[i]->average();
     }
 
     // Wait until the next period
