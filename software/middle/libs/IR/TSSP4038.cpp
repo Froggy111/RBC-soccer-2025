@@ -1,9 +1,7 @@
 #include "TSSP4038.hpp"
-#include "include/IR.hpp"
 #include "include/TSSP4038.hpp"
 extern "C"{
 #include "hardware/gpio.h"
-#include "stdio.h"
 }
 #include "types.hpp"
 #include "comms.hpp"
@@ -91,63 +89,3 @@ void IRSensor::falling_edge(unit gpio, uint32_t events) {
     }
     return; 
 }
-
-//mainloop
-int main() { 
-    comms::USB_CDC.printf("Initialising IR sensors...\n");
-
-    // initialise each IR pin as input 
-    for (int i = 0; i < num_ir_sensors; i++) {
-        gpio_init(ir_pins[i]); // initialise the GPIO pin
-        gpio_set_dir(ir_pins[i], GPIO_IN); // set the dir to input
-        ir_samples[i] = new Samples(samples_per_window);  
-
-        gpio_set_irq_enabled_with_callback(ir_pins[i], GPIO_IRQ_EDGE_RISE, true, rising_edge);
-        gpio_set_irq_enabled_with_callback(ir_pins[i], GPIO_IRQ_EDGE_RISE, true, falling_edge);
-        comms::USB_CDC.printf("IR Sensor %d initialized at GPIO pin %d\n", i + 1, ir_pins[i]);
-        }
-        //start mod timer
-        add_repeating_timer_ms(-833, modulation_timer_callback, NULL, &modulation_timer); 
-
-        while (true){
-            uint64_t start_time = time_us_64();
-
-            for (int i = 0; i < num_ir_sensors; i++) {
-                bool state = gpio_get(ir_pins[i]); 
-                ir_samples[i]->add(state); 
-                
-                // Output the state and average for each IR sensor
-                comms::USB_CDC.printf(">IR%d: s: %d\n", i + 1, state);
-                comms::USB_CDC.printf(">IR%d: avg: %.2f\n", i + 1, ir_samples[i]->average());
-            }
-            while (time_us_64() - start_time < period) { 
-                continue; 
-            }
-
-        }
-
-        return 0;
-
-} 
-
-/*
-void loop() { 
-    u_int64_t start_time = micros(); 
-    // Loop through each IR sensor, read value, add to the respective Samples object
-    for (int i = 0; i < num_ir_sensors; i++) {
-        bool state = gpio_get(ir_pins[i]); 
-        ir_samples[i]->add(state); 
-
-        //store av values into an array
-        avg_values[i] = ir_samples[i]->average();
-    }
-
-    // Wait until the next period
-    while (micros() - start_time < period) { continue; } 
-}
-
-*/
-
-
-
-
