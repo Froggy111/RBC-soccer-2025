@@ -14,10 +14,6 @@ using namespace types;
 // Configuration
 const u8 LED_PIN = 25;
 
-// Default ICM20948 addresses
-const u8 ACCEL_GYRO_ADDR = 0x68; // Default accel/gyro address
-const u8 MAG_ADDR = 0x0C;        // Default magnetometer address
-
 // Global variables
 icm20948::config_t imu_config;
 icm20948::data_t imu_data;

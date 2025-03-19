@@ -4,19 +4,12 @@
 namespace comms {
 
 enum class SendIdentifiers : types::u8 {
-  COMMS_WARN,
-  COMMS_ERROR,
-  COMMS_DEBUG,
-  TRACE,
-  DEBUG,
-  INFO,
-  WARN,
-  ERROR,
-  FATAL,
+  DEBUG = 0,
+  ICM29048 = 1,
 };
 
 enum class RecvIdentifiers : types::u8 {
-  DEBUG_TEST_BLINK = 255,
+  LEDs = 1
 };
 
 static const types::u16 identifier_arr_len = 256;
