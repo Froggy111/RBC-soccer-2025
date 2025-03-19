@@ -4,7 +4,15 @@
 namespace comms {
 
 enum class SendIdentifiers : types::u8 {
-  DEBUG = 0,
+  COMMS_WARN = 0,
+  COMMS_ERROR = 1,
+  COMMS_DEBUG = 2,
+  TRACE = 3,
+  DEBUG = 4,
+  INFO = 5,
+  WARN = 6,
+  ERROR = 7,
+  FATAL = 8,
   ICM29048 = 1,
 };
 

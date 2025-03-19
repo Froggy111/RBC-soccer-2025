@@ -1,7 +1,8 @@
-#include "ICM20948.hpp"
 #include "comms.hpp"
-#include "config.cpp"
+#include "config.hpp"
+#include "ICM20948.hpp"
 
+// Global IMU configurations and data
 icm20948::config_t imu_config1, imu_config2;
 icm20948::data_t imu_data;
 
@@ -37,6 +38,7 @@ void imu_poll_task(void *args) {
   icm20948::set_mag_rate(&imu_config2, 3);
 
   int16_t accel[3], gyro[3];
+  types::u8 to_send[13];
 
   int16_t accel_bias1[3] = {0}, gyro_bias1[3] = {0};
   int16_t accel_bias2[3] = {0}, gyro_bias2[3] = {0};
@@ -68,48 +70,24 @@ void imu_poll_task(void *args) {
     icm20948::read_cal_accel(&imu_config1, accel, accel_bias1);
     icm20948::read_cal_gyro(&imu_config1, gyro, gyro_bias1);
 
-    // send ICM20948 2
-    types::u8 to_send_1[] = {
-        static_cast<types::u8>(imu_config1.id),
-        static_cast<types::u8>(accel[0] >> 8),
-        static_cast<types::u8>(accel[0]),
-        static_cast<types::u8>(accel[1] >> 8),
-        static_cast<types::u8>(accel[1]),
-        static_cast<types::u8>(accel[2] >> 8),
-        static_cast<types::u8>(accel[2]),
-        static_cast<types::u8>(gyro[0] >> 8),
-        static_cast<types::u8>(gyro[0]),
-        static_cast<types::u8>(gyro[1] >> 8),
-        static_cast<types::u8>(gyro[1]),
-        static_cast<types::u8>(gyro[2] >> 8),
-        static_cast<types::u8>(gyro[2]),
-    };
-    comms::USB_CDC.write(comms::SendIdentifiers::ICM29048, to_send_1,
-                         sizeof to_send_1);
+    // send ICM20948 1
+    to_send[0] = imu_config1.id;
+    memcpy(&to_send[1], accel, sizeof(accel));
+    memcpy(&to_send[7], gyro, sizeof(gyro));
+    comms::USB_CDC.write(comms::SendIdentifiers::ICM29048, to_send,
+                       sizeof to_send);
 
     // read ICM20948 2
     icm20948::read_cal_accel(&imu_config2, accel, accel_bias2);
     icm20948::read_cal_gyro(&imu_config2, gyro, gyro_bias2);
 
     // send ICM20948 2
-    types::u8 to_send_2[] = {
-        static_cast<types::u8>(imu_config1.id),
-        static_cast<types::u8>(accel[0] >> 8),
-        static_cast<types::u8>(accel[0]),
-        static_cast<types::u8>(accel[1] >> 8),
-        static_cast<types::u8>(accel[1]),
-        static_cast<types::u8>(accel[2] >> 8),
-        static_cast<types::u8>(accel[2]),
-        static_cast<types::u8>(gyro[0] >> 8),
-        static_cast<types::u8>(gyro[0]),
-        static_cast<types::u8>(gyro[1] >> 8),
-        static_cast<types::u8>(gyro[1]),
-        static_cast<types::u8>(gyro[2] >> 8),
-        static_cast<types::u8>(gyro[2]),
-    };
-    comms::USB_CDC.write(comms::SendIdentifiers::ICM29048, to_send_2,
-                         sizeof to_send_2);
+    to_send[0] = imu_config2.id;
+    memcpy(&to_send[1], accel, sizeof(accel));
+    memcpy(&to_send[7], gyro, sizeof(gyro));
+    comms::USB_CDC.write(comms::SendIdentifiers::ICM29048, to_send,
+                       sizeof to_send);
 
-    vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(config.poll_interval));
+    vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(get_config().poll_interval));
   }
 }

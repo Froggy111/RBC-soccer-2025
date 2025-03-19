@@ -1,10 +1,11 @@
+#include "config.hpp"
 #include "types.hpp"
 #include "comms.hpp"
 #include "WS2812.hpp"
-#include "config.cpp"
 #include "pinmap.hpp"
 
 using namespace types;
+
 
 enum LED_MODE { RED = 1 };
 
@@ -13,7 +14,7 @@ struct LEDBlinkerData {
   void reset(void) { mode = LED_MODE::RED; }
 };
 
-WS2812 led_strip((uint)pinmap::Pico::LED_SIG_3V3, config.LED_count, pio0, 0,
+WS2812 led_strip((uint)pinmap::Pico::LED_SIG_3V3, get_config().LED_count, pio0, 0,
                  WS2812::DataFormat::FORMAT_GRB);
 
 TaskHandle_t led_blinker_handle = nullptr;
@@ -40,6 +41,6 @@ void led_blinker_task(void *args) {
     default:
       break;
     }
-    vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(config.poll_interval));
+    vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(get_config().poll_interval));
   }
 }
