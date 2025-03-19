@@ -11,5 +11,5 @@ add_subdirectory(comms) # this links debug
 add_subdirectory(pins)
 
 add_subdirectory(imu)
-
+add_subdirectory(LEDs)
 # add_subdirectory(ultrasounds)
