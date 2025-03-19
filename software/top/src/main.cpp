@@ -1,7 +1,3 @@
-#include "comms/identifiers.hpp"
-#include "comms/usb.hpp"
-#include <cstdint>
-
 extern "C" {
 #include <pico/stdlib.h>
 #include <hardware/spi.h>
@@ -39,7 +35,12 @@ int main() {
 
   if (!led_attach_successful) {
     comms::USB_CDC.printf("LED Listener could not be attached");
-    return 0;
+    while (true) {
+      gpio_put(LED_PIN, 1);
+      sleep_ms(100);
+      gpio_put(LED_PIN, 0);
+      sleep_ms(100);
+    }
   }
 
   vTaskStartScheduler();

@@ -1,18 +1,19 @@
 #include "types.hpp"
 #include "comms.hpp"
 #include "WS2812.hpp"
-#include "config.hpp"
+#include "config.cpp"
+#include "pinmap.hpp"
 
 using namespace types;
 
-enum LED_MODE { Blink = 1 };
+enum LED_MODE { RED = 1 };
 
 struct LEDBlinkerData {
-  LED_MODE mode = LED_MODE::Blink;
-  void reset(void) { mode = LED_MODE::Blink; }
+  LED_MODE mode = LED_MODE::RED;
+  void reset(void) { mode = LED_MODE::RED; }
 };
 
-WS2812 led_strip((uint)pinmap::Pico::LED_SIG_3V3, , pio0, 0,
+WS2812 led_strip((uint)pinmap::Pico::LED_SIG_3V3, config.LED_count, pio0, 0,
                  WS2812::DataFormat::FORMAT_GRB);
 
 TaskHandle_t led_blinker_handle = nullptr;
@@ -22,6 +23,8 @@ SemaphoreHandle_t led_blinker_data_mutex = nullptr;
 
 void led_blinker_task(void *args) {
   for (;;) {
+    TickType_t previous_wait_time = xTaskGetTickCount();
+
     led_blinker_task_data.reset();
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
     xSemaphoreTake(led_blinker_data_mutex, portMAX_DELAY);
@@ -30,11 +33,13 @@ void led_blinker_task(void *args) {
     xSemaphoreGive(led_blinker_buffer);
 
     switch (led_blinker_task_data.mode) {
-    case (LED_MODE::Blink):
-      
+    case (LED_MODE::RED):
+      led_strip.fill(WS2812::RGB(255, 0, 0));
+      led_strip.show();
       break;
     default:
       break;
-	}
+    }
+    vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(config.poll_interval));
   }
 }
