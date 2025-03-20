@@ -4,16 +4,12 @@
 namespace comms {
 
 enum class SendIdentifiers : types::u8 {
-  COMMS_WARN = 0,
-  COMMS_ERROR = 1,
-  COMMS_DEBUG = 2,
-  TRACE = 3,
-  DEBUG = 4,
-  INFO = 5,
-  WARN = 6,
-  ERROR = 7,
-  FATAL = 8,
-  ICM29048 = 1,
+  COMMS_WARN = 0,  // warnings should be sent here
+  COMMS_ERROR = 1, // hard errors sent here
+  COMMS_DEBUG = 2, // everything should fall under here by default
+  SPI_FAIL = 3,
+  LED_LISTENER_FAIL = 4,
+  ICM29048 = 5
 };
 
 enum class RecvIdentifiers : types::u8 {

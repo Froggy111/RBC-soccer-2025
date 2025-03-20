@@ -1,3 +1,4 @@
+#include "comms/identifiers.hpp"
 extern "C" {
 #include <pico/stdlib.h>
 #include <hardware/spi.h>
@@ -8,6 +9,15 @@ extern "C" {
 #include "actions/LEDs.hpp"
 
 #define LED_PIN 25
+
+int urgent_blink() {
+  while (true) {
+    gpio_put(LED_PIN, 1);
+    sleep_ms(100);
+    gpio_put(LED_PIN, 0);
+    sleep_ms(100);
+  }
+}
 
 int main() {
   // * Init LED
@@ -20,29 +30,19 @@ int main() {
 
   // * Init SPIs
   if (!spi_init(spi0, 4000000)) {
-    comms::USB_CDC.printf("SPI Initialized\n");
-    return -1;
-  } else {
-    comms::USB_CDC.printf("SPI\n");
+    urgent_blink();
   }
 
-  comms::USB_CDC.init();
+  xTaskCreate(imu_poll_task, "imu_poll_task", 1024, NULL, 10, &imu_poll_task_handle);
+  xTaskCreate(led_blinker_task, "led_blinker_task", 1024, NULL, 10, &led_blinker_handle);
 
-  xTaskCreate(imu_poll_task, "imu_poll_task", 1024, NULL, 10, NULL);
-  xTaskCreate(led_blinker_task, "led_blinker_task", 1024, NULL, 10, NULL);
-
+  led_blinker_data_mutex = xSemaphoreCreateMutex();
   bool led_attach_successful = comms::USB_CDC.attach_listener(
       comms::RecvIdentifiers::LEDs, led_blinker_handle, led_blinker_data_mutex,
       led_blinker_buffer, sizeof(led_blinker_task_data));
 
   if (!led_attach_successful) {
-    comms::USB_CDC.printf("LED Listener could not be attached");
-    while (true) {
-      gpio_put(LED_PIN, 1);
-      sleep_ms(100);
-      gpio_put(LED_PIN, 0);
-      sleep_ms(100);
-    }
+    urgent_blink();
   }
 
   vTaskStartScheduler();

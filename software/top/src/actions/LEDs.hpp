@@ -5,40 +5,77 @@
 #include "comms.hpp"
 #include "WS2812.hpp"
 #include "pinmap.hpp"
+#include <cstdint>
+#include <pico/types.h>
 
 using namespace types;
 
-enum LED_MODE { RED = 1 };
+// Define a maximum LED count
+#define MAX_LED_COUNT 100
 
-struct LEDBlinkerData {
-  LED_MODE mode = LED_MODE::RED;
-  void reset(void) { mode = LED_MODE::RED; }
+struct LEDData {
+  uint8_t RED = 0;
+  uint8_t GREEN = 0;
+  uint8_t BLUE = 0;
 };
 
-WS2812 led_strip((uint)pinmap::Pico::LED_SIG_3V3, get_config().LED_count, pio0,
+struct LEDBLinkerData {
+  uint8_t id = 0;
+  uint8_t RED = 0;
+  uint8_t GREEN = 0;
+  uint8_t BLUE = 0;
+};
+
+// Store the actual LED count for runtime use
+const uint8_t actual_led_count = get_config().LED_count;
+
+WS2812 led_strip((uint)pinmap::Pico::LED_SIG_3V3, actual_led_count, pio0,
                  0, WS2812::DataFormat::FORMAT_GRB);
 
 TaskHandle_t led_blinker_handle = nullptr;
-LEDBlinkerData led_blinker_task_data = {};
-u8 led_blinker_buffer[sizeof(led_blinker_task_data)] = {0};
+LEDData led_states[MAX_LED_COUNT];
+LEDBLinkerData led_blinker_task_data = {};
+u8 led_blinker_buffer[sizeof(led_blinker_task_data)];
 SemaphoreHandle_t led_blinker_data_mutex = nullptr;
 
 void led_blinker_task(void *args) {
-  for (;;) {
-    switch (led_blinker_task_data.mode) {
-    case (LED_MODE::RED):
-      led_strip.fill(WS2812::RGB(255, 0, 0));
-      led_strip.show();
-      break;
-    default:
-      break;
-    }
+  // initialize the direction pin
+  gpio_init((uint)pinmap::Pico::LED_SIG_DIR);
+  gpio_set_dir((uint)pinmap::Pico::LED_SIG_DIR, GPIO_OUT);
+  gpio_put((uint)pinmap::Pico::LED_SIG_DIR, 1);
 
-    led_blinker_task_data.reset();
+  // reset the data
+  memset(led_states, 0, sizeof(led_states));
+  // make it initially green
+  for (int i = 0; i < actual_led_count; i++) {
+    led_states[i].RED = 0;
+    led_states[i].GREEN = 100;
+    led_states[i].BLUE = 0;
+  }
+
+  for (;;) {
+    for (int i = 0; i < actual_led_count; i++) {
+      led_strip.setPixelColor(i, led_states[i].RED, led_states[i].GREEN,
+                              led_states[i].BLUE);
+    }
+    led_strip.show();
+
+    // * data transfer
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
     xSemaphoreTake(led_blinker_data_mutex, portMAX_DELAY);
-    memcpy(&led_blinker_task_data, led_blinker_buffer, sizeof(LEDBlinkerData));
+    memcpy(&led_blinker_task_data, led_blinker_buffer,
+           sizeof(led_blinker_task_data));
     memset(led_blinker_buffer, 0, sizeof(led_blinker_buffer));
-    xSemaphoreGive(led_blinker_buffer);
+    xSemaphoreGive(led_blinker_data_mutex);
+
+    // * based on the id, set the color
+    if (led_blinker_task_data.id < actual_led_count) {
+      led_states[led_blinker_task_data.id].RED =
+          led_blinker_task_data.RED;
+      led_states[led_blinker_task_data.id].GREEN =
+          led_blinker_task_data.GREEN;
+      led_states[led_blinker_task_data.id].BLUE =
+          led_blinker_task_data.BLUE;
+    }
   }
 }
