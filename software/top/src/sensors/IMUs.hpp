@@ -1,3 +1,5 @@
+#pragma once
+
 #include "comms.hpp"
 #include "config.hpp"
 #include "ICM20948.hpp"

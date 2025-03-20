@@ -4,8 +4,8 @@ extern "C" {
 #include <hardware/i2c.h>
 }
 #include "comms.hpp"
-#include "sensors/IMUs.cpp"
-#include "actions/LEDs.cpp"
+#include "sensors/IMUs.hpp"
+#include "actions/LEDs.hpp"
 
 #define LED_PIN 25
 

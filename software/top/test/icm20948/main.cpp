@@ -70,11 +70,6 @@ void imu_task(void *args) {
   comms::USB_CDC.printf("Accel bias: [%d, %d, %d]\r\n", accel_bias[0],
                         accel_bias[1], accel_bias[2]);
 
-  comms::USB_CDC.printf("Calibrating magnetometer...\r\n");
-  icm20948::cal_mag_simple(&imu_config, mag_bias);
-  comms::USB_CDC.printf("Mag bias: [%d, %d, %d]\r\n", mag_bias[0], mag_bias[1],
-                        mag_bias[2]);
-
   comms::USB_CDC.printf("Starting IMU readings...\r\n");
 
   while (true) {
@@ -93,8 +88,6 @@ void imu_task(void *args) {
                           accel[2]);
     comms::USB_CDC.printf("  Gyro  (raw): [%d, %d, %d]\r\n", gyro[0], gyro[1],
                           gyro[2]);
-    comms::USB_CDC.printf("  Mag   (raw): [%d, %d, %d]\r\n", mag[0], mag[1],
-                          mag[2]);
     comms::USB_CDC.printf("  Temp  (°C):  %.2f\r\n", temp_c);
     comms::USB_CDC.printf("\r\n");
 
