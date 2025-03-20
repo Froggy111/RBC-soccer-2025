@@ -49,7 +49,7 @@ int main() {
     }
   }
   bool attached =
-      cdc.attach_listener(comms::RecvIdentifiers::DEBUG_TEST_BLINK,
+      cdc.attach_listener(comms::RecvIdentifiers::LEDs,
                           blink_on_cmd_handle, blink_on_cmd_data_mutex,
                           blink_on_cmd_data_buffer, sizeof(blink_on_cmd_data));
   if (!attached) {
