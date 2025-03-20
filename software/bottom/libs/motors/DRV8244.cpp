@@ -371,6 +371,10 @@ bool MotorDriver::command(types::i16 duty_cycle) {
     comms::USB_CDC.printf("Motor command aborted due to configuration error.\n");
     return false;
   }
+  if (duty_cycle < 0 || duty_cycle > 12500) {
+    comms::USB_CDC.printf("Invalid duty cycle. Must be between 0 and 12500.\n");
+    return false;
+  }
 
   // Retrieve the physical pin numbers for motor control
   uint in1_pin = pins.get_pin(IN1);

@@ -12,14 +12,13 @@ MotorDriver driver;
 const int LED_PIN = 25;
 
 void motor_driver_task(void *args) {
-  usb::CDC *cdc = (usb::CDC *)args;
   comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
   if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.printf("SPI Initialization Failed!\n");
   }
 
   // init as debug
-  driver.init(-1, spi0);
+  driver.init(1, spi0);
 
   while (true) {
     for (int i = 0; i <= 625; i++) {

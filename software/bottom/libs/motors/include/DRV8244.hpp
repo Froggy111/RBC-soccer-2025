@@ -118,10 +118,10 @@ public:
 
   /**
    * Checks are implemented to ensure that the driver's registers, pins are all in the right state.
-   * Acceleration and deceleration safeguards are implemented.
-   * @brief Command the motor with a duty cycle. Negative For Backwards, Positive for Forwards
+   * TODO: Implement Acceleration and Deceleration Safeguards.
+   * @brief Command the motor with a duty cycle. 
    * 
-   * @param duty_cycle 
+   * @param duty_cycle Ranges from -12500 to 12500, Negative For Backwards, Positive for Forwards. 
    * @return true 
    * @return false 
    */

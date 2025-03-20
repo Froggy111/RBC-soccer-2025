@@ -7,25 +7,28 @@ extern "C" {
 }
 #include "comms.hpp"
 
-MotorDriver driver;
+MotorDriver driver1, driver2, driver3, driver4;
 
 const int LED_PIN = 25;
 
 void motor_driver_task(void *args) {
-  usb::CDC *cdc = (usb::CDC *)args;
   comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
+
   if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.printf("SPI Initialization Failed!\n");
   }
 
   // init as debug
-  driver.init(1, spi0);
+  driver1.init(1, spi0);
+  driver2.init(2, spi0);
+  driver3.init(3, spi0);
+  driver4.init(4, spi0);
 
   while (true) {
-    for (int i = 0; i <= 625; i++) {
-      if (!driver.command(i * 10)) break;
-      vTaskDelay(pdMS_TO_TICKS(10));
-    }
+    driver1.command(6250);
+    driver2.command(6250);
+    driver3.command(6250);
+    driver4.command(6250);
   }
 }
 
