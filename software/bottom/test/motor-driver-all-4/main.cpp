@@ -25,10 +25,13 @@ void motor_driver_task(void *args) {
   driver4.init(4, spi0);
 
   while (true) {
-    driver1.command(6250);
-    driver2.command(6250);
-    driver3.command(6250);
-    driver4.command(6250);
+    for (int i = 0; i <= 625; i++) {
+      if (!driver1.command(i * 10)) break;
+      if (!driver2.command(i * 10)) break;
+      if (!driver3.command(i * 10)) break;
+      if (!driver4.command(i * 10)) break;
+      vTaskDelay(pdMS_TO_TICKS(10));
+    }
   }
 }
 
