@@ -1,4 +1,3 @@
-
 add_executable(camera_test
     main.cpp
 )
