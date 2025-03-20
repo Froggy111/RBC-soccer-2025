@@ -1,9 +1,10 @@
 add_executable(main main.cpp)
 target_sources(main
   PUBLIC
-  line_sensor.cpp
-  motors.cpp
-  mouse_sensor.cpp
+  actions/kicker.hpp
+  actions/motors.hpp
+  sensors/line_sensor.hpp
+  sensors/mouse_sensor.hpp
   main.cpp
 )
 

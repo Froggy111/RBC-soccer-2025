@@ -1,13 +1,22 @@
-#include "comms/usb.hpp"
-
 extern "C" {
 #include <pico/stdlib.h>
 #include <hardware/spi.h>
 #include <hardware/i2c.h>
 }
 #include "comms.hpp"
+#include "sensors/IMUs.hpp"
+#include "actions/LEDs.hpp"
 
-const int LED_PIN = 25;
+#define LED_PIN 25
+
+int urgent_blink() {
+  while (true) {
+    gpio_put(LED_PIN, 1);
+    sleep_ms(100);
+    gpio_put(LED_PIN, 0);
+    sleep_ms(100);
+  }
+}
 
 int main() {
   // * Init LED
@@ -20,18 +29,18 @@ int main() {
 
   // * Init SPIs
   if (!spi_init(spi0, 1000000)) {
-    comms::USB_CDC.printf("SPI Initialized\n");
-    return -1;
-  } else {
-    comms::USB_CDC.printf("SPI\n");
+    urgent_blink();
   }
 
-  // * Init I2C
-  if (!i2c_init(i2c0, 100000)) {
-    comms::USB_CDC.printf("I2C Initialized\n");
-    return -1;
-  } else {
-    comms::USB_CDC.printf("I2C\n");
+  xTaskCreate(imu_poll_task, "imu_poll_task", 1024, NULL, 10, &imu_poll_task_handle);
+
+  // setup motors
+  led_blinker_data_mutex = xSemaphoreCreateMutex();
+  bool led_attach_successful = comms::USB_CDC.attach_listener(
+      comms::RecvIdentifiers::LEDs, led_blinker_handle, led_blinker_data_mutex,
+      led_blinker_buffer, sizeof(led_blinker_task_data));
+  if (!led_attach_successful) {
+    urgent_blink();
   }
 
   vTaskStartScheduler();
