@@ -1,7 +1,7 @@
 import os
 from PIL import Image
 
-def generate_field_coordinates(image_path, output_path):
+def generate_field_coordinates(image_path, output_path, output_image_path):
     # Load the image
     img = Image.open(image_path)
     
@@ -19,7 +19,6 @@ def generate_field_coordinates(image_path, output_path):
     print(f"Center point: ({center_x}, {center_y})")
     
     # Calculate scaling factors:
-    # 200cm maps to 320px, so we need to scale our pixel coordinates accordingly
     x_scale = 320 / 200
     y_scale = 320 / 200
     
@@ -32,12 +31,35 @@ def generate_field_coordinates(image_path, output_path):
             pixel_value = img.getpixel((x, y))
             if pixel_value == 255:  # Assuming white/light pixels represent the field
                 # Convert to field coordinates with center as (0,0)
-                # Scale directly to match the 320px:200cm ratio
                 real_x = int(round((x - center_x) * x_scale))
                 real_y = int(round((y - center_y) * y_scale))
                 coordinates.append((real_x, real_y))
     
     print(f"Generated {len(coordinates)} coordinates")
+    
+    # Calculate image dimensions directly from scaling factors
+    image_width = int(round(original_width * x_scale))
+    image_height = int(round(original_height * y_scale))
+    
+    print(f"Output image size: {image_width}x{image_height}")
+    
+    # Create a black image
+    output_img = Image.new("RGB", (image_width, image_height), "black")
+    pixels = output_img.load()
+    
+    # Set pixels to red based on coordinates
+    for x, y in coordinates:
+        # Shift coordinates to be within image bounds
+        pixel_x = x + int(image_width / 2)
+        pixel_y = y + int(image_height / 2)
+        
+        # Check if the pixel is within the image bounds
+        if 0 <= pixel_x < image_width and 0 <= pixel_y < image_height:
+            pixels[pixel_x, pixel_y] = (255, 0, 0)  # Red
+    
+    # Save the image
+    output_img.save(output_image_path)
+    print(f"Coordinate image written to {output_image_path}")
     
     # Generate the C++ header file
     with open(output_path, 'w') as f:
@@ -65,9 +87,12 @@ if __name__ == "__main__":
     # Path to output header file
     output_path = os.path.join(script_dir, "../include/field.hpp")
     
+    # Path to output image
+    output_image_path = os.path.join(script_dir, "field_coordinates.png")
+    
     # Ensure output directory exists
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     
     # Generate the coordinates
-    generate_field_coordinates(image_path, output_path)
+    generate_field_coordinates(image_path, output_path, output_image_path)
     print(f"Field coordinates written to {output_path}")
