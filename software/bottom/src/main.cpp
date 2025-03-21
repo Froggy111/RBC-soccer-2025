@@ -4,8 +4,11 @@ extern "C" {
 #include <hardware/i2c.h>
 }
 #include "comms.hpp"
-#include "sensors/IMUs.hpp"
-#include "actions/LEDs.hpp"
+#include "sensors/lightgate.hpp"
+#include "sensors/mouse_sensor.hpp"
+#include "sensors/line_sensor.hpp"
+#include "actions/kicker.hpp"
+#include "actions/motors.hpp"
 
 #define LED_PIN 25
 
@@ -32,16 +35,7 @@ int main() {
     urgent_blink();
   }
 
-  xTaskCreate(imu_poll_task, "imu_poll_task", 1024, NULL, 10, &imu_poll_task_handle);
-
-  // setup motors
-  led_blinker_data_mutex = xSemaphoreCreateMutex();
-  bool led_attach_successful = comms::USB_CDC.attach_listener(
-      comms::RecvIdentifiers::LEDs, led_blinker_handle, led_blinker_data_mutex,
-      led_blinker_buffer, sizeof(led_blinker_task_data));
-  if (!led_attach_successful) {
-    urgent_blink();
-  }
+  
 
   vTaskStartScheduler();
 }

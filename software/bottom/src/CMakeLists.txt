@@ -5,6 +5,7 @@ target_sources(main
   actions/motors.hpp
   sensors/line_sensor.hpp
   sensors/mouse_sensor.hpp
+  sensors/lightgate.hpp
   main.cpp
 )
 
