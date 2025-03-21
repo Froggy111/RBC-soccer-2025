@@ -1,59 +1,40 @@
-/**
- * Copyright (c) 2020 Raspberry Pi (Trading) Ltd.
- *
- * SPDX-License-Identifier: BSD-3-Clause
- */
-
+#include "comms.hpp"
 extern "C" {
-#include "pico/stdlib.h"
-#include <pico/stdio.h>
-#include <stdio.h>
+#include <pico/stdlib.h>
 }
+#include "comms.hpp"
+#include "actions/LEDs.hpp"
 
-// Pico W devices use a GPIO on the WIFI chip for the LED,
-// so when building for Pico W, CYW43_WL_GPIO_LED_PIN will be defined
-#ifdef CYW43_WL_GPIO_LED_PIN
-#include "pico/cyw43_arch.h"
-#endif
+#define LED_PIN 25
 
-#ifndef LED_DELAY_MS
-#define LED_DELAY_MS 200
-#endif
-
-// Perform initialisation
-int pico_led_init(void) {
-#if defined(PICO_DEFAULT_LED_PIN)
-  // A device like Pico that uses a GPIO for the LED will define
-  // PICO_DEFAULT_LED_PIN so we can use normal GPIO functionality to turn the
-  // led on and off
-  gpio_init(PICO_DEFAULT_LED_PIN);
-  gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
-  return PICO_OK;
-#elif defined(CYW43_WL_GPIO_LED_PIN)
-  // For Pico W devices we need to initialise the driver etc
-  return cyw43_arch_init();
-#endif
-}
-
-// Turn the led on or off
-void pico_set_led(bool led_on) {
-#if defined(PICO_DEFAULT_LED_PIN)
-  // Just set the GPIO on or off
-  gpio_put(PICO_DEFAULT_LED_PIN, led_on);
-#elif defined(CYW43_WL_GPIO_LED_PIN)
-  // Ask the wifi "driver" to set the GPIO on or off
-  cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, led_on);
-#endif
+int urgent_blink() {
+  while (true) {
+    gpio_put(LED_PIN, 1);
+    sleep_ms(100);
+    gpio_put(LED_PIN, 0);
+    sleep_ms(100);
+  }
 }
 
 int main() {
-  stdio_init_all();
-  int rc = pico_led_init();
-  hard_assert(rc == PICO_OK);
-  while (true) {
-    pico_set_led(true);
-    sleep_ms(LED_DELAY_MS);
-    pico_set_led(false);
-    sleep_ms(LED_DELAY_MS);
+  // * Init LED
+  gpio_init(LED_PIN);
+  gpio_set_dir(LED_PIN, GPIO_OUT);
+  gpio_put(LED_PIN, 1);
+
+  // * Init USB Comms
+  comms::USB_CDC.init();
+
+  xTaskCreate(led_blinker_task, "led_blinker_task", 1024, NULL, 10, &led_blinker_handle);
+
+  led_blinker_data_mutex = xSemaphoreCreateMutex();
+  bool led_attach_successful = comms::USB_CDC.attach_listener(
+      comms::RecvIdentifiers::LEDs, led_blinker_handle, led_blinker_data_mutex,
+      led_blinker_buffer, sizeof(led_blinker_task_data));
+
+  if (!led_attach_successful) {
+    urgent_blink();
   }
+
+  vTaskStartScheduler();
 }

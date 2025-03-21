@@ -1,2 +1,3 @@
-// debug config
-#define DEBUG_USE_IDENTIFIERS
+#pragma once
+
+#define LED_COUNT 24

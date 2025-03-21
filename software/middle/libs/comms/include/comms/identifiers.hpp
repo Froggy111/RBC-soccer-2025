@@ -16,6 +16,7 @@ enum class SendIdentifiers : types::u8 {
 };
 
 enum class RecvIdentifiers : types::u8 {
+  LEDs = 0,
   DEBUG_TEST_BLINK = 255,
 };
 
