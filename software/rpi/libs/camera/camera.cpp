@@ -1,18 +1,18 @@
 #include "camera.hpp"
 #include "config.hpp"
-#include <iostream>
 #include <chrono>
+#include <iostream>
 #include <sys/mman.h>
 
 Camera::Camera() = default;
 
 Camera::~Camera() {
     stopCapture();
-    
+
     if (camera_ && isRunning()) {
         camera_->stop();
     }
-    
+
     allocator_.reset();
     camera_.reset();
     cameraManager_.reset();
@@ -21,70 +21,70 @@ Camera::~Camera() {
 bool Camera::initialize(cam_config::Resolutions resolution) {
     switch (resolution) {
         case cam_config::RES_1232P:
-			width_ = 1640;
-			height_ = 1232;
-			break;
-		case cam_config::RES_1080P:
-			width_ = 1920;
-			height_ = 1080;
-			break;
-		case cam_config::RES_480P:
-			width_ = 640;
-			height_ = 480;
-			break;
-		default:
-			std::cerr << "Invalid resolution" << std::endl;
-			return false;
-	}
-    
+            width_  = 1640;
+            height_ = 1232;
+            break;
+        case cam_config::RES_1080P:
+            width_  = 1920;
+            height_ = 1080;
+            break;
+        case cam_config::RES_480P:
+            width_  = 640;
+            height_ = 480;
+            break;
+        default: std::cerr << "Invalid resolution" << std::endl; return false;
+    }
+
     // Create camera manager
     cameraManager_ = std::make_unique<libcamera::CameraManager>();
-    int ret = cameraManager_->start();
+    int ret        = cameraManager_->start();
     if (ret) {
         std::cerr << "Failed to start camera manager: " << ret << std::endl;
         return false;
     }
-    
+
     // Get first available camera
     auto cameras = cameraManager_->cameras();
     if (cameras.empty()) {
         std::cerr << "No cameras available" << std::endl;
         return false;
     }
-    
+
     camera_ = cameras[0];
     if (!camera_) {
         std::cerr << "Failed to get camera" << std::endl;
         return false;
     }
-    
+
     // * Acquire camera
     ret = camera_->acquire();
     if (ret) {
         std::cerr << "Failed to acquire camera: " << ret << std::endl;
         return false;
     }
-    
+
     // * Configure camera
-    config_ = camera_->generateConfiguration({libcamera::StreamRole::VideoRecording});
+    config_ =
+        camera_->generateConfiguration({libcamera::StreamRole::VideoRecording});
     if (!config_) {
         std::cerr << "Failed to generate configuration" << std::endl;
         return false;
     }
-    
+
     // Set resolution
-    config_->at(0).size.width = width_;
+    config_->at(0).size.width  = width_;
     config_->at(0).size.height = height_;
-    config_->at(0).pixelFormat = libcamera::formats::RGB888; // Format compatible with OpenCV
+    config_->at(0).pixelFormat =
+        libcamera::formats::SRGGB8; // Format compatible with OpenCV
     config_->at(0).bufferCount = 4; // Multiple buffers for performance
-    
+
     // Apply configuration
     ret = camera_->configure(config_.get());
     if (ret) {
         std::cerr << "Failed to configure camera: " << ret << std::endl;
         return false;
     }
-    
+
     // Set up buffer allocator
     allocator_ = std::make_unique<libcamera::FrameBufferAllocator>(camera_);
     for (libcamera::StreamConfiguration &cfg : *config_) {
@@ -94,18 +94,20 @@ bool Camera::initialize(cam_config::Resolutions resolution) {
             return false;
         }
     }
-    
+
     // Create requests
-	libcamera::Stream *stream = const_cast<libcamera::Stream*>(config_->at(0).stream());
-    const std::vector<std::unique_ptr<libcamera::FrameBuffer>> &buffers = allocator_->buffers(stream);
-    
+    libcamera::Stream *stream =
+        const_cast<libcamera::Stream *>(config_->at(0).stream());
+    const std::vector<std::unique_ptr<libcamera::FrameBuffer>> &buffers =
+        allocator_->buffers(stream);
+
     for (unsigned int i = 0; i < buffers.size(); ++i) {
         std::unique_ptr<libcamera::Request> request = camera_->createRequest();
         if (!request) {
             std::cerr << "Failed to create request" << std::endl;
             return false;
         }
-        
+
         // Use pointer to the FrameBuffer, not moving ownership
         const std::unique_ptr<libcamera::FrameBuffer> &fb = buffers[i];
         int ret = request->addBuffer(stream, fb.get());
@@ -113,11 +115,12 @@ bool Camera::initialize(cam_config::Resolutions resolution) {
             std::cerr << "Failed to add buffer to request" << std::endl;
             return false;
         }
-        
+
         requests_.push_back(std::move(request));
     }
-    
-    std::cout << "Camera initialized with resolution " << width_ << "x" << height_ << std::endl;
+
+    std::cout << "Camera initialized with resolution " << width_ << "x"
+              << height_ << std::endl;
     return true;
 }
 
@@ -126,14 +129,14 @@ bool Camera::startCapture(FrameProcessor processor) {
         std::cerr << "Camera is already running" << std::endl;
         return false;
     }
-    
+
     if (!camera_) {
         std::cerr << "Camera not initialized" << std::endl;
         return false;
     }
-    
+
     frameProcessor_ = processor;
-    
+
     // Clear any existing frames
     {
         std::unique_lock<std::mutex> lock(frameMutex_);
@@ -142,27 +145,27 @@ bool Camera::startCapture(FrameProcessor processor) {
         }
         latestFrame_ = cv::Mat();
     }
-    
+
     // Start camera
     int ret = camera_->start();
     if (ret) {
         std::cerr << "Failed to start camera: " << ret << std::endl;
         return false;
     }
-    
+
     // Set up completion callback
     camera_->requestCompleted.connect(this, &Camera::requestComplete);
-    
+
     // Queue initial requests
     for (auto &request : requests_) {
         camera_->queueRequest(request.get());
     }
-    
+
     running_ = true;
-    
+
     // Start capture thread
     captureThread_ = std::thread(&Camera::captureThreadFunc, this);
-    
+
     std::cout << "Camera started capturing" << std::endl;
     return true;
 }
@@ -171,24 +174,22 @@ void Camera::stopCapture() {
     if (!running_) {
         return;
     }
-    
+
     running_ = false;
-    
+
     if (captureThread_.joinable()) {
         frameCondition_.notify_all();
         captureThread_.join();
     }
-    
+
     if (camera_ && isRunning()) {
         camera_->stop();
     }
-    
+
     std::cout << "Camera stopped capturing" << std::endl;
 }
 
-bool Camera::isRunning() const {
-    return running_;
-}
+bool Camera::isRunning() const { return running_; }
 
 cv::Mat Camera::getLatestFrame() const {
     std::unique_lock<std::mutex> lock(frameMutex_);
@@ -200,28 +201,29 @@ void Camera::captureThreadFunc() {
         std::unique_lock<std::mutex> lock(frameMutex_);
         if (frameQueue_.empty()) {
             // Wait for a frame or stop signal
-            frameCondition_.wait_for(lock, std::chrono::milliseconds(100), 
+            frameCondition_.wait_for(
+                lock, std::chrono::milliseconds(100),
                 [this] { return !frameQueue_.empty() || !running_; });
-            
+
             if (!running_) {
                 break;
             }
-            
+
             if (frameQueue_.empty()) {
                 continue;
             }
         }
-        
+
         // Get next frame from queue
         cv::Mat frame = frameQueue_.front();
         frameQueue_.pop();
-        
+
         // Update latest frame
         latestFrame_ = frame.clone();
-        
+
         // Release lock before processing
         lock.unlock();
-        
+
         // Process frame if callback provided
         if (frameProcessor_) {
             frameProcessor_(frame);
@@ -229,18 +231,18 @@ void Camera::captureThreadFunc() {
     }
 }
 
-void Camera::requestComplete(libcamera::Request* request) {
+void Camera::requestComplete(libcamera::Request *request) {
     if (request->status() == libcamera::Request::RequestCancelled) {
         return;
     }
-    
+
     // Get frame buffer from completed request
     const libcamera::Stream *stream = config_->at(0).stream();
-    libcamera::FrameBuffer *buffer = request->buffers().at(stream);
-    
+    libcamera::FrameBuffer *buffer  = request->buffers().at(stream);
+
     // Convert to OpenCV Mat
     cv::Mat frame = convertToMat(buffer);
-    
+
     // Add to frame queue
     {
         std::unique_lock<std::mutex> lock(frameMutex_);
@@ -251,32 +253,33 @@ void Camera::requestComplete(libcamera::Request* request) {
         frameQueue_.push(frame);
         frameCondition_.notify_one();
     }
-    
+
     // Re-queue request for continuous capture
     request->reuse();
     request->addBuffer(stream, buffer);
     camera_->queueRequest(request);
 }
 
-cv::Mat Camera::convertToMat(libcamera::FrameBuffer* buffer) {
+cv::Mat Camera::convertToMat(libcamera::FrameBuffer *buffer) {
     // Get the first plane (RGB data is in a single plane for RGB888 format)
     const libcamera::FrameBuffer::Plane &plane = buffer->planes()[0];
-    
+
     // Map the buffer memory
-    void *data = mmap(nullptr, plane.length, PROT_READ, MAP_SHARED, plane.fd.get(), 0);
+    void *data =
+        mmap(nullptr, plane.length, PROT_READ, MAP_SHARED, plane.fd.get(), 0);
     if (data == MAP_FAILED) {
         std::cerr << "Failed to mmap buffer" << std::endl;
         return cv::Mat();
     }
-    
+
     // Create a Mat with the buffer data (RGB888 format uses CV_8UC3)
     cv::Mat image(height_, width_, CV_8UC3, data);
-    
+
     // Create a copy of the data since we need to unmap the buffer
     cv::Mat result = image.clone();
-    
+
     // Unmap the buffer
     munmap(data, plane.length);
-    
+
     return result;
 }
