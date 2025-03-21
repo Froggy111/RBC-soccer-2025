@@ -17,4 +17,7 @@ namespace comms {
 extern usb::CDC USB_CDC;
 extern uart::Serial UART_serial;
 
+// initialises communication interfaces
+bool comms_init(void);
+
 } // namespace comms
