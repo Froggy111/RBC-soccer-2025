@@ -19,8 +19,7 @@ void icm20948::spi_configure(config_t *config) {
   spi_set_format(config->spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 }
 
-void icm20948::spi_write(config_t *config, const uint8_t *data,
-                         size_t len) {
+void icm20948::spi_write(config_t *config, const uint8_t *data, size_t len) {
   spi_configure(config);
 
   uint8_t buf[len];
@@ -43,8 +42,8 @@ void icm20948::spi_write(config_t *config, const uint8_t *data,
   return;
 }
 
-void icm20948::spi_read(config_t *config, uint8_t addr,
-                        uint8_t *buffer, size_t len_buffer) {
+void icm20948::spi_read(config_t *config, uint8_t addr, uint8_t *buffer,
+                        size_t len_buffer) {
   spi_configure(config);
 
   uint8_t total_length = len_buffer + 1;
@@ -237,8 +236,7 @@ void icm20948::set_mag_rate(config_t *config, uint8_t mode) {
   return;
 }
 
-void icm20948::read_raw_accel(config_t *config,
-                                       int16_t accel[3]) {
+void icm20948::read_raw_accel(config_t *config, int16_t accel[3]) {
   uint8_t buf[6];
 
   // accel: 2 bytes each axis
@@ -250,8 +248,7 @@ void icm20948::read_raw_accel(config_t *config,
   return;
 }
 
-void icm20948::read_raw_gyro(config_t *config,
-                                      int16_t gyro[3]) {
+void icm20948::read_raw_gyro(config_t *config, int16_t gyro[3]) {
   uint8_t buf[6];
 
   // gyro: 2byte each axis
@@ -263,8 +260,7 @@ void icm20948::read_raw_gyro(config_t *config,
   return;
 }
 
-void icm20948::read_raw_temp(config_t *config,
-                                      int16_t *temp) {
+void icm20948::read_raw_temp(config_t *config, int16_t *temp) {
   uint8_t buf[2];
   spi_read(config, TEMP_OUT_H, buf, 2);
 
@@ -273,8 +269,7 @@ void icm20948::read_raw_temp(config_t *config,
   return;
 }
 
-void icm20948::read_raw_mag(config_t *config,
-                                     int16_t mag[3]) {
+void icm20948::read_raw_mag(config_t *config, int16_t mag[3]) {
   uint8_t buf[8];
 
   spi_read(config, AK09916_XOUT_L, buf, 8);
@@ -294,8 +289,7 @@ void icm20948::read_raw_mag(config_t *config,
   return;
 }
 
-void icm20948::cal_gyro(config_t *config,
-                                 int16_t gyro_bias[3]) {
+void icm20948::cal_gyro(config_t *config, int16_t gyro_bias[3]) {
   int16_t buf[3] = {0};
   int32_t bias[3] = {0};
 
@@ -304,7 +298,7 @@ void icm20948::cal_gyro(config_t *config,
     for (uint8_t j = 0; j < 3; j++) {
       bias[j] += buf[j];
     }
-    sleep_ms(25);
+    sleep_ms(2);
   }
   for (uint8_t i = 0; i < 3; i++)
     gyro_bias[i] = (int16_t)(bias[i] / 200);
@@ -312,16 +306,15 @@ void icm20948::cal_gyro(config_t *config,
   return;
 }
 
-void icm20948::read_cal_gyro(config_t *config,
-                                      int16_t gyro[3], int16_t bias[3]) {
+void icm20948::read_cal_gyro(config_t *config, int16_t gyro[3],
+                             int16_t bias[3]) {
   read_raw_gyro(config, gyro);
   for (uint8_t i = 0; i < 3; i++)
     gyro[i] -= bias[i];
   return;
 }
 
-void icm20948::cal_accel(config_t *config,
-                                  int16_t accel_bias[3]) {
+void icm20948::cal_accel(config_t *config, int16_t accel_bias[3]) {
   int16_t buf[3] = {0};
   int32_t bias[3] = {0};
 
@@ -333,23 +326,22 @@ void icm20948::cal_accel(config_t *config,
       else
         bias[j] += buf[j];
     }
-    sleep_ms(25);
+    sleep_ms(2);
   }
   for (uint8_t i = 0; i < 3; i++)
     accel_bias[i] = (int16_t)(bias[i] / 200);
   return;
 }
 
-void icm20948::read_cal_accel(config_t *config,
-                                       int16_t accel[3], int16_t bias[3]) {
+void icm20948::read_cal_accel(config_t *config, int16_t accel[3],
+                              int16_t bias[3]) {
   read_raw_accel(config, accel);
   for (uint8_t i = 0; i < 3; i++)
     accel[i] -= bias[i];
   return;
 }
 
-void icm20948::cal_mag_simple(config_t *config,
-                                       int16_t mag_bias[3]) {
+void icm20948::cal_mag_simple(config_t *config, int16_t mag_bias[3]) {
   int16_t buf[3] = {0}, max[3] = {0}, min[3] = {0};
 #ifndef NDEBUG
   printf("mag calibration: \nswing sensor for 360 deg\n");
@@ -369,8 +361,7 @@ void icm20948::cal_mag_simple(config_t *config,
   return;
 }
 
-void icm20948::read_cal_mag(config_t *config, int16_t mag[3],
-                                     int16_t bias[3]) {
+void icm20948::read_cal_mag(config_t *config, int16_t mag[3], int16_t bias[3]) {
   read_raw_mag(config, mag);
   for (uint8_t i = 0; i < 3; i++)
     mag[i] -= bias[i];

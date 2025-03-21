@@ -2,6 +2,7 @@
 #include "types.hpp"
 #include "status.hpp"
 
+namespace driver {
 namespace Status {
 
 std::string get_status1_description(types::u8 status) {
@@ -40,4 +41,5 @@ std::string get_status2_description(types::u8 status) {
     return description.empty() ? "No faults detected." : description;
 }
 
+}
 }

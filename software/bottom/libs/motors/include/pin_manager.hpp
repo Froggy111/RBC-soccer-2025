@@ -5,6 +5,7 @@
 #include "types.hpp"
 #include "pin_selector.hpp"
 
+namespace driver {
 class PinInputControl {
 public:
   void init(bool dbg, spi_inst_t* spi_obj);
@@ -36,3 +37,4 @@ private:
   MCP23S17 dmux1;
   MCP23S17 dmux2;
 };
+}

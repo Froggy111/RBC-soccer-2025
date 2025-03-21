@@ -4,7 +4,8 @@ extern "C" {
 #include <pico/stdlib.h>
 }
 
-types::u8 PinSelector::get_pin(DriverPinMap pin) {
+namespace driver {
+types::u8 Pins::get_pin(DriverPinMap pin) {
   if (debugMode) {
     return debug_pins[static_cast<types::u8>(pin)];
   }
@@ -23,7 +24,7 @@ types::u8 PinSelector::get_pin(DriverPinMap pin) {
   }
 }
 
-PinInterface PinSelector::get_pin_interface(DriverPinMap pin) {
+PinInterface Pins::get_pin_interface(DriverPinMap pin) {
   if (debugMode) {
     return GPIO;
   }
@@ -42,6 +43,7 @@ PinInterface PinSelector::get_pin_interface(DriverPinMap pin) {
   }
 }
 
-void PinSelector::set_debug_mode(bool mode) { debugMode = mode; }
+void Pins::set_debug_mode(bool mode) { debugMode = mode; }
 
-void PinSelector::set_driver_id(types::u8 id) { driverId = id; }
+void Pins::set_driver_id(types::u8 id) { driverId = id; }
+}

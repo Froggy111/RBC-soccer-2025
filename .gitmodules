@@ -28,3 +28,6 @@
 [submodule "QPALM"]
 	path = software/rpi/extra/python/cross-compile-module/py-build-cmake/qpalm/QPALM
 	url = https://github.com/kul-optec/QPALM
+[submodule "software/external/Pico_WS2812"]
+	path = software/external/Pico_WS2812
+	url = https://github.com/ForsakenNGS/Pico_WS2812

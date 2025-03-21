@@ -2,6 +2,7 @@
 #include <string>
 #include "types.hpp"
 
+namespace driver {
 namespace Fault {
 enum class Fault : types::u8 {
   SPI_ERR = (1 << 7),   // SPI communication fault occurred in the previous SPI frame
@@ -21,4 +22,5 @@ enum class Fault : types::u8 {
  * @return std::string 
  */
 std::string get_fault_description(types::u8 fault);
+}
 }

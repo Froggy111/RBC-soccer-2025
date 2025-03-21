@@ -6,6 +6,7 @@
 #include <pico/types.h>
 #include <string>
 
+namespace mouse {
 class MouseSensor {
 public:
   bool init(int id, spi_inst_t *spi_obj_touse);
@@ -28,7 +29,8 @@ private:
 
   PinInputControl inputControl;
   PinOutputControl outputControl;
-  PinSelector pinSelector;
+  Pins pins;
 
   spi_inst_t *spi_obj;
 };
+}

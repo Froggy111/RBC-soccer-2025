@@ -6,6 +6,8 @@
 #include <pico/types.h>
 #include <string>
 
+namespace driver {
+
 class MotorDriver {
 private:
   /**
@@ -94,7 +96,7 @@ private:
 
   PinInputControl inputControl;
   PinOutputControl outputControl;
-  PinSelector pinSelector;
+  Pins pins;
 
   types::i16 duty_cycle_cache;
   spi_inst_t *spi_obj;
@@ -118,10 +120,10 @@ public:
 
   /**
    * Checks are implemented to ensure that the driver's registers, pins are all in the right state.
-   * Acceleration and deceleration safeguards are implemented.
-   * @brief Command the motor with a duty cycle. Negative For Backwards, Positive for Forwards
+   * TODO: Implement Acceleration and Deceleration Safeguards.
+   * @brief Command the motor with a duty cycle. 
    * 
-   * @param duty_cycle 
+   * @param duty_cycle Ranges from -12500 to 12500, Negative For Backwards, Positive for Forwards. 
    * @return true 
    * @return false 
    */
@@ -134,3 +136,5 @@ public:
    */
   static void handle_error(MotorDriver *driver);
 };
+
+}

@@ -1,7 +1,4 @@
-# Provide a default value if not set externally
-ARG CROSS_TOOLCHAIN_IMAGE=latest
-
-FROM ghcr.io/tttapa/docker-arm-cross-toolchain:${CROSS_TOOLCHAIN_IMAGE} AS cross-toolchain
+FROM ghcr.io/tttapa/docker-arm-cross-toolchain:aarch64-rpi3-linux-gnu-gcc12-1.0.0 AS cross-toolchain
 
 FROM tttapa/rpi-cpp-toolchain-base-ubuntu AS build-base
 
@@ -44,7 +41,7 @@ COPY --chown=develop:develop tools/ ./tools/
 ENV PATH="/home/develop/tools:${PATH}"
 
 # Create a symlink for /usr/local/lib64
-RUN sudo ln -s lib /usr/local/lib64
+RUN sudo ln -s lib /usr/local/lib64 
 
 # ---------------------------------------------------------------------------
 # Stage: Video Dependencies Build (needed for OpenCV)
@@ -73,9 +70,47 @@ COPY --chown=develop:develop install-scripts/ffmpeg.sh .
 RUN chmod +x ffmpeg.sh && ./ffmpeg.sh
 
 # ---------------------------------------------------------------------------
+# Stage: Libcamera build
+# ---------------------------------------------------------------------------
+FROM video-build AS libcamera-build
+
+# Install required dependencies for all builds
+RUN sudo apt-get update && sudo apt-get install -y \
+    ninja-build \
+    python3 \
+    python3-pip \
+    python3-yaml \
+    python3-ply \
+    python3-mako \
+    python3-jinja2 \
+    python3-yaml \
+    python3-ply \
+    pkg-config \
+    && sudo rm -rf /var/lib/apt/lists/*
+
+# Install meson and ensure it's in PATH
+RUN pip3 install --user meson>=0.63.0 && \
+echo 'export PATH=$PATH:~/.local/bin' >> ~/.bashrc
+
+# Add pip's binary directory to PATH immediately (not just in future shells)
+ENV PATH="/home/develop/.local/bin:${PATH}"
+
+# Build GLib for ARM
+COPY --chown=develop:develop install-scripts/glib.sh .
+RUN chmod +x glib.sh && ./glib.sh
+
+# Ensure sysroot and staging areas are available
+COPY --from=video-build --chown=develop ${RPI_STAGING} ${RPI_STAGING}
+COPY --from=video-build --chown=develop ${RPI_SYSROOT} ${RPI_SYSROOT}
+
+# Build libcamera
+COPY --chown=develop:develop install-scripts/libcamera.sh .
+RUN chmod +x libcamera.sh && ./libcamera.sh
+
+# ---------------------------------------------------------------------------
 # Stage: OpenCV Build
 # ---------------------------------------------------------------------------
-FROM video-build AS opencv-build
+FROM libcamera-build AS opencv-build
 
 # Ensure sysroot and staging areas are available
 COPY --from=video-build --chown=develop ${RPI_STAGING} ${RPI_STAGING}

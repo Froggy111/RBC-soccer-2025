@@ -1,5 +1,6 @@
 #include "faults.hpp"
 
+namespace driver {
 namespace Fault {
 std::string get_fault_description(types::u8 fault) {
   std::string description = "Faults: ";
@@ -29,4 +30,5 @@ std::string get_fault_description(types::u8 fault) {
   }
   return description;
 }
+} // namespace Fault
 }

@@ -1,6 +1,7 @@
 #include <string>
 #include "types.hpp"
 
+namespace driver {
 namespace Status {
 enum class STATUS1 : types::u8 {
   OLA1 = (1 << 7),      // Open load condition detected in ACTIVE state on OUT1
@@ -38,4 +39,5 @@ std::string get_status1_description(types::u8 status);
  * @return std::string 
  */
 std::string get_status2_description(types::u8 status);
-} // namespace Status
+}
+}

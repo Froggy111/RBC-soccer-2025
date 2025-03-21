@@ -9,7 +9,6 @@ extern "C" {
 #include <hardware/gpio.h>
 #include <pico/stdlib.h>
 #include <pico/time.h>
-#include <string.h>
 }
 
 // addresses of the MCP23S17
@@ -73,8 +72,8 @@ void MCP23S17::init(types::u8 device_id, spi_inst_t *spi_obj_touse) {
 
 void MCP23S17::init_pins() {
   // Initialize RESET
-  gpio_init((uint)pinmap::DigitalPins::DMUX_RESET);
-  gpio_set_dir((uint)pinmap::DigitalPins::DMUX_RESET, GPIO_OUT);
+  gpio_init((uint)pinmap::Pico::DMUX_RESET);
+  gpio_set_dir((uint)pinmap::Pico::DMUX_RESET, GPIO_OUT);
 
   // TODO: initialize INTA
 }
@@ -96,9 +95,9 @@ void MCP23S17::write8(uint8_t device_address, uint8_t reg_address, uint8_t data,
                         reg_address,
                         (uint8_t)((current & ~mask) | (data & mask))};
 
-  gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 0);
+  gpio_put((uint)pinmap::Pico::DMUX_SCS, 0);
   spi_write_blocking(spi_obj, tx_data, 3);
-  gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 1);
+  gpio_put((uint)pinmap::Pico::DMUX_SCS, 1);
 
   // read register and check if it was written
   uint8_t res = read8(device_address, reg_address);
@@ -123,33 +122,33 @@ uint8_t MCP23S17::read8(uint8_t device_address, uint8_t reg_address) {
 
   uint8_t rx_data;
 
-  gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 0);
+  gpio_put((uint)pinmap::Pico::DMUX_SCS, 0);
   spi_write_blocking(spi_obj, tx_data, 2);
   spi_read_blocking(spi_obj, 0xFF, &rx_data, 1);
-  gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, 1);
+  gpio_put((uint)pinmap::Pico::DMUX_SCS, 1);
 
   return rx_data;
 }
 
 void MCP23S17::configure_spi() {
   // Initialize SPI pins (except CS)
-  gpio_set_function((uint)pinmap::DigitalPins::SPI0_SCLK, GPIO_FUNC_SPI);
-  gpio_set_function((uint)pinmap::DigitalPins::SPI0_MOSI, GPIO_FUNC_SPI);
-  gpio_set_function((uint)pinmap::DigitalPins::SPI0_MISO, GPIO_FUNC_SPI);
+  gpio_set_function((uint)pinmap::Pico::SPI0_SCLK, GPIO_FUNC_SPI);
+  gpio_set_function((uint)pinmap::Pico::SPI0_MOSI, GPIO_FUNC_SPI);
+  gpio_set_function((uint)pinmap::Pico::SPI0_MISO, GPIO_FUNC_SPI);
 
   // Initialize CS pin as GPIO
-  gpio_init((uint)pinmap::DigitalPins::DMUX_SCS);
-  gpio_set_dir((uint)pinmap::DigitalPins::DMUX_SCS, GPIO_OUT);
-  gpio_put((uint)pinmap::DigitalPins::DMUX_SCS, DEFAULT_CS);
+  gpio_init((uint)pinmap::Pico::DMUX_SCS);
+  gpio_set_dir((uint)pinmap::Pico::DMUX_SCS, GPIO_OUT);
+  gpio_put((uint)pinmap::Pico::DMUX_SCS, DEFAULT_CS);
 
   // Set SPI format
   spi_set_format(spi_obj, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 }
 
 void MCP23S17::reset() {
-  gpio_put((uint)pinmap::DigitalPins::DMUX_RESET, 0);
+  gpio_put((uint)pinmap::Pico::DMUX_RESET, 0);
   sleep_ms(1);
-  gpio_put((uint)pinmap::DigitalPins::DMUX_RESET, 1);
+  gpio_put((uint)pinmap::Pico::DMUX_RESET, 1);
 }
 
 void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {

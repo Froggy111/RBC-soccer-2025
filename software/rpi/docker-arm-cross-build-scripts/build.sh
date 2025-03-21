@@ -110,6 +110,7 @@ push=false
 export=false
 docker_build_cpuset=
 buildx=
+cache=true
 
 while (( "$#" )); do
     case "$1" in
@@ -119,6 +120,7 @@ while (( "$#" )); do
         --buildx)           buildx=buildx                        ;;
         --cpuset-cpus=*)    docker_build_cpuset="$1"             ;;
         --dev)              dev=dev                              ;;
+        --no-cache)            cache=false                           ;;
         *) echo; echo "Unknown option '$1'"; print_usage; exit 1 ;;
     esac
     shift
@@ -143,11 +145,21 @@ if [ $build = true ]; then
     . env/$target.env
     build_args=$(python3 ./env/env2arg.py env/$target.env)
     pushd cross-build
-    docker $buildx build \
-        --tag $image \
-        ${build_args} \
-        --target $docker_target \
-        ${docker_build_cpuset} .
+
+    if [ $cache = false ]; then
+        docker $buildx build \
+            --tag $image \
+            ${build_args} \
+            --target $docker_target \
+            --no-cache .
+    else
+        docker $buildx build \
+            --tag $image \
+            ${build_args} \
+            --target $docker_target \
+            .
+    fi
+
     popd
     # Push the Docker image 
     if [ $push = true ]; then

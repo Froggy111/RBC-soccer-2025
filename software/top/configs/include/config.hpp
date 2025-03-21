@@ -1,2 +1,4 @@
-// debug config
-#define DEBUG_USE_IDENTIFIERS
+#pragma once
+
+#define POLL_INTERVAL 1
+#define LED_COUNT 16

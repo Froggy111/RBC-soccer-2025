@@ -3,6 +3,7 @@
 #include "pinmap.hpp"
 #include "types.hpp"
 
+namespace mouse {
 class PinInputControl {
 public:
   void init_digital(types::u8 pin, bool value);
@@ -24,3 +25,4 @@ public:
   bool read_digital(types::u8 pin);
   int read_analog(types::u8 pin);
 };
+}

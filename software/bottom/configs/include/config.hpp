@@ -1,2 +1,3 @@
-// debug config
-#define DEBUG_USE_IDENTIFIERS
+#define LINE_SENSOR_COUNT 48
+#define POLL_RATE 1
+#define KICK_MINIMUM_INTERVAL 5000
