@@ -9,6 +9,11 @@ target_sources(bbw_camera
     include/config.hpp
     include/processor.hpp)
 
+find_package(OpenCV REQUIRED)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBCAMERA REQUIRED libcamera)
+
 target_include_directories(bbw_camera
     PUBLIC
     $<INSTALL_INTERFACE:include>

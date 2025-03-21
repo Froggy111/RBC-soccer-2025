@@ -2,10 +2,6 @@ cmake_minimum_required(VERSION 3.20)
 project(greeter VERSION 1.0.0 LANGUAGES CXX)
 enable_testing()
 
-set(RPI_SYSROOT ./docker-arm-cross-build-scripts/sysroot-aarch64-rpi3-linux-gnu)
-include_directories(${RPI_SYSROOT}/usr/local/include/libcamera)
-include_directories(${RPI_SYSROOT}/usr/local/include/opencv4)
-
 add_subdirectory("libs")
 add_subdirectory("src")
 add_subdirectory("tests")
