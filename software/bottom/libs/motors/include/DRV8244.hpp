@@ -6,6 +6,8 @@
 #include <pico/types.h>
 #include <string>
 
+namespace driver {
+
 class MotorDriver {
 private:
   /**
@@ -134,3 +136,5 @@ public:
    */
   static void handle_error(MotorDriver *driver);
 };
+
+}

@@ -7,6 +7,7 @@ extern "C" {
 #include <pico/stdlib.h>
 }
 
+namespace driver {
 // enum for which interface to use to write/read from the pin
 typedef enum PinInterface { GPIO, MUX1A, MUX1B, MUX2A, MUX2B } PinInterface;
 
@@ -177,3 +178,4 @@ private:
   types::u8 driverId;
   bool debugMode;
 };
+}

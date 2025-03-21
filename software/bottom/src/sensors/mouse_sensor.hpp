@@ -1,12 +1,10 @@
 #include "PMW3360.hpp"
 #include "comms.hpp"
-#include "comms/usb.hpp"
 #include "config.hpp"
-#include <cstdint>
 
-MouseSensor mouse_sensor_1, mouse_sensor_2;
+mouse::MouseSensor mouse_sensor_1, mouse_sensor_2;
 
-void line_sensor_task(void *args) {
+void mouse_sensor_task(void *args) {
   mouse_sensor_1.init(1, spi0);
   mouse_sensor_2.init(2, spi0);
 

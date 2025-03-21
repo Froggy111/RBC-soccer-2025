@@ -6,7 +6,7 @@ extern "C" {
 #include <pico/stdlib.h>
 }
 
-// pinmap for PMW3360
+namespace mouse {
 typedef enum MouseSensorPinMap {
     CS,
     MOSI, 
@@ -54,3 +54,4 @@ public:
 private:
     types::u8 mouseSensorId;
 };
+}

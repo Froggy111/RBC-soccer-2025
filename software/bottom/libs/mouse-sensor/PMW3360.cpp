@@ -95,6 +95,7 @@ extern "C" {
 
 #define FAULT_SUMMARY_REG 0x01
 
+namespace mouse {
 bool MouseSensor::init(int id, spi_inst_t *spi_obj_touse) {
   pins.set_mouse_sensor_id(id);
 
@@ -286,4 +287,5 @@ types::i16 MouseSensor::read_Y_motion() {
 types::u8 MouseSensor::read_squal() {
   types::u8 squal = read8(SQUAL);
   return squal;
+}
 }

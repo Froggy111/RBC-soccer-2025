@@ -13,6 +13,7 @@ enum class SendIdentifiers : types::u8 {
 
 enum class RecvIdentifiers : types::u8 {
   MOTOR_DRIVER_CMD = 0,
+  KICKER_CMD = 1,
   DEBUG_TEST_BLINK = 255,
 };
 

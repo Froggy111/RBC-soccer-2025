@@ -10,7 +10,7 @@ void line_sensor_task(void *args) {
     TickType_t previous_wait_time = xTaskGetTickCount();
 
     uint16_t raw_data[LINE_SENSOR_COUNT];
-    for (int i = 0; i <= LINE_SENSOR_COUNT; i++) {
+    for (int i = 0; i < LINE_SENSOR_COUNT; i++) {
       raw_data[i] = line_sensors.read_raw(i);
     }
 

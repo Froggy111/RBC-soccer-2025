@@ -51,6 +51,7 @@ extern "C" {
 #define SPI_RW_BIT_MASK                                                        \
   0x4000 // Mask for SPI register read write indication bit
 
+namespace driver {
 // ! init
 // use -1 as driver_id for debug pins
 void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
@@ -129,36 +130,39 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   //* Write & Read Feedback
   // Initialize CS pin as GPIO
 
-  inputControl.write_digital(pins.get_pin(CS), 0,
-                             pins.get_pin_interface(CS));
+  inputControl.write_digital(pins.get_pin(CS), 0, pins.get_pin_interface(CS));
 
   configure_spi();
   int bytes_written =
       spi_write16_read16_blocking(spi_obj, &reg_value, &rx_data, 1);
 
-  inputControl.write_digital(pins.get_pin(CS), 1,
-                             pins.get_pin_interface(CS));
+  inputControl.write_digital(pins.get_pin(CS), 1, pins.get_pin_interface(CS));
 
-  comms::USB_CDC.printf("SPI Write - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
+  comms::USB_CDC.printf("SPI Write - Sent: 0x%04X, Received: 0x%04X\n",
+                        reg_value, rx_data);
 
   //* Check for no errors in received bytes
   // First 2 MSBs bytes should be '1'
   if ((rx_data & 0xC000) != 0xC000) {
-    comms::USB_CDC.printf("SPI Write - Error: Initial '1' MSB check bytes not found\n");
+    comms::USB_CDC.printf(
+        "SPI Write - Error: Initial '1' MSB check bytes not found\n");
     return false;
   }
 
   // following 6 bytes are from fault summary
   if ((rx_data & 0x3F00) != 0x0000) {
-    comms::USB_CDC.printf("SPI Write - Error: Fault summary bytes indicating error, %d\n",
-           rx_data & 0x3F00);
+    comms::USB_CDC.printf(
+        "SPI Write - Error: Fault summary bytes indicating error, %d\n",
+        rx_data & 0x3F00);
     // get fault register
     types::u8 fault = read8(0x01);
 
     if (fault == 0) {
-      comms::USB_CDC.printf("SPI Write - No fault found in fault register, moving on...\n");
+      comms::USB_CDC.printf(
+          "SPI Write - No fault found in fault register, moving on...\n");
     } else {
-      comms::USB_CDC.printf("SPI Write - %s\n", Fault::get_fault_description(fault).c_str());
+      comms::USB_CDC.printf("SPI Write - %s\n",
+                            Fault::get_fault_description(fault).c_str());
       return false;
     }
   }
@@ -171,7 +175,8 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
     }
   } else {
     if ((rx_data & 0x00FF) != expected) {
-      comms::USB_CDC.printf("SPI Write - Error: Data bytes do not match expected\n");
+      comms::USB_CDC.printf(
+          "SPI Write - Error: Data bytes do not match expected\n");
       return false;
     }
   }
@@ -186,35 +191,38 @@ uint8_t MotorDriver::read8(uint8_t reg) {
   reg_value |= ((reg << SPI_ADDRESS_POS) & SPI_ADDRESS_MASK_READ);
   reg_value |= SPI_RW_BIT_MASK;
 
-  inputControl.write_digital(pins.get_pin(CS), 0,
-                            pins.get_pin_interface(CS));
+  inputControl.write_digital(pins.get_pin(CS), 0, pins.get_pin_interface(CS));
 
   configure_spi();
   spi_write16_read16_blocking(spi_obj, &reg_value, &rx_data, 1);
 
-  inputControl.write_digital(pins.get_pin(CS), 1,
-                            pins.get_pin_interface(CS));
+  inputControl.write_digital(pins.get_pin(CS), 1, pins.get_pin_interface(CS));
 
-  comms::USB_CDC.printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\n", reg_value, rx_data);
+  comms::USB_CDC.printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\n",
+                        reg_value, rx_data);
 
   //* Check for no errors in received bytes
   // First 2 MSBs bytes should be '1'
   if ((rx_data & 0xC000) != 0xC000) {
-    comms::USB_CDC.printf("SPI Write - Error: Initial '1' MSB check bytes not found\n");
+    comms::USB_CDC.printf(
+        "SPI Write - Error: Initial '1' MSB check bytes not found\n");
     return false;
   }
 
   // following 6 bytes are from fault summary
   if ((rx_data & 0x3F00) != 0x0000) {
-    comms::USB_CDC.printf("SPI Write - Error: Fault summary bytes indicating error, %d\n",
-           rx_data & 0x3F00);
+    comms::USB_CDC.printf(
+        "SPI Write - Error: Fault summary bytes indicating error, %d\n",
+        rx_data & 0x3F00);
     // get fault register
     types::u8 fault = read8(FAULT_SUMMARY_REG);
 
     if (fault == 0) {
-      comms::USB_CDC.printf("SPI Write - No fault found in fault register, moving on...\n");
+      comms::USB_CDC.printf(
+          "SPI Write - No fault found in fault register, moving on...\n");
     } else {
-      comms::USB_CDC.printf("SPI Write - %s\n", Fault::get_fault_description(fault).c_str());
+      comms::USB_CDC.printf("SPI Write - %s\n",
+                            Fault::get_fault_description(fault).c_str());
       return false;
     }
   }
@@ -261,7 +269,7 @@ bool MotorDriver::check_registers() {
   types::u8 faultSummary = read8(FAULT_SUMMARY_REG);
   if (faultSummary != 0) {
     comms::USB_CDC.printf("Error: FAULT_SUMMARY: %s\n",
-           Fault::get_fault_description(faultSummary).c_str());
+                          Fault::get_fault_description(faultSummary).c_str());
     return false;
   }
 
@@ -269,7 +277,7 @@ bool MotorDriver::check_registers() {
   types::u8 status1 = read8(STATUS1_REG);
   if (status1 != STATUS1_REG_EXPECTED) {
     comms::USB_CDC.printf("Error: STATUS1: %s\n",
-           Status::get_status1_description(status1).c_str());
+                          Status::get_status1_description(status1).c_str());
     return false;
   }
 
@@ -277,7 +285,7 @@ bool MotorDriver::check_registers() {
   types::u8 status2 = read8(STATUS2_REG);
   if (status2 != STATUS2_REG_EXPECTED) {
     comms::USB_CDC.printf("Error: STATUS2: %s\n",
-           Status::get_status2_description(status2).c_str());
+                          Status::get_status2_description(status2).c_str());
     return false;
   }
 
@@ -349,8 +357,9 @@ bool MotorDriver::check_config() {
 
   // check registers
   if (!check_registers()) {
-    comms::USB_CDC.printf("Driver registers are not configured correctly. Cannot command "
-           "motor.\n");
+    comms::USB_CDC.printf(
+        "Driver registers are not configured correctly. Cannot command "
+        "motor.\n");
     return false;
   }
   comms::USB_CDC.printf("Config OK\n");
@@ -368,7 +377,8 @@ bool MotorDriver::command(types::i16 duty_cycle) {
   // TODO: Implement Accel Safeguards
   // Verify if the driver can accept commands
   if (!check_config()) {
-    comms::USB_CDC.printf("Motor command aborted due to configuration error.\n");
+    comms::USB_CDC.printf(
+        "Motor command aborted due to configuration error.\n");
     return false;
   }
   if (duty_cycle < 0 || duty_cycle > 12500) {
@@ -385,11 +395,12 @@ bool MotorDriver::command(types::i16 duty_cycle) {
   duty_cycle = abs(duty_cycle);
 
   // Command motor by setting one channel to PWM and the other low
-  inputControl.write_digital(in2_pin, direction,
-                             pins.get_pin_interface(IN2));
+  inputControl.write_digital(in2_pin, direction, pins.get_pin_interface(IN2));
   inputControl.write_analog(in1_pin, duty_cycle);
 
-  comms::USB_CDC.printf("Motor command executed: Duty cycle = %d, Direction = %d\n",
-         duty_cycle, direction);
+  comms::USB_CDC.printf(
+      "Motor command executed: Duty cycle = %d, Direction = %d\n", duty_cycle,
+      direction);
   return true;
 }
+} // namespace driver

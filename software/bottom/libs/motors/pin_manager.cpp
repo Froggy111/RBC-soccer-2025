@@ -8,6 +8,7 @@ extern "C" {
 #include <hardware/pwm.h>
 }
 
+namespace driver {
 void PinInputControl::init(bool dbg, spi_inst_t *spi_obj) {
   debug = dbg;
   if (!debug) {
@@ -131,4 +132,5 @@ bool PinOutputControl::read_digital(types::u8 pin, PinInterface interface) {
     else
       return dmux2.read_gpio(pin, interface == MUX2A);
   }
+}
 }

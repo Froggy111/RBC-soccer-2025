@@ -4,6 +4,7 @@ extern "C" {
 #include <pico/stdlib.h>
 }
 
+namespace driver {
 types::u8 Pins::get_pin(DriverPinMap pin) {
   if (debugMode) {
     return debug_pins[static_cast<types::u8>(pin)];
@@ -45,3 +46,4 @@ PinInterface Pins::get_pin_interface(DriverPinMap pin) {
 void Pins::set_debug_mode(bool mode) { debugMode = mode; }
 
 void Pins::set_driver_id(types::u8 id) { driverId = id; }
+}

@@ -15,7 +15,7 @@ struct MotorRecvData {
 };
 
 TaskHandle_t motor_task_handle = nullptr;
-MotorDriver motor_drivers[MOTOR_COUNT];
+driver::MotorDriver motor_drivers[MOTOR_COUNT];
 MotorRecvData motor_task_data = {};
 u8 motor_task_buffer[sizeof(motor_task_data)];
 SemaphoreHandle_t motor_data_mutex = nullptr;

@@ -6,6 +6,7 @@ extern "C" {
 #include <hardware/pwm.h>
 }
 
+namespace mouse {
 // pins responsible for providing input to DRV8244
 void PinInputControl::init_digital(types::u8 pin, bool value) {
   gpio_init(pin);
@@ -83,4 +84,5 @@ bool PinOutputControl::read_digital(types::u8 pin) {
   bool result = gpio_get(pin);
   // comms::USB_CDC.printf("%d has been read from pin %d\n", result, pin);
   return result;
+}
 }

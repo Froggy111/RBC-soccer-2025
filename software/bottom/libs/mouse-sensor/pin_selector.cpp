@@ -1,5 +1,6 @@
 #include "include/pin_selector.hpp"
 
+namespace mouse {
 types::u8 Pins::get_pin(MouseSensorPinMap pin) {
   switch (mouseSensorId) {
     case 1:
@@ -11,6 +12,5 @@ types::u8 Pins::get_pin(MouseSensorPinMap pin) {
   }
 }
 
-void Pins::set_mouse_sensor_id(types::u8 id) {
-  mouseSensorId = id;
+void Pins::set_mouse_sensor_id(types::u8 id) { mouseSensorId = id; }
 }
