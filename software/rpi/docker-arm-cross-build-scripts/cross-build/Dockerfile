@@ -1,7 +1,4 @@
-# Provide a default value if not set externally
-ARG CROSS_TOOLCHAIN_IMAGE=latest
-
-FROM ghcr.io/tttapa/docker-arm-cross-toolchain:${CROSS_TOOLCHAIN_IMAGE} AS cross-toolchain
+FROM ghcr.io/tttapa/docker-arm-cross-toolchain:aarch64-rpi3-linux-gnu-gcc12-1.0.0 AS cross-toolchain
 
 FROM tttapa/rpi-cpp-toolchain-base-ubuntu AS build-base
 
@@ -44,7 +41,7 @@ COPY --chown=develop:develop tools/ ./tools/
 ENV PATH="/home/develop/tools:${PATH}"
 
 # Create a symlink for /usr/local/lib64
-RUN sudo ln -s lib /usr/local/lib64
+RUN sudo ln -s lib /usr/local/lib64 
 
 # ---------------------------------------------------------------------------
 # Stage: Video Dependencies Build (needed for OpenCV)

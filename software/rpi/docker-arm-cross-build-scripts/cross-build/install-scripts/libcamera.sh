@@ -46,9 +46,9 @@ strip = '${HOST_TRIPLE}-strip'
 pkgconfig = 'pkg-config'
 
 [built-in options]
-c_args = ['-O2', '-pipe', '--sysroot=${RPI_SYSROOT}']
+c_args = ['-O2', '-pipe', '--sysroot=${RPI_SYSROOT}', '-Wno-error=array-bounds']
 c_link_args = ['--sysroot=${RPI_SYSROOT}', '-L${RPI_SYSROOT}/usr/local/lib']
-cpp_args = ['-O2', '-pipe', '--sysroot=${RPI_SYSROOT}', '-std=c++17']
+cpp_args = ['-O2', '-pipe', '--sysroot=${RPI_SYSROOT}', '-std=c++17', '-Wno-error=array-bounds']
 cpp_link_args = ['--sysroot=${RPI_SYSROOT}', '-L${RPI_SYSROOT}/usr/local/lib']
 
 [properties]
@@ -61,7 +61,6 @@ cpu = '${HOST_ARCH}'
 endian = 'little'
 EOF
 
-# Configure with Meson
 # Configure with Meson
 LDFLAGS="-L${RPI_SYSROOT}/usr/local/lib" meson setup build \
   --cross-file cross-file.txt \

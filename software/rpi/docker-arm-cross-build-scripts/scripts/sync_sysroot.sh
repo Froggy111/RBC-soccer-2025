@@ -1,13 +1,27 @@
 #!/bin/bash
+
 SYSROOT="$(pwd)/docker-arm-cross-build-scripts/sysroot-aarch64-rpi3-linux-gnu"
+PI_ADDRESS="botbywire@192.168.210.239"
+PI_DEST="/usr/local/lib"
 
-echo "Syncing libraries from Raspberry Pi to sysroot at $SYSROOT..."
+# Make sure the sysroot directory exists
+if [ ! -d "$SYSROOT" ]; then
+    echo "Error: Sysroot directory not found at $SYSROOT"
+    exit 1
+fi
 
-ls
+# Create destination directory with proper permissions if it doesn't exist
+ssh $PI_ADDRESS "sudo mkdir -p $PI_DEST && sudo chmod 755 $PI_DEST"
 
-# Sync libraries from the Pi
-rsync -avz --copy-links --safe-links botbywire@192.168.210.239:/lib/aarch64-linux-gnu/ $SYSROOT/lib/aarch64-linux-gnu/
-rsync -avz --copy-links --safe-links botbywire@192.168.210.239:/usr/lib/aarch64-linux-gnu/ $SYSROOT/usr/lib/aarch64-linux-gnu/
-rsync -avz --copy-links --safe-links botbywire@192.168.210.239:/usr/local/lib/ $SYSROOT/usr/local/lib/
+# Sync only the relevant libraries from sysroot to the Pi
+echo "Syncing libraries to $PI_ADDRESS:$PI_DEST..."
+rsync -avz --rsync-path="sudo rsync" \
+    $SYSROOT/usr/lib/* \
+    $SYSROOT/lib/* \
+    $PI_ADDRESS:$PI_DEST
 
-echo "Sysroot update complete!"
+# Update the shared library cache on the Pi
+echo "Updating shared library cache on the Pi..."
+ssh $PI_ADDRESS "sudo ldconfig"
+
+echo "Sync completed successfully!"
