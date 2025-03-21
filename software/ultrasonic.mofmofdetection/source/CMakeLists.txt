@@ -21,6 +21,9 @@ add_executable(pico_ultrasonic
         usr_def.c
         ch201_gprmt_fw.c
         ch101_gpr_fw.c
+        MCP23S17.cpp
+        MCP23S17.hpp
+        types.hpp
         )
 
 # Pull in our pico_stdlib which pulls in commonly used features
