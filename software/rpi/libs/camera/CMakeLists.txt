@@ -1,8 +1,13 @@
-add_library(bbw_camera
+add_library(bbw_camera)
+
+target_sources(bbw_camera
+    PRIVATE
     camera.cpp
+    processor.cpp
+    PUBLIC
     include/camera.hpp
     include/config.hpp
-)
+    include/processor.hpp)
 
 find_package(OpenCV REQUIRED)
 
@@ -11,11 +16,11 @@ pkg_check_modules(LIBCAMERA REQUIRED libcamera)
 
 target_include_directories(bbw_camera
     PUBLIC
-        $<INSTALL_INTERFACE:include>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        ${LIBCAMERA_INCLUDE_DIRS}
+    $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    ${LIBCAMERA_INCLUDE_DIRS}
     PRIVATE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
 
 # Link against OpenCV libraries
