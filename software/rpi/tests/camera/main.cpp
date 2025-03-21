@@ -3,17 +3,24 @@
 #include <opencv2/opencv.hpp>
 #include <cstdio>
 
-// Simple frame processor callback function
 void processFrame(const cv::Mat& frame) {
     static int frameCount = 0;
+    static auto lastTime = std::chrono::high_resolution_clock::now();
+    static float fps = 0.0f;
+    
     frameCount++;
     
-    // Print frame info every 30 frames
+    // Calculate FPS every 30 frames
     if (frameCount % 30 == 0) {
-        printf("Processing frame #%d (%dx%d)\n", 
-               frameCount, frame.cols, frame.rows);
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float elapsed = std::chrono::duration<float>(currentTime - lastTime).count();
+        fps = 30.0f / elapsed;
+        lastTime = currentTime;
+        
+        printf("FPS: %.2f | Frame size: %dx%d\n", fps, frame.cols, frame.rows);
     }
 
+    // Save a frame periodically
     if (frameCount % 100 == 0) {
         std::string filename = "frame_" + std::to_string(frameCount) + ".jpg";
         cv::imwrite(filename, frame);
