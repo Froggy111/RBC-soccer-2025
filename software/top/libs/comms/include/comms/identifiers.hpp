@@ -9,7 +9,8 @@ enum class SendIdentifiers : types::u8 {
   COMMS_DEBUG = 2, // everything should fall under here by default
   SPI_FAIL = 3,
   LED_LISTENER_FAIL = 4,
-  ICM29048 = 5
+  ICM29048 = 5,
+  DEBUG_TEST_BLINK = 255,
 };
 
 enum class RecvIdentifiers : types::u8 {

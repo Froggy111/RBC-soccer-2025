@@ -12,9 +12,6 @@
 
 using namespace types;
 
-// Define a maximum LED count
-#define MAX_LED_COUNT 100
-
 struct LEDData {
   uint8_t RED = 0;
   uint8_t GREEN = 0;
@@ -28,14 +25,11 @@ struct LEDBLinkerData {
   uint8_t BLUE = 0;
 };
 
-// Store the actual LED count for runtime use
-const uint8_t actual_led_count = get_config().LED_count;
-
-WS2812 led_strip((uint)pinmap::Pico::LED_SIG_3V3, actual_led_count, pio0,
+WS2812 led_strip((uint)pinmap::Pico::LED_SIG_3V3, LED_COUNT, pio0,
                  0, WS2812::DataFormat::FORMAT_GRB);
 
 TaskHandle_t led_blinker_handle = nullptr;
-LEDData led_states[MAX_LED_COUNT];
+LEDData led_states[LED_COUNT];
 LEDBLinkerData led_blinker_task_data = {};
 u8 led_blinker_buffer[sizeof(led_blinker_task_data)];
 SemaphoreHandle_t led_blinker_data_mutex = nullptr;
@@ -49,14 +43,14 @@ void led_blinker_task(void *args) {
   // reset the data
   memset(led_states, 0, sizeof(led_states));
   // make it initially green
-  for (int i = 0; i < actual_led_count; i++) {
+  for (int i = 0; i < LED_COUNT; i++) {
     led_states[i].RED = 0;
     led_states[i].GREEN = 100;
     led_states[i].BLUE = 0;
   }
 
   for (;;) {
-    for (int i = 0; i < actual_led_count; i++) {
+    for (int i = 0; i < LED_COUNT; i++) {
       led_strip.setPixelColor(i, WS2812::RGB(led_states[i].RED,
                                              led_states[i].GREEN,
                                              led_states[i].BLUE));
@@ -74,7 +68,7 @@ void led_blinker_task(void *args) {
 
     // * based on the id, set the color
 
-    if (led_blinker_task_data.id >= 0 && led_blinker_task_data.id < actual_led_count) {
+    if (led_blinker_task_data.id >= 0 && led_blinker_task_data.id < LED_COUNT) {
       led_states[led_blinker_task_data.id].RED =
           led_blinker_task_data.RED;
       led_states[led_blinker_task_data.id].GREEN =

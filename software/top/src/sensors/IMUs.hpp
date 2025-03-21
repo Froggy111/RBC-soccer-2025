@@ -1,8 +1,8 @@
 #pragma once
 
 #include "comms.hpp"
-#include "config.hpp"
 #include "ICM20948.hpp"
+#include "config.hpp"
 
 // Global IMU configurations and data
 icm20948::config_t imu_config1, imu_config2;
@@ -90,6 +90,6 @@ void imu_poll_task(void *args) {
     comms::USB_CDC.write(comms::SendIdentifiers::ICM29048, to_send,
                        sizeof to_send);
 
-    vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(get_config().poll_interval));
+    vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(POLL_INTERVAL));
   }
 }
