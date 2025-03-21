@@ -13,12 +13,7 @@ void processFrame(const cv::Mat& frame) {
         printf("Processing frame #%d (%dx%d)\n", 
                frameCount, frame.cols, frame.rows);
     }
-    
-    // Optional: display the frame if in a GUI environment
-    // cv::imshow("Camera Feed", frame);
-    // cv::waitKey(1);
-    
-    // Optional: save a frame periodically
+
     if (frameCount % 100 == 0) {
         std::string filename = "frame_" + std::to_string(frameCount) + ".jpg";
         cv::imwrite(filename, frame);
@@ -46,9 +41,6 @@ int main() {
     
     // Run for a specified duration (or wait for user input)
     std::cin.get();
-    
-    // Alternative: Run for a fixed duration
-    // std::this_thread::sleep_for(std::chrono::seconds(10));
     
     // Stop capturing
     camera.stopCapture();

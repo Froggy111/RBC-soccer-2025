@@ -254,6 +254,7 @@ void Camera::requestComplete(libcamera::Request* request) {
     
     // Re-queue request for continuous capture
     request->reuse();
+    request->addBuffer(stream, buffer);
     camera_->queueRequest(request);
 }
 
