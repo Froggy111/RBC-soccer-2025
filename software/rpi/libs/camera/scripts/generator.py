@@ -66,8 +66,12 @@ def generate_field_coordinates(image_path, output_path, output_image_path):
         f.write("// Auto-generated field coordinates (320px = 200cm scale)\n")
         f.write("#pragma once\n")
         f.write("#include <tuple>\n\n")
-        
-        f.write(f"constexpr std::tuple<int, int> COORDINATES[] = {{\n")
+
+        f.write("namespace camera {\n")
+        f.write(f"const int WHITE_LINES_LENGTH = {len(coordinates)};\n")
+        f.write(f"const int FIELD_WIDTH = {image_width};\n")
+        f.write(f"const int FIELD_HEIGHT = {image_height};\n\n")
+        f.write(f"constexpr std::tuple<int, int> WHITE_LINES[{len(coordinates)}] = {{\n")
         
         for i, (x, y) in enumerate(coordinates):
             f.write(f"    {{{x}, {y}}}")
@@ -76,6 +80,7 @@ def generate_field_coordinates(image_path, output_path, output_image_path):
             f.write("\n")
         
         f.write("};\n\n")
+        f.write("}")
 
 if __name__ == "__main__":
     # Get the script directory

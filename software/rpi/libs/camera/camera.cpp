@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sys/mman.h>
 
+namespace camera {
 Camera::Camera() = default;
 
 Camera::~Camera() {
@@ -282,4 +283,5 @@ cv::Mat Camera::convertToMat(libcamera::FrameBuffer *buffer) {
     munmap(data, plane.length);
 
     return result;
+}
 }

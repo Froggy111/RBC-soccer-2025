@@ -11,7 +11,7 @@
 #include <queue>
 #include "config.hpp"
 
-
+namespace camera {
 class Camera {
 public:
     using FrameProcessor = std::function<void(const cv::Mat&)>;
@@ -20,7 +20,7 @@ public:
     ~Camera();
     
     // Initialize camera with 480p resolution by default
-    bool initialize(cam_config::Resolutions resolution);
+    bool initialize(Resolutions resolution);
     
     // Start capturing frames with optional processing callback
     bool startCapture(FrameProcessor processor = nullptr);
@@ -62,3 +62,4 @@ private:
     void requestComplete(libcamera::Request* request);
     cv::Mat convertToMat(libcamera::FrameBuffer* buffer);
 };
+}

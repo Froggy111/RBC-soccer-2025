@@ -2,7 +2,12 @@
 #pragma once
 #include <tuple>
 
-constexpr std::tuple<int, int> COORDINATES[] = {
+namespace camera {
+const int WHITE_LINES_LENGTH = 1764;
+const int FIELD_WIDTH = 291;
+const int FIELD_HEIGHT = 350;
+
+constexpr std::tuple<int, int> WHITE_LINES[1764] = {
     {-126, -156},
     {-125, -156},
     {-123, -156},
@@ -1769,3 +1774,4 @@ constexpr std::tuple<int, int> COORDINATES[] = {
     {125, 154}
 };
 
+}
