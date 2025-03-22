@@ -1,12 +1,12 @@
 #include "processor.hpp"
 #include "field.hpp"
-#include <cstdint>
+#include "coords.hpp"
 
 namespace camera {
 void CamProcessor::process_frame(const cv::Mat &frame) {}
 
-void CamProcessor::calculate_loss(const cv::Mat &frame) {
-    int16_t white_lines_coords[WHITE_LINES_LENGTH];
+void CamProcessor::calculate_loss(const cv::Mat &frame, Pos &guess) {
+    std::tuple<int16_t, int16_t> white_lines_coords[WHITE_LINES_LENGTH];
     memcpy(white_lines_coords, WHITE_LINES, sizeof(white_lines_coords));
 
 	// * transform & rotate white line coords
@@ -15,6 +15,10 @@ void CamProcessor::calculate_loss(const cv::Mat &frame) {
         int16_t y = std::get<1>(white_lines_coords[i]);
 
         // transform
+        x -= guess.x;
+        y -= guess.y;
+
+        // rotate
 	}
 }
 

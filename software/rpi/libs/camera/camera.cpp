@@ -19,17 +19,17 @@ Camera::~Camera() {
     cameraManager_.reset();
 }
 
-bool Camera::initialize(cam_config::Resolutions resolution) {
+bool Camera::initialize(camera::Resolutions resolution) {
     switch (resolution) {
-        case cam_config::RES_1232P:
+        case camera::RES_1232P:
             width_  = 1640;
             height_ = 1232;
             break;
-        case cam_config::RES_1080P:
+        case camera::RES_1080P:
             width_  = 1920;
             height_ = 1080;
             break;
-        case cam_config::RES_480P:
+        case camera::RES_480P:
             width_  = 640;
             height_ = 480;
             break;
@@ -284,4 +284,4 @@ cv::Mat Camera::convertToMat(libcamera::FrameBuffer *buffer) {
 
     return result;
 }
-}
+} // namespace camera

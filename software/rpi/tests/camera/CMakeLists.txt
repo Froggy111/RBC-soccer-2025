@@ -1,6 +1,6 @@
-find_package(Threads REQUIRED)
-
 add_executable(camera_test main.cpp)
+
+find_package(Threads REQUIRED)
 
 target_link_libraries(camera_test 
     bbw_camera
