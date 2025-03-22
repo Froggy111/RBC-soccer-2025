@@ -36,6 +36,17 @@ void motor_driver_task(void *args) {
         break;
       vTaskDelay(pdMS_TO_TICKS(10));
     }
+    for (int i = 625; i >= 0; i--) {
+      if (!driver1.command(i * 10))
+        break;
+      if (!driver2.command(i * 10))
+        break;
+      if (!driver3.command(i * 10))
+        break;
+      if (!driver4.command(i * 10))
+        break;
+      vTaskDelay(pdMS_TO_TICKS(10));
+    }
   }
 }
 
