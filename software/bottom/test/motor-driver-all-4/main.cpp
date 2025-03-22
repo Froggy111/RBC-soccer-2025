@@ -2,12 +2,12 @@
 #include "comms/usb.hpp"
 
 extern "C" {
-  #include <pico/stdlib.h>
-  #include <hardware/spi.h>
+#include <pico/stdlib.h>
+#include <hardware/spi.h>
 }
 #include "comms.hpp"
 
-MotorDriver driver1, driver2, driver3, driver4;
+driver::MotorDriver driver1, driver2, driver3, driver4;
 
 const int LED_PIN = 25;
 
@@ -26,10 +26,14 @@ void motor_driver_task(void *args) {
 
   while (true) {
     for (int i = 0; i <= 625; i++) {
-      if (!driver1.command(i * 10)) break;
-      if (!driver2.command(i * 10)) break;
-      if (!driver3.command(i * 10)) break;
-      if (!driver4.command(i * 10)) break;
+      if (!driver1.command(i * 10))
+        break;
+      if (!driver2.command(i * 10))
+        break;
+      if (!driver3.command(i * 10))
+        break;
+      if (!driver4.command(i * 10))
+        break;
       vTaskDelay(pdMS_TO_TICKS(10));
     }
   }
@@ -39,7 +43,7 @@ int main() {
   gpio_init(LED_PIN);
   gpio_set_dir(LED_PIN, GPIO_OUT);
   gpio_put(LED_PIN, 1);
-  
+
   comms::USB_CDC.init();
   xTaskCreate(motor_driver_task, "motor_driver_task", 1024, NULL, 10, NULL);
 

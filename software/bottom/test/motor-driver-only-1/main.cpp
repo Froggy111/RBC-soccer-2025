@@ -7,7 +7,7 @@ extern "C" {
 }
 #include "comms.hpp"
 
-MotorDriver driver;
+driver::MotorDriver motor_driver;
 
 const int LED_PIN = 25;
 
@@ -18,11 +18,11 @@ void motor_driver_task(void *args) {
   }
 
   // init as debug
-  driver.init(1, spi0);
+  motor_driver.init(1, spi0);
 
   while (true) {
     for (int i = 0; i <= 625; i++) {
-      if (!driver.command(i * 10)) break;
+      if (!motor_driver.command(i * 10)) break;
       vTaskDelay(pdMS_TO_TICKS(10));
     }
   }
