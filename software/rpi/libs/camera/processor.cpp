@@ -4,7 +4,6 @@
 #include "position.hpp"
 #include <cstdio>
 #include <cstdlib>
-#include <tuple>
 
 namespace camera {
 inline int generate_random_number(int mid, int variance) {
@@ -87,7 +86,6 @@ std::pair<Pos, float> CamProcessor::find_minima(const cv::Mat &camera_image,
     while (best_loss > 0.3f) {
         Pos current_best_guess  = best_guess;
         float current_best_loss = best_loss;
-        printf("Best Loss: %f %d %d\n", best_loss, best_guess.x, best_guess.y);
 
         // disperse points x times
         for (int j = 0; j < NUM_PARTICLES_PER_GENERATION; j++) {
@@ -128,6 +126,7 @@ std::pair<Pos, float> CamProcessor::find_minima(const cv::Mat &camera_image,
             best_guess = current_best_guess;
             best_loss  = current_best_loss;
         }
+        printf("Best Loss: %f %d %d\n", best_loss, best_guess.x, best_guess.y);
     }
 
     return std::make_pair(best_guess, best_loss);
