@@ -10,6 +10,6 @@ const int COLOR_G_THRES = 200;
 const int COLOR_B_THRES = 200;
 
 // regression
-const int NUM_PARTICLES_PER_GENERATION = 10;
+const int NUM_PARTICLES_PER_GENERATION = 5;
 const int NUM_GENERATIONS = 10;
 }

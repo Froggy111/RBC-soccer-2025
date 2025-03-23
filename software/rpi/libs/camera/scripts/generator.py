@@ -24,6 +24,7 @@ def generate_field_coordinates(image_path, output_path, output_image_path):
     
     # Process coordinates relative to center
     coordinates = []
+    count = 0
     
     # Process each pixel in the original image
     for y in range(original_height):
@@ -33,7 +34,9 @@ def generate_field_coordinates(image_path, output_path, output_image_path):
                 # Convert to field coordinates with center as (0,0)
                 real_x = int(round((x - center_x) * x_scale))
                 real_y = int(round((y - center_y) * y_scale))
-                coordinates.append((real_x, real_y))
+                if count % 3 == 0:
+                    coordinates.append((real_x, real_y))
+                count += 1
     
     print(f"Generated {len(coordinates)} coordinates")
     
