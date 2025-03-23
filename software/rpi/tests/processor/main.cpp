@@ -10,11 +10,8 @@
 int main() {
     srand(4);
 
-    // Path to input video and output file
     const std::string input_path  = "./480p.mp4";
     const std::string output_path = "./points_data.csv";
-
-    // Open the input video file
     cv::VideoCapture cap(input_path);
 
     if (!cap.isOpened()) {
@@ -29,9 +26,9 @@ int main() {
     double fps       = cap.get(cv::CAP_PROP_FPS);
 
     std::cout << "Video properties:" << std::endl;
-    std::cout << "  Width: " << frame_width << std::endl;
-    std::cout << "  Height: " << frame_height << std::endl;
-    std::cout << "  FPS: " << fps << std::endl;
+    std::cout << "Width: " << frame_width << std::endl;
+    std::cout << "Height: " << frame_height << std::endl;
+    std::cout << "FPS: " << fps << std::endl;
 
     // Open output file
     std::ofstream output_file(output_path);
@@ -41,10 +38,7 @@ int main() {
         return -1;
     }
 
-    // Write CSV header - include timing information
-    output_file << "frame,tl_x,tl_y,tl_loss,tr_x,tr_y,tr_loss,bl_x,bl_y,bl_"
-                   "loss,br_x,br_y,br_loss,processing_time_ms"
-                << std::endl;
+    output_file << "Frame, X, Y, Heading, Loss, Time (ms)" << std::endl;
 
     // Set precision for floating point values
     output_file << std::fixed << std::setprecision(4);
@@ -56,38 +50,34 @@ int main() {
     cv::Mat frame;
     int frame_count   = 0;
     double total_time = 0.0;
+    Pos current(0, 0, 0);
 
     std::cout << "Processing frames..." << std::endl;
+
 
     // Process the video
     while (cap.read(frame)) {
         // Time the get_points function
         auto start_time = std::chrono::high_resolution_clock::now();
 
-        // Extract the 4 points from the frame
-        auto points = processor.get_points(frame);
+        auto points = processor.find_minima(frame, current);
 
-        auto end_time = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
-                            end_time - start_time)
+        auto end_time   = std::chrono::high_resolution_clock::now();
+        auto duration   = std::chrono::duration_cast<std::chrono::milliseconds>(
+            end_time - start_time)
+
                             .count();
         total_time += duration;
 
-        // Unpack the tuple
-        auto &top_left     = std::get<0>(points);
-        auto &top_right    = std::get<1>(points);
-        auto &bottom_left  = std::get<2>(points);
-        auto &bottom_right = std::get<3>(points);
+        if (points.second < 0.3f) {
+            current.x = points.first.x;
+            current.y = points.first.y;
+            current.heading = points.first.heading;
+        }
 
         // Write data to file in CSV format (including timing)
-        output_file << frame_count << "," << top_left.first.x << ","
-                    << top_left.first.y << "," << top_left.second << ","
-                    << top_right.first.x << "," << top_right.first.y << ","
-                    << top_right.second << "," << bottom_left.first.x << ","
-                    << bottom_left.first.y << "," << bottom_left.second << ","
-                    << bottom_right.first.x << "," << bottom_right.first.y
-                    << "," << bottom_right.second << "," << duration
-                    << std::endl;
+        output_file << frame_count << "," << points.first.x << "," << points.first.y
+                    << "," << points.first.heading << "," << points.second << "," << duration << std::endl;
 
         // Print timing information for this frame
         std::cout << "Frame " << frame_count << ": get_points() took "

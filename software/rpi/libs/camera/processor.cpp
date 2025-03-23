@@ -96,12 +96,14 @@ std::pair<Pos, float> CamProcessor::find_minima(const cv::Mat &camera_image,
             // ensuring that the new guesses are within the bounds of the image (0, camera_image.cols), (0, camera_image.rows)
             Pos new_guess = best_guess;
 
+            // TODO: Ensure that the new guess is within the bounds of the image
             new_guess.x += (rand() % (int)(best_loss * 2 * camera_image.cols)) -
                            (best_loss * camera_image.cols);
             new_guess.y += (rand() % (int)(best_loss * 2 * camera_image.rows)) -
                            (best_loss * camera_image.rows);
             new_guess.heading +=
                 (rand() % (int)(best_loss * M_PI)) - (best_loss * M_PI / 2);
+            
             // calculate loss
             float new_loss = calculate_loss(camera_image, new_guess);
             if (new_loss < current_best_loss) {

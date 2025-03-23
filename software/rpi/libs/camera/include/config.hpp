@@ -10,6 +10,6 @@ const int COLOR_G_THRES = 180;
 const int COLOR_B_THRES = 180;
 
 // regression
-const int NUM_PARTICLES_PER_GENERATION = 5;
-const int NUM_GENERATIONS = 20;
-}
+const int NUM_PARTICLES_PER_GENERATION = 40;
+const int NUM_GENERATIONS              = 10;
+} // namespace camera
