@@ -1,12 +1,31 @@
 #include "processor.hpp"
-#include "position.hpp"
-#include "field.hpp"
 #include "config.hpp"
+#include "field.hpp"
+#include "position.hpp"
+#include <cstdlib>
+#include <tuple>
 
 namespace camera {
-void CamProcessor::process_frame(const cv::Mat &frame) {}
+std::tuple<std::pair<Pos, float>, std::pair<Pos, float>, std::pair<Pos, float>,
+           std::pair<Pos, float>>
+CamProcessor::get_points(const cv::Mat &frame) {
+    // find minima from all 4 corners
+    Pos top_left(0, 0);
+    Pos top_right(frame.cols, 0);
+    Pos bottom_left(0, frame.rows);
+    Pos bottom_right(frame.cols, frame.rows);
 
-uint32_t CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
+    // find minima from all 4 corners
+    std::pair<Pos, float> top_left_res     = find_minima(frame, top_left);
+    std::pair<Pos, float> top_right_res    = find_minima(frame, top_right);
+    std::pair<Pos, float> bottom_left_res  = find_minima(frame, bottom_left);
+    std::pair<Pos, float> bottom_right_res = find_minima(frame, bottom_right);
+
+    return std::make_tuple(top_left_res, top_right_res, bottom_left_res,
+                           bottom_right_res);
+}
+
+float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     std::tuple<int16_t, int16_t> white_lines_coords[WHITE_LINES_LENGTH];
     memcpy(white_lines_coords, WHITE_LINES, sizeof(white_lines_coords));
 
@@ -30,7 +49,7 @@ uint32_t CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     }
 
     // * for every coordinate in the arr, check if it exists in the image
-    uint32_t loss = 0;
+    uint32_t count = 0, non_white = 0;
     for (int i = 0; i < WHITE_LINES_LENGTH; i++) {
         int16_t x = std::get<0>(white_lines_coords[i]);
         int16_t y = std::get<1>(white_lines_coords[i]);
@@ -42,15 +61,52 @@ uint32_t CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
 
         // get that pixel in the camera image
         cv::Vec3b pixel = camera_image.at<cv::Vec3b>(y, x);
+
         // check if the pixel is white
-        if (pixel[0] > COLOR_R_THRES && pixel[1] > COLOR_G_THRES &&
-            pixel[2] > COLOR_B_THRES) {
-            // * if it is white, add to the loss
-            loss += 1;
+        if (!(pixel[0] > COLOR_R_THRES && pixel[1] > COLOR_G_THRES &&
+              pixel[2] > COLOR_B_THRES)) {
+            non_white += 1;
         }
+        count += 1;
     }
 
+    float loss = ((float)non_white) / (float)count;
     return loss;
 }
 
+std::pair<Pos, float> CamProcessor::find_minima(const cv::Mat &camera_image,
+                                                Pos &initial_guess) {
+    Pos best_guess  = initial_guess;
+    float best_loss = calculate_loss(camera_image, best_guess);
+    for (int i = 0; i < NUM_GENERATIONS; i++) {
+        Pos current_best_guess  = best_guess;
+        float current_best_loss = best_loss;
+
+        // disperse points x times
+        for (int j = 0; j < NUM_PARTICLES_PER_GENERATION; j++) {
+            // randomize new guess properties by the loss
+            Pos new_guess = best_guess;
+            new_guess.x += (rand() % 100 - 50) * best_loss;
+            new_guess.y += (rand() % 100 - 50) * best_loss;
+            new_guess.heading +=
+                (rand() % 1 - 0.5) *
+                best_loss; // about 57 degrees of heading variance MAX
+
+            // calculate loss
+            float new_loss = calculate_loss(camera_image, new_guess);
+            if (new_loss < current_best_loss) {
+                current_best_guess = new_guess;
+                current_best_loss  = new_loss;
+            }
+        }
+
+        // check if the new guess is better than the best guess
+        if (current_best_loss < best_loss) {
+            best_guess = current_best_guess;
+            best_loss  = current_best_loss;
+        }
+    }
+
+    return std::make_pair(best_guess, best_loss);
+}
 } // namespace camera

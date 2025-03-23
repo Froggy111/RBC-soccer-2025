@@ -3,6 +3,7 @@
 class Pos {
   public:
     Pos(int x, int y) : x(x), y(y), heading(0) {}
+    Pos(int x, int y, float heading) : x(x), y(y), heading(heading) {}
 
     // the shorter part of the field
     int x;
