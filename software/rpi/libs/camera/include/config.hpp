@@ -11,5 +11,5 @@ const int COLOR_B_THRES = 180;
 
 // regression
 const int NUM_PARTICLES_PER_GENERATION = 5;
-const int NUM_GENERATIONS = 10;
+const int NUM_GENERATIONS = 20;
 }

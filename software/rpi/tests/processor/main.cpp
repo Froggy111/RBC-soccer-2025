@@ -8,6 +8,8 @@
 #include <string>
 
 int main() {
+    srand(4);
+
     // Path to input video and output file
     const std::string input_path  = "./480p.mp4";
     const std::string output_path = "./points_data.csv";

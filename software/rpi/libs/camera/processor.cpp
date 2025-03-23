@@ -2,6 +2,7 @@
 #include "config.hpp"
 #include "field.hpp"
 #include "position.hpp"
+#include <cstdio>
 #include <cstdlib>
 #include <tuple>
 
@@ -44,8 +45,8 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
         // rotate
         float rotated_x = x * cos_theta - y * sin_theta;
         float rotated_y = x * sin_theta + y * cos_theta;
-        x               = rotated_x;
-        y               = rotated_y;
+        x               = (int)rotated_x;
+        y               = (int)rotated_y;
 
         // * for every coordinate in the arr, check if it exists in the image
         if (x < 0 || x >= camera_image.cols || y < 0 ||
@@ -65,7 +66,19 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
         count += 1;
     }
 
-    float loss = ((float)non_white) / (float)count;
+    // if (guess.heading != 0 && count == 0) {
+    //     printf("Found none.\n");
+    // }
+
+    // if (guess.heading != 0 && count != 0) {
+    //     printf("Found one.\n");
+    // }
+
+    if (count == 0) {
+        return 1.0f;
+    }
+
+    float loss = (float)non_white / (float)count;
     return loss;
 }
 
@@ -79,18 +92,16 @@ std::pair<Pos, float> CamProcessor::find_minima(const cv::Mat &camera_image,
 
         // disperse points x times
         for (int j = 0; j < NUM_PARTICLES_PER_GENERATION; j++) {
-            // randomize new guess properties by the loss
+            // randomize new guess properties, with the randomness proportional to the best_loss
+            // ensuring that the new guesses are within the bounds of the image (0, camera_image.cols), (0, camera_image.rows)
             Pos new_guess = best_guess;
-            new_guess.x +=
-                (rand() % camera_image.cols - (int)(camera_image.cols / 2)) *
-                best_loss;
-            new_guess.y +=
-                (rand() % camera_image.rows - (int)(camera_image.rows / 2)) *
-                best_loss;
-            new_guess.heading +=
-                (rand() % (int)(M_PI / 2) - (int)(M_PI / 4)) *
-                best_loss; // 90 degrees of heading variance MAX
 
+            new_guess.x += (rand() % (int)(best_loss * 2 * camera_image.cols)) -
+                           (best_loss * camera_image.cols);
+            new_guess.y += (rand() % (int)(best_loss * 2 * camera_image.rows)) -
+                           (best_loss * camera_image.rows);
+            new_guess.heading +=
+                (rand() % (int)(best_loss * M_PI)) - (best_loss * M_PI / 2);
             // calculate loss
             float new_loss = calculate_loss(camera_image, new_guess);
             if (new_loss < current_best_loss) {
