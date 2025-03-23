@@ -30,3 +30,8 @@ generated/
 
 # logs fromm screens
 screenlog.*
+
+# other funny
+480p.mp4
+heatmap_video.mp4
+points_data.csv

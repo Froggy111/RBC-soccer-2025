@@ -50,34 +50,27 @@ int main() {
     cv::Mat frame;
     int frame_count   = 0;
     double total_time = 0.0;
-    Pos current(0, 0, 0);
 
     std::cout << "Processing frames..." << std::endl;
-
 
     // Process the video
     while (cap.read(frame)) {
         // Time the get_points function
         auto start_time = std::chrono::high_resolution_clock::now();
 
-        auto points = processor.find_minima(frame, current);
+        auto points = processor.grid_search(frame);
 
-        auto end_time   = std::chrono::high_resolution_clock::now();
-        auto duration   = std::chrono::duration_cast<std::chrono::milliseconds>(
-            end_time - start_time)
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            end_time - start_time)
 
                             .count();
         total_time += duration;
 
-        if (points.second < 0.3f) {
-            current.x = points.first.x;
-            current.y = points.first.y;
-            current.heading = points.first.heading;
-        }
-
         // Write data to file in CSV format (including timing)
-        output_file << frame_count << "," << points.first.x << "," << points.first.y
-                    << "," << points.first.heading << "," << points.second << "," << duration << std::endl;
+        output_file << frame_count << "," << points.first.x << ","
+                    << points.first.y << "," << points.first.heading << ","
+                    << points.second << "," << duration << std::endl;
 
         // Print timing information for this frame
         std::cout << "Frame " << frame_count << ": get_points() took "
@@ -86,6 +79,7 @@ int main() {
                   << std::endl;
 
         frame_count++;
+        break;
     }
 
     // Close the output file
