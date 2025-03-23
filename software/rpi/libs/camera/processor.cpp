@@ -26,8 +26,7 @@ CamProcessor::get_points(const cv::Mat &frame) {
 }
 
 float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
-    std::tuple<int16_t, int16_t> white_lines_coords[WHITE_LINES_LENGTH];
-    memcpy(white_lines_coords, WHITE_LINES, sizeof(white_lines_coords));
+    uint32_t count = 0, non_white = 0;
 
     // * cache the sin and cos values
     float sin_theta = sin(guess.heading);
@@ -35,33 +34,27 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
 
     // * transform & rotate white line coords
     for (int i = 0; i < WHITE_LINES_LENGTH; i++) {
-        int16_t x = std::get<0>(white_lines_coords[i]);
-        int16_t y = std::get<1>(white_lines_coords[i]);
+        int16_t x = std::get<0>(WHITE_LINES[i]);
+        int16_t y = std::get<1>(WHITE_LINES[i]);
 
         // transform
         x -= guess.x;
         y -= guess.y;
 
         // rotate
-        white_lines_coords[i] = std::make_tuple(
-            static_cast<int16_t>(x * cos_theta - y * sin_theta),
-            static_cast<int16_t>(x * sin_theta + y * cos_theta));
-    }
-
-    // * for every coordinate in the arr, check if it exists in the image
-    uint32_t count = 0, non_white = 0;
-    for (int i = 0; i < WHITE_LINES_LENGTH; i++) {
-        int16_t x = std::get<0>(white_lines_coords[i]);
-        int16_t y = std::get<1>(white_lines_coords[i]);
-
+        x = x * cos_theta - y * sin_theta;
+        y = x * sin_theta + y * cos_theta;
+        
+        // * for every coordinate in the arr, check if it exists in the image
         if (x < 0 || x >= camera_image.cols || y < 0 ||
             y >= camera_image.rows) {
             continue;
         }
 
         // get that pixel in the camera image
-        cv::Vec3b pixel = camera_image.at<cv::Vec3b>(y, x);
-
+        const cv::Vec3b* row = camera_image.ptr<cv::Vec3b>(y);
+        cv::Vec3b pixel      = row[x];
+        
         // check if the pixel is white
         if (!(pixel[0] > COLOR_R_THRES && pixel[1] > COLOR_G_THRES &&
               pixel[2] > COLOR_B_THRES)) {
