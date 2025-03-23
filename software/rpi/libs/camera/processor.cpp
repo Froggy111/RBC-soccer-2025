@@ -12,25 +12,6 @@ inline int generate_random_number(int mid, int variance) {
     return random_number;
 }
 
-// std::tuple<std::pair<Pos, float>, std::pair<Pos, float>, std::pair<Pos, float>,
-//            std::pair<Pos, float>>
-// CamProcessor::get_points(const cv::Mat &frame) {
-//     // find minima from all 4 corners
-//     Pos top_left(5, 5);
-//     Pos top_right(frame.cols - 5, 5);
-//     Pos bottom_left(5, frame.rows - 5);
-//     Pos bottom_right(frame.cols - 5, frame.rows - 5);
-
-//     // find minima from all 4 corners
-//     std::pair<Pos, float> top_left_res     = find_minima(frame, top_left);
-//     std::pair<Pos, float> top_right_res    = find_minima(frame, top_right);
-//     std::pair<Pos, float> bottom_left_res  = find_minima(frame, bottom_left);
-//     std::pair<Pos, float> bottom_right_res = find_minima(frame, bottom_right);
-
-//     return std::make_tuple(top_left_res, top_right_res, bottom_left_res,
-//                            bottom_right_res);
-// }
-
 float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     uint32_t count = 0, non_white = 0;
 
@@ -75,12 +56,12 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
         return 1.0f;
     }
 
-    float loss = (float)non_white / (float)count;
+    float loss = (float) non_white / (float)count;
     return loss;
 }
 
-std::pair<Pos, float> CamProcessor::find_minima(const cv::Mat &camera_image,
-                                                Pos &initial_guess) {
+std::pair<Pos, float> CamProcessor::regress(const cv::Mat &camera_image,
+                                            Pos &initial_guess) {
     Pos best_guess  = initial_guess;
     float best_loss = calculate_loss(camera_image, best_guess);
     while (best_loss > 0.3f) {
@@ -95,13 +76,15 @@ std::pair<Pos, float> CamProcessor::find_minima(const cv::Mat &camera_image,
             // Done by restricting the x and y coords
             if (new_guess.x < (best_loss * FIELD_WIDTH) / 2) {
                 new_guess.x = (best_loss * FIELD_WIDTH) / 2;
-            } else if (new_guess.x >= FIELD_WIDTH - (best_loss * FIELD_WIDTH) / 2) {
+            } else if (new_guess.x >=
+                       FIELD_WIDTH - (best_loss * FIELD_WIDTH) / 2) {
                 new_guess.x = FIELD_WIDTH - (best_loss * FIELD_WIDTH) / 2;
             }
 
             if (new_guess.y < (best_loss * FIELD_HEIGHT) / 2) {
                 new_guess.y = (best_loss * FIELD_HEIGHT) / 2;
-            } else if (new_guess.y >= FIELD_HEIGHT - (best_loss * FIELD_HEIGHT) / 2) {
+            } else if (new_guess.y >=
+                       FIELD_HEIGHT - (best_loss * FIELD_HEIGHT) / 2) {
                 new_guess.y = FIELD_HEIGHT - (best_loss * FIELD_HEIGHT) / 2;
             }
 
@@ -127,6 +110,34 @@ std::pair<Pos, float> CamProcessor::find_minima(const cv::Mat &camera_image,
             best_loss  = current_best_loss;
         }
         printf("Best Loss: %f %d %d\n", best_loss, best_guess.x, best_guess.y);
+    }
+
+    return std::make_pair(best_guess, best_loss);
+}
+
+std::pair<Pos, float> CamProcessor::grid_search(const cv::Mat &camera_image) {
+    Pos best_guess = {0, 0, 0};
+    float best_loss = 1.0f;
+
+    // Perform grid search
+    for (int x = 0; x < FIELD_WIDTH; x += GRID_STEP) {
+        for (int y = 0; y < FIELD_HEIGHT; y += GRID_STEP) {
+            for (int heading = 0; heading < 360; heading += GRID_STEP_HEADING) {
+                Pos guess = {x, y, heading * (float) M_PI / 180.0f};
+                float loss = calculate_loss(camera_image, guess);
+
+                // Check if the new guess is better than the best guess
+                if (loss < best_loss) {
+                    best_guess = guess;
+                    best_loss  = loss;
+                }
+
+                if (best_loss < 0.3f) {
+                    // Early exit if a good guess is found
+                    return std::make_pair(best_guess, best_loss);
+                }
+            }
+        }
     }
 
     return std::make_pair(best_guess, best_loss);
