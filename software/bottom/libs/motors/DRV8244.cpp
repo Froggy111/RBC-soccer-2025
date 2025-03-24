@@ -1,3 +1,4 @@
+#include <cstdint>
 extern "C" {
 #include <hardware/spi.h>
 #include <hardware/gpio.h>
@@ -371,6 +372,13 @@ void MotorDriver::set_sleep(bool sleep) {
   inputControl.write_digital(pins.get_pin(NSLEEP), !sleep,
                              pins.get_pin_interface(NSLEEP));
   comms::USB_CDC.printf("Motor sleep set to %d\n", !sleep);
+}
+
+int16_t MotorDriver::read_current() {
+  // Read the current from the ADC
+  int16_t current = inputControl.read_analog(pins.get_pin(IPROPI),
+                                             pins.get_pin_interface(IPROPI));
+  return current;
 }
 
 bool MotorDriver::command(types::i16 duty_cycle) {

@@ -2,6 +2,7 @@
 #include "types.hpp"
 #include "pin_manager.hpp"
 #include "pin_selector.hpp"
+#include <cstdint>
 #include <hardware/spi.h>
 #include <pico/types.h>
 #include <string>
@@ -135,6 +136,13 @@ public:
    * @param driver 
    */
   static void handle_error(MotorDriver *driver);
+
+  /**
+   * @brief Returns the current running through the motor
+   * 
+   * @return int16_t 
+   */
+  int16_t read_current();
 };
 
 }
