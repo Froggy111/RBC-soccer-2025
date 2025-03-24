@@ -53,10 +53,11 @@ int main() {
     // Process the first frame
     Pos center(5, camera::FIELD_HEIGHT - 5, 55);
     cap.read(frame);
-    Pos current_pos = processor.find_minima_smart_search(frame, center).first;
-    output_file << 0 << "," << current_pos.x << ","
-                << current_pos.y << "," << current_pos.heading << ","
-                << 0.0f << "," << 0.0f << std::endl;
+    Pos current_pos =
+        processor.find_minima_smart_search(frame, center, 100, 3, 3).first;
+    output_file << 0 << "," << current_pos.x << "," << current_pos.y << ","
+                << current_pos.heading << "," << 0.0f << "," << 0.0f
+                << std::endl;
 
     // Process the video
     while (cap.read(frame)) {
@@ -64,11 +65,13 @@ int main() {
         auto start_time = std::chrono::high_resolution_clock::now();
 
         // use regression
-        auto points = processor.find_minima_regress(frame, current_pos);
+        auto points =
+            processor.find_minima_smart_search(frame, current_pos, 20, 3, 4);
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
-                            end_time - start_time).count();
+                            end_time - start_time)
+                            .count();
 
         total_time += duration;
 
@@ -78,8 +81,7 @@ int main() {
                     << points.second << "," << duration << std::endl;
 
         // Print timing information for this frame
-        std::cout << "Frame " << frame_count << " took "
-                  << duration
+        std::cout << "Frame " << frame_count << " took " << duration
                   << " ms (avg: " << (total_time / (frame_count + 1)) << " ms)"
                   << std::endl;
 

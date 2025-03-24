@@ -63,15 +63,15 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     }
 
     float loss = (float)non_white / (float)count;
-    return loss;
+    return loss * loss * loss * loss * loss;
 }
 
 std::pair<Pos, float>
 CamProcessor::find_minima_regress(const cv::Mat &camera_image,
                                   Pos &initial_guess) {
     // ? CONSTANTS
-    const int NUM_PARTICLES_PER_GENERATION = 10;
-    const int NUM_GENERATIONS              = 25;
+    const int NUM_PARTICLES_PER_GENERATION = 25;
+    const int NUM_GENERATIONS              = 10;
 
     Pos best_guess  = initial_guess;
     float best_loss = calculate_loss(camera_image, best_guess);
@@ -85,9 +85,9 @@ CamProcessor::find_minima_regress(const cv::Mat &camera_image,
 
             // randomize new guess properties, with the randomness proportional to the best_loss
             new_guess.x =
-                (int)generate_random_number(new_guess.x, 4, 0, FIELD_WIDTH);
+                (int)generate_random_number(new_guess.x, 8, 0, FIELD_WIDTH);
             new_guess.y =
-                (int)generate_random_number(new_guess.y, 4, 0, FIELD_HEIGHT);
+                (int)generate_random_number(new_guess.y, 8, 0, FIELD_HEIGHT);
             new_guess.heading =
                 generate_random_number(
                     (int)(new_guess.heading * (float)180 / M_PI), 10, 0, 360) *
@@ -145,14 +145,9 @@ CamProcessor::find_minima_grid_search(const cv::Mat &camera_image) {
 
 std::pair<Pos, float>
 CamProcessor::find_minima_smart_search(const cv::Mat &camera_image,
-                                       Pos &center) {
+                                       Pos &center, int RADIUS, int STEP, int HEADING_STEP) {
     Pos best_guess  = center;
     float best_loss = calculate_loss(camera_image, best_guess);
-
-    // ? CONSTANTS
-    const int DENSE_RADIUS       = 100; // Dense search radius around center
-    const int DENSE_STEP         = 3;   // Step size for dense search
-    const int HEADING_DENSE_STEP = 5;   // In degrees
 
     // Search boundaries
     int x_min = 0;
@@ -160,17 +155,17 @@ CamProcessor::find_minima_smart_search(const cv::Mat &camera_image,
     int y_min = 0;
     int y_max = FIELD_HEIGHT;
 
-    // Do the dense search first
-    for (int x = center.x - DENSE_RADIUS; x <= center.x + DENSE_RADIUS;
-         x += DENSE_STEP) {
-        for (int y = center.y - DENSE_RADIUS; y <= center.y + DENSE_RADIUS;
-             y += DENSE_STEP) {
+    // Do the dense search first>
+    for (int x = center.x - RADIUS; x <= center.x + RADIUS;
+         x += STEP) {
+        for (int y = center.y - RADIUS; y <= center.y + RADIUS;
+             y += STEP) {
             if (x < x_min || x >= x_max || y < y_min || y >= y_max) {
                 continue;
             }
 
             for (int heading = 0; heading < 360;
-                 heading += HEADING_DENSE_STEP) {
+                 heading += HEADING_STEP) {
                 Pos guess  = {x, y, heading * (float)M_PI / 180.0f};
                 float loss = calculate_loss(camera_image, guess);
 
