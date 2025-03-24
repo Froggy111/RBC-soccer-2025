@@ -28,10 +28,6 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     // Convert angles to fixed point representation
     int32_t sin_theta_fp = static_cast<int32_t>(sin(guess.heading) * FP_ONE);
     int32_t cos_theta_fp = static_cast<int32_t>(cos(guess.heading) * FP_ONE);
-    
-    // Cache image dimensions
-    const int img_width = camera_image.cols;
-    const int img_height = camera_image.rows;
 
     // Transform & rotate white line coords
     for (int i = 0; i < WHITE_LINES_LENGTH; i++) {
@@ -51,7 +47,7 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
         int32_t final_y = rotated_y_fp;
 
         // Check if the point is within image boundaries
-        if (final_x < 0 || final_x >= img_width || final_y < 0 || final_y >= img_height) {
+        if (final_x < 0 || final_x >= FIELD_WIDTH || final_y < 0 || final_y >= FIELD_HEIGHT) {
             continue;
         }
 

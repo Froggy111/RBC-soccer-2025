@@ -1,6 +1,5 @@
 // Auto-generated field coordinates (320px = 200cm scale)
 #pragma once
-#include <opencv2/core.hpp>
 namespace camera {
 const int WHITE_LINES_LENGTH = 882;
 const int FIELD_WIDTH = 291;

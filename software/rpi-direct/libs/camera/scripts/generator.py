@@ -68,13 +68,12 @@ def generate_field_coordinates(image_path, output_path, output_image_path):
     with open(output_path, 'w') as f:
         f.write("// Auto-generated field coordinates (320px = 200cm scale)\n")
         f.write("#pragma once\n")
-        f.write("#include <tuple>\n\n")
 
         f.write("namespace camera {\n")
         f.write(f"const int WHITE_LINES_LENGTH = {len(coordinates)};\n")
         f.write(f"const int FIELD_WIDTH = {image_width};\n")
         f.write(f"const int FIELD_HEIGHT = {image_height};\n\n")
-        f.write(f"constexpr std::tuple<int, int> WHITE_LINES[{len(coordinates)}] = {{\n")
+        f.write(f"constexpr int WHITE_LINES[{len(coordinates)}][2] = {{\n")
         
         for i, (x, y) in enumerate(coordinates):
             f.write(f"    {{{x}, {y}}}")
