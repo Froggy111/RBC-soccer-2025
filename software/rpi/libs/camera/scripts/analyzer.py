@@ -2,81 +2,54 @@ import cv2
 import numpy as np
 import pandas as pd
 import os
-import io
-import math
 
-data = pd.read_csv("points_data.csv", skipinitialspace=True)
+# Parameters
+OUTPUT_VIDEO = "visualization.mp4"
+VIDEO_WIDTH = 291
+VIDEO_HEIGHT = 350
+RED_DOT_RADIUS = 3
+FPS = 30
+BACKGROUND_COLOR = (255, 255, 255)  # White
+DOT_COLOR = (0, 0, 255)  # Red in BGR
 
-# Set up video parameters
-width, height = 853, 480
-fps = 30
-fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('visualization.mp4', fourcc, fps, (width, height))
+# Read the CSV file
+print("Reading data file...")
+df = pd.read_csv('points_data.csv', skiprows=0)
 
-# Center point coordinates
-center_x, center_y = width // 2, height // 2
+# Create video writer
+print(f"Creating video with dimensions {VIDEO_WIDTH}x{VIDEO_HEIGHT}")
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+out = cv2.VideoWriter(OUTPUT_VIDEO, fourcc, FPS, (VIDEO_WIDTH, VIDEO_HEIGHT))
 
-# Process each frame
-for idx, row in data.iterrows():
-    # Create a blank black frame
-    frame = np.zeros((height, width, 3), dtype=np.uint8)
+# Create frames and add to video
+print("Generating frames...")
+total_frames = len(df)
+
+for idx, row in df.iterrows():
+    # Get coordinates
+    x = int(row[1])
+    y = int(row[2])
     
-    # Get the loss value
-    loss = row['Loss']
+    # Ensure coordinates are within bounds
+    x = max(0, min(x, VIDEO_WIDTH-1))
+    y = max(0, min(y, VIDEO_HEIGHT-1))
     
-    # Draw reference grid
-    # Horizontal and vertical lines through center
-    cv2.line(frame, (0, center_y), (width, center_y), (50, 50, 50), 1)
-    cv2.line(frame, (center_x, 0), (center_x, height), (50, 50, 50), 1)
+    # Create blank frame
+    frame = np.ones((VIDEO_HEIGHT, VIDEO_WIDTH, 3), dtype=np.uint8) * 255
     
-    # Only show points with loss below threshold (using 0.3 as in original)
-    # Adjust this threshold as needed for your data
-    loss_threshold = 0.4  # Increased to show more points
+    # Draw red dot at coordinates
+    cv2.circle(frame, (x, y), RED_DOT_RADIUS, DOT_COLOR, -1)
     
-    if loss < loss_threshold:
-        # Get coordinates
-        x, y = row['X'], row['Y']
-        heading = row['Heading']
-        
-        # Convert to frame coordinates (center is 0,0)
-        frame_x = center_x + int(x)
-        frame_y = center_y - int(y)  # Flip Y axis to match typical coordinate systems
-        
-        # Ensure coordinates are within bounds
-        frame_x = max(0, min(frame_x, width-1))
-        frame_y = max(0, min(frame_y, height-1))
-        
-        # Draw a red dot
-        cv2.circle(frame, (frame_x, frame_y), 5, (0, 0, 255), -1)
-        
-        # Draw heading line (direction vector)
-        line_length = 30
-        end_x = frame_x + int(line_length * math.cos(heading))
-        end_y = frame_y - int(line_length * math.sin(heading))  # Flip Y for display
-        cv2.line(frame, (frame_x, frame_y), (end_x, end_y), (0, 255, 0), 2)
-        
-        # Add text information
-        cv2.putText(frame, f"Frame: {row['Frame']}", (10, 30), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 1)
-        cv2.putText(frame, f"X: {x}, Y: {y}", (10, 60), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 1)
-        cv2.putText(frame, f"Heading: {heading:.2f}", (10, 90), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 1)
-        cv2.putText(frame, f"Loss: {loss:.4f}", (10, 120), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 1)
-        cv2.putText(frame, f"Time: {row['Time (ms)']} ms", (10, 150), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 1)
-    else:
-        # Show frame number and explanation for frames with high loss
-        cv2.putText(frame, f"Frame: {row['Frame']} (loss too high: {loss:.4f})", (10, 30), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 1)
+    # Add frame number
+    cv2.putText(frame, f"Frame: {idx}", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
     
-    # Write frame to video
+    # Add to video
     out.write(frame)
     
-    # Optional: Display progress
-    print(f"Processed frame {idx+1}/{len(data)}")
+    # Show progress
+    if idx % 100 == 0:
+        print(f"Processed {idx}/{total_frames} frames ({idx/total_frames*100:.1f}%)")
 
-# Release video writer
+# Release resources
 out.release()
-print("Video creation complete!")
+print(f"Video created successfully: {OUTPUT_VIDEO}")

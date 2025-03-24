@@ -1,3 +1,4 @@
+#include "field.hpp"
 #include "position.hpp"
 #include "processor.hpp"
 #include <chrono> // For timing measurements
@@ -43,28 +44,35 @@ int main() {
     // Set precision for floating point values
     output_file << std::fixed << std::setprecision(4);
 
-    // Create a camera processor instance
+    // Prepare for processing
     camera::CamProcessor processor;
-
-    // Process each frame
     cv::Mat frame;
     int frame_count   = 0;
     double total_time = 0.0;
 
-    std::cout << "Processing frames..." << std::endl;
+    // Process the first frame
+    Pos center(5, camera::FIELD_HEIGHT - 5, 55);
+    cap.read(frame);
+    Pos current_pos =
+        processor.find_minima_smart_search(frame, center, 100, 3, 3).first;
+    output_file << 0 << "," << current_pos.x << "," << current_pos.y << ","
+                << current_pos.heading << "," << 0.0f << "," << 0.0f
+                << std::endl;
 
     // Process the video
     while (cap.read(frame)) {
         // Time the get_points function
         auto start_time = std::chrono::high_resolution_clock::now();
 
-        auto points = processor.grid_search(frame);
+        // use regression
+        auto points =
+            processor.find_minima_smart_search(frame, current_pos, 20, 3, 4);
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
                             end_time - start_time)
-
                             .count();
+
         total_time += duration;
 
         // Write data to file in CSV format (including timing)
@@ -73,26 +81,15 @@ int main() {
                     << points.second << "," << duration << std::endl;
 
         // Print timing information for this frame
-        std::cout << "Frame " << frame_count << ": get_points() took "
-                  << duration
+        std::cout << "Frame " << frame_count << " took " << duration
                   << " ms (avg: " << (total_time / (frame_count + 1)) << " ms)"
                   << std::endl;
 
         frame_count++;
-        break;
     }
 
     // Close the output file
     output_file.close();
-
-    // Print timing summary
-    double avg_time = total_time / frame_count;
-    std::cout << "\nPerformance summary:" << std::endl;
-    std::cout << "  Total frames processed: " << frame_count << std::endl;
-    std::cout << "  Total processing time: " << total_time << " ms"
-              << std::endl;
-    std::cout << "  Average time per frame: " << avg_time << " ms" << std::endl;
-    std::cout << "  Theoretical max FPS: " << (1000.0 / avg_time) << std::endl;
     std::cout << "\nProcessing complete. Data saved to '" << output_path << "'"
               << std::endl;
 

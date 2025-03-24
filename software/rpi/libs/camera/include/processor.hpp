@@ -33,6 +33,7 @@ class CamProcessor {
 
     /**
      * @brief Find the minima from an initial guess, using regression
+     * ^ Works VERY well ONLY for a good initial guess
      * 
      * @param camera_image 
      * @param initial_guess 
@@ -43,6 +44,8 @@ class CamProcessor {
 
     /**
      * @brief Find the minima from an initial guess, using grid search
+     * ^ This works well for small steps, but takes a long time
+     * ^ Still slightly RNG
      * 
      * @param camera_image 
      * @return std::pair<Pos, float> returns the position and the loss
@@ -50,7 +53,17 @@ class CamProcessor {
     static std::pair<Pos, float>
     find_minima_grid_search(const cv::Mat &camera_image);
 
+    /**
+     * @brief Find the minima from an initial guess, using smart search
+     * Aims to do grid search efficiently by searching middle first
+     * ^ Works quite well for most getting roughly where the bot is quickly
+     * 
+     * @param camera_image 
+     * @param center 
+     * @return std::pair<Pos, float> 
+     */
     static std::pair<Pos, float>
-    find_minima_smart_search(const cv::Mat &camera_image, Pos &center);
+    find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
+                             int RADIUS, int STEP, int HEADING_STEP);
 };
 } // namespace camera
