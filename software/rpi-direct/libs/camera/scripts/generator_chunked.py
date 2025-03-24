@@ -150,5 +150,5 @@ if __name__ == "__main__":
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     
     # Generate the coordinates with 3x3 chunks
-    generate_field_coordinates(image_path, output_path, output_image_path, chunk_size=4)
+    generate_field_coordinates(image_path, output_path, output_image_path, chunk_size=5)
     print(f"Field coordinates written to {output_path}")
