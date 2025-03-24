@@ -20,50 +20,59 @@ inline int generate_random_number(int mid, int variance, int min, int max) {
 
 float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     uint32_t count = 0, non_white = 0;
+    
+    // Fixed-point scaling factor (Q16.16 format)
+    constexpr int FP_SHIFT = 16;
+    constexpr int FP_ONE = 1 << FP_SHIFT;
+    
+    // Convert angles to fixed point representation
+    int32_t sin_theta_fp = static_cast<int32_t>(sin(guess.heading) * FP_ONE);
+    int32_t cos_theta_fp = static_cast<int32_t>(cos(guess.heading) * FP_ONE);
+    
+    // Cache image dimensions
+    const int img_width = camera_image.cols;
+    const int img_height = camera_image.rows;
 
-    // * cache the sin and cos values
-    float sin_theta = sin(guess.heading);
-    float cos_theta = cos(guess.heading);
-
-    // * transform & rotate white line coords
+    // Transform & rotate white line coords
     for (int i = 0; i < WHITE_LINES_LENGTH; i++) {
-        int16_t x = std::get<0>(WHITE_LINES[i]);
-        int16_t y = std::get<1>(WHITE_LINES[i]);
+        int16_t x = WHITE_LINES[i][0];
+        int16_t y = WHITE_LINES[i][1];
 
-        // transform
-        x -= guess.x;
-        y -= guess.y;
+        // Transform to relative coordinates
+        int32_t rel_x = x - guess.x;
+        int32_t rel_y = y - guess.y;
 
-        // rotate
-        float rotated_x = x * cos_theta - y * sin_theta;
-        float rotated_y = x * sin_theta + y * cos_theta;
-        x               = (int)rotated_x;
-        y               = (int)rotated_y;
+        // Rotate using fixed-point arithmetic
+        int32_t rotated_x_fp = (rel_x * cos_theta_fp - rel_y * sin_theta_fp) >> FP_SHIFT;
+        int32_t rotated_y_fp = (rel_x * sin_theta_fp + rel_y * cos_theta_fp) >> FP_SHIFT;
+        
+        // Convert back to integer coordinate space
+        int32_t final_x = rotated_x_fp;
+        int32_t final_y = rotated_y_fp;
 
-        // * for every coordinate in the arr, check if it exists in the image
-        if (x < 0 || x >= camera_image.cols || y < 0 ||
-            y >= camera_image.rows) {
+        // Check if the point is within image boundaries
+        if (final_x < 0 || final_x >= img_width || final_y < 0 || final_y >= img_height) {
             continue;
         }
 
-        // get that pixel in the camera image
-        const cv::Vec3b *row = camera_image.ptr<cv::Vec3b>(y);
-        cv::Vec3b pixel      = row[x];
+        // Get that pixel in the camera image (using direct pointer access for speed)
+        const cv::Vec3b *row = camera_image.ptr<cv::Vec3b>(final_y);
+        const cv::Vec3b &pixel = row[final_x];
 
-        // check if the pixel is white
-        if (!(pixel[0] > COLOR_R_THRES && pixel[1] > COLOR_G_THRES &&
-              pixel[2] > COLOR_B_THRES)) {
-            non_white += 1;
+        // Using optimized check with De Morgan's Law
+        if (pixel[0] <= COLOR_R_THRES || pixel[1] <= COLOR_G_THRES || 
+            pixel[2] <= COLOR_B_THRES) {
+            non_white++;
         }
-        count += 1;
+        count++;
     }
 
     if (count == 0) {
         return 1.0f;
     }
 
-    float loss = (float)non_white / (float)count;
-    return loss * loss * loss * loss * loss;
+    // Use integer division if possible, or at least avoid double casting
+    return static_cast<float>(non_white) / count;
 }
 
 std::pair<Pos, float>

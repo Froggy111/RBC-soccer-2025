@@ -1,13 +1,12 @@
 // Auto-generated field coordinates (320px = 200cm scale)
 #pragma once
-#include <tuple>
-
+#include <opencv2/core.hpp>
 namespace camera {
 const int WHITE_LINES_LENGTH = 882;
 const int FIELD_WIDTH = 291;
 const int FIELD_HEIGHT = 350;
 
-constexpr std::tuple<int, int> WHITE_LINES[882] = {
+constexpr int WHITE_LINES[882][2] = {
     {-126, -156},
     {-123, -156},
     {-120, -156},
