@@ -28,7 +28,7 @@ target_sources(ADS1115
     include/pins/ADS1115.hpp
 )
 target_include_directories(ADS1115 PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(ADS1115 hardware_i2c digital_pins)
+target_link_libraries(ADS1115 hardware_gpio hardware_i2c)
 target_link_globals(ADS1115)
 
 add_library(analog_pins)

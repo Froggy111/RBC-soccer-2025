@@ -9,7 +9,7 @@ extern "C" {
 
 namespace driver {
 // enum for which interface to use to write/read from the pin
-typedef enum PinInterface { GPIO, MUX1A, MUX1B, MUX2A, MUX2B } PinInterface;
+typedef enum PinInterface { GPIO, MUX1A, MUX1B, MUX2A, MUX2B, ADC1, ADC2 } PinInterface;
 
 // driver pinmap for DRV8244
 typedef enum DriverPinMap {
@@ -45,7 +45,7 @@ inline PinInterface driver1_mux_addr[] = {
     PinInterface::GPIO,  // SCK
     PinInterface::MUX1B, // NSLEEP
     PinInterface::MUX2B, // NFAULT
-    PinInterface::GPIO,  // IPROPI
+    PinInterface::ADC2,  // IPROPI
     PinInterface::MUX1B, // IN2
     PinInterface::GPIO,  // IN1
     PinInterface::MUX1B  // DRVOFF
@@ -71,7 +71,7 @@ inline PinInterface driver2_mux_addr[] = {
     PinInterface::GPIO,  // SCK
     PinInterface::MUX2A, // NSLEEP
     PinInterface::MUX2A, // NFAULT
-    PinInterface::GPIO,  // IPROPI
+    PinInterface::ADC1,  // IPROPI
     PinInterface::MUX2B,  // IN2
     PinInterface::GPIO,  // IN1
     PinInterface::MUX2B  // DRVOFF
@@ -97,7 +97,7 @@ inline PinInterface driver3_mux_addr[] = {
     PinInterface::GPIO,  // SCK
     PinInterface::MUX2A, // NSLEEP
     PinInterface::MUX2A, // NFAULT
-    PinInterface::GPIO,  // IPROPI
+    PinInterface::ADC1,  // IPROPI
     PinInterface::MUX2A,  // IN2
     PinInterface::GPIO,  // IN1
     PinInterface::MUX2A  // DRVOFF
@@ -123,7 +123,7 @@ inline PinInterface driver4_mux_addr[] = {
     PinInterface::GPIO,     // SCK
     PinInterface::MUX1B,    // NSLEEP
     PinInterface::MUX2B,    // NFAULT
-    PinInterface::GPIO,     // IPROPI
+    PinInterface::ADC2,     // IPROPI
     PinInterface::MUX1B,    // IN2
     PinInterface::GPIO,     // IN1
     PinInterface::MUX1A     // DRVOFF

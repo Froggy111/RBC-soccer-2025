@@ -98,7 +98,7 @@ void MotorDriver::init_pins() {
                             pins.get_pin_interface(DRVOFF));
 
   // EN/IN1
-  inputControl.init_analog(pins.get_pin(IN1), DEFAULT_IN1);
+  inputControl.init_pwm(pins.get_pin(IN1), DEFAULT_IN1);
 
   // PH/IN2
   inputControl.init_digital(pins.get_pin(IN2), DEFAULT_IN2);
@@ -367,7 +367,7 @@ bool MotorDriver::check_config() {
 }
 
 void MotorDriver::set_sleep(bool sleep) {
-  // Set the sleep pin
+  // Set the sleep pinwrite_analog
   inputControl.write_digital(pins.get_pin(NSLEEP), !sleep,
                              pins.get_pin_interface(NSLEEP));
   comms::USB_CDC.printf("Motor sleep set to %d\n", !sleep);
@@ -396,7 +396,7 @@ bool MotorDriver::command(types::i16 duty_cycle) {
 
   // Command motor by setting one channel to PWM and the other low
   inputControl.write_digital(in2_pin, direction, pins.get_pin_interface(IN2));
-  inputControl.write_analog(in1_pin, duty_cycle);
+  inputControl.write_pwm(in1_pin, duty_cycle);
 
   comms::USB_CDC.printf(
       "Motor command executed: Duty cycle = %d, Direction = %d\n", duty_cycle,
