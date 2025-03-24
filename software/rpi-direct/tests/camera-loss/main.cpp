@@ -19,6 +19,8 @@ cv::Mat readFirstFrame(const std::string &video_path) {
 
     cv::Mat frame;
     cap >> frame;
+    cap >> frame;
+    cap >> frame;
     return frame;
 }
 

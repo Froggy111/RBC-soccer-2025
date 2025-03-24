@@ -29,22 +29,28 @@ class CamProcessor {
      */
     static float calculate_loss(const cv::Mat &camera_image, Pos &guess);
 
+    // * Functions to find theminima
+
     /**
-     * @brief Find the local minima from an initial guess, using regression
+     * @brief Find the minima from an initial guess, using regression
      * 
      * @param camera_image 
      * @param initial_guess 
      * @return std::pair<Pos, float> returns the position and the loss
      */
-    static std::pair<Pos, float> regress(const cv::Mat &camera_image,
-                                         Pos &initial_guess);
+    static std::pair<Pos, float>
+    find_minima_regress(const cv::Mat &camera_image, Pos &initial_guess);
 
     /**
-     * @brief Find the local minima from an initial guess, using grid search
+     * @brief Find the minima from an initial guess, using grid search
      * 
      * @param camera_image 
      * @return std::pair<Pos, float> returns the position and the loss
      */
-     static std::pair<Pos, float> grid_search(const cv::Mat &camera_image);
+    static std::pair<Pos, float>
+    find_minima_grid_search(const cv::Mat &camera_image);
+
+    static std::pair<Pos, float>
+    find_minima_smart_search(const cv::Mat &camera_image, Pos &center);
 };
 } // namespace camera

@@ -60,11 +60,11 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     return loss;
 }
 
-std::pair<Pos, float> CamProcessor::regress(const cv::Mat &camera_image,
+std::pair<Pos, float> CamProcessor::find_minima_regress(const cv::Mat &camera_image,
                                             Pos &initial_guess) {
     Pos best_guess  = initial_guess;
     float best_loss = calculate_loss(camera_image, best_guess);
-    while (best_loss > 0.3f) {
+    for (int i = 0; i < NUM_GENERATIONS; i++) {
         Pos current_best_guess  = best_guess;
         float current_best_loss = best_loss;
 
@@ -109,13 +109,12 @@ std::pair<Pos, float> CamProcessor::regress(const cv::Mat &camera_image,
             best_guess = current_best_guess;
             best_loss  = current_best_loss;
         }
-        printf("Best Loss: %f %d %d\n", best_loss, best_guess.x, best_guess.y);
     }
 
     return std::make_pair(best_guess, best_loss);
 }
 
-std::pair<Pos, float> CamProcessor::grid_search(const cv::Mat &camera_image) {
+std::pair<Pos, float> CamProcessor::find_minima_grid_search(const cv::Mat &camera_image) {
     Pos best_guess = {0, 0, 0};
     float best_loss = 1.0f;
 
@@ -133,7 +132,7 @@ std::pair<Pos, float> CamProcessor::grid_search(const cv::Mat &camera_image) {
                 }
 
                 if (best_loss < 0.3f) {
-                    // Early exit if a good guess is found
+                    // Early exit if regress good guess is found
                     return std::make_pair(best_guess, best_loss);
                 }
             }
@@ -141,5 +140,11 @@ std::pair<Pos, float> CamProcessor::grid_search(const cv::Mat &camera_image) {
     }
 
     return std::make_pair(best_guess, best_loss);
+}
+
+std::pair<Pos, float>
+CamProcessor::find_minima_smart_search(const cv::Mat &camera_image,
+                                       Pos &center) {
+    
 }
 } // namespace camera
