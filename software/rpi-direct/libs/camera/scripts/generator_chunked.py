@@ -82,36 +82,6 @@ def generate_field_coordinates(image_path, output_path, output_image_path, chunk
     
     print(f"Output image size: {image_width}x{image_height}")
     
-    # Create a black image
-    output_img = Image.new("RGB", (image_width, image_height), "black")
-    pixels = output_img.load()
-    
-    # Calculate pixels per grid cell in the output image
-    pixels_per_grid_x = chunk_size * x_scale
-    pixels_per_grid_y = chunk_size * y_scale
-    
-    # Set pixels to red based on coordinates
-    for x, y in coordinates:
-        # Shift coordinates to be within image bounds (center is at image center)
-        grid_x = x / (chunk_size * x_scale) + grid_center_x
-        grid_y = y / (chunk_size * y_scale) + grid_center_y
-        
-        # Calculate the pixel region for this grid cell in the output image
-        start_pixel_x = int(grid_x * pixels_per_grid_x)
-        start_pixel_y = int(grid_y * pixels_per_grid_y)
-        end_pixel_x = int(min(start_pixel_x + pixels_per_grid_x, image_width))
-        end_pixel_y = int(min(start_pixel_y + pixels_per_grid_y, image_height))
-        
-        # Color the entire grid cell
-        for px in range(start_pixel_x, end_pixel_x):
-            for py in range(start_pixel_y, end_pixel_y):
-                if 0 <= px < image_width and 0 <= py < image_height:
-                    pixels[px, py] = (255, 0, 0)  # Red
-    
-    # Save the image
-    output_img.save(output_image_path)
-    print(f"Coordinate image written to {output_image_path}")
-    
     # Generate the C++ header file
     with open(output_path, 'w') as f:
         f.write("// Auto-generated field coordinates (320px = 200cm scale, grid-based)\n")
@@ -150,5 +120,5 @@ if __name__ == "__main__":
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     
     # Generate the coordinates with 3x3 chunks
-    generate_field_coordinates(image_path, output_path, output_image_path, chunk_size=5)
+    generate_field_coordinates(image_path, output_path, output_image_path, chunk_size=3)
     print(f"Field coordinates written to {output_path}")

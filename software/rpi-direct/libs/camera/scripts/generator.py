@@ -73,6 +73,7 @@ def generate_field_coordinates(image_path, output_path, output_image_path):
         f.write(f"const int WHITE_LINES_LENGTH = {len(coordinates)};\n")
         f.write(f"const int FIELD_WIDTH = {image_width};\n")
         f.write(f"const int FIELD_HEIGHT = {image_height};\n\n")
+        f.write("const int GRID_SIZE = 1;\n")
         f.write(f"constexpr int WHITE_LINES[{len(coordinates)}][2] = {{\n")
         
         for i, (x, y) in enumerate(coordinates):
