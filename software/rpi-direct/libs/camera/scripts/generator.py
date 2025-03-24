@@ -34,7 +34,7 @@ def generate_field_coordinates(image_path, output_path, output_image_path):
                 # Convert to field coordinates with center as (0,0)
                 real_x = int(round((x - center_x) * x_scale))
                 real_y = int(round((y - center_y) * y_scale))
-                if count % 3 == 0:
+                if count % 2 == 0:
                     coordinates.append((real_x, real_y))
                 count += 1
     

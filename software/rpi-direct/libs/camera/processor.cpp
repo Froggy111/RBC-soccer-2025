@@ -9,7 +9,7 @@
 namespace camera {
 inline int generate_random_number(int mid, int variance, int min, int max) {
     // Generate a random number between mid - variance and mid + variance
-    int random_number = mid - variance + (rand() % (2 * variance));
+    int random_number = mid - variance + (rand() % (int)(2 * variance + 1));
     if (random_number > max) {
         random_number = max - (random_number - max);
     } else if (random_number < min) {
@@ -70,7 +70,7 @@ std::pair<Pos, float>
 CamProcessor::find_minima_regress(const cv::Mat &camera_image,
                                   Pos &initial_guess) {
     // ? CONSTANTS
-    const int NUM_PARTICLES_PER_GENERATION = 15;
+    const int NUM_PARTICLES_PER_GENERATION = 10;
     const int NUM_GENERATIONS              = 25;
 
     Pos best_guess  = initial_guess;
@@ -85,11 +85,13 @@ CamProcessor::find_minima_regress(const cv::Mat &camera_image,
 
             // randomize new guess properties, with the randomness proportional to the best_loss
             new_guess.x =
-                generate_random_number(new_guess.x, best_loss * FIELD_WIDTH / 2, 0, FIELD_WIDTH);
+                (int)generate_random_number(new_guess.x, 4, 0, FIELD_WIDTH);
             new_guess.y =
-                generate_random_number(new_guess.y, best_loss * FIELD_HEIGHT / 2, 0, FIELD_HEIGHT);
+                (int)generate_random_number(new_guess.y, 4, 0, FIELD_HEIGHT);
             new_guess.heading =
-                generate_random_number(new_guess.heading, best_loss * M_PI, 0, 2 * M_PI);
+                generate_random_number(
+                    (int)(new_guess.heading * (float)180 / M_PI), 10, 0, 360) *
+                (float)M_PI / 180.0f;
 
             // calculate loss
             float new_loss = calculate_loss(camera_image, new_guess);
@@ -149,8 +151,8 @@ CamProcessor::find_minima_smart_search(const cv::Mat &camera_image,
 
     // ? CONSTANTS
     const int DENSE_RADIUS       = 100; // Dense search radius around center
-    const int DENSE_STEP         = 3;  // Step size for dense search
-    const int HEADING_DENSE_STEP = 5;  // In degrees
+    const int DENSE_STEP         = 3;   // Step size for dense search
+    const int HEADING_DENSE_STEP = 5;   // In degrees
 
     // Search boundaries
     int x_min = 0;

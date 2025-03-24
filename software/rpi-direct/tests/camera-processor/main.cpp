@@ -47,14 +47,14 @@ int main() {
     // Prepare for processing
     camera::CamProcessor processor;
     cv::Mat frame;
-    int frame_count   = 1;
+    int frame_count   = 0;
     double total_time = 0.0;
 
     // Process the first frame
     Pos center(5, camera::FIELD_HEIGHT - 5, 55);
     cap.read(frame);
     Pos current_pos = processor.find_minima_smart_search(frame, center).first;
-    output_file << frame_count << "," << current_pos.x << ","
+    output_file << 0 << "," << current_pos.x << ","
                 << current_pos.y << "," << current_pos.heading << ","
                 << 0.0f << "," << 0.0f << std::endl;
 
