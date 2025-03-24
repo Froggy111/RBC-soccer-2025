@@ -26,8 +26,8 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     constexpr int FP_ONE   = 1 << FP_SHIFT;
 
     // Convert angles to fixed point representation
-    int32_t sin_theta_fp = static_cast<int32_t>(sin(guess.heading) * FP_ONE);
-    int32_t cos_theta_fp = static_cast<int32_t>(cos(guess.heading) * FP_ONE);
+    int32_t sin_theta_fp = static_cast<int32_t>(sin(-guess.heading) * FP_ONE);
+    int32_t cos_theta_fp = static_cast<int32_t>(cos(-guess.heading) * FP_ONE);
 
     // Transform & rotate white line coords
     for (int i = 0; i < WHITE_LINES_LENGTH; i++) {
@@ -84,8 +84,8 @@ std::pair<Pos, float>
 CamProcessor::find_minima_regress(const cv::Mat &camera_image,
                                   Pos &initial_guess) {
     // ? CONSTANTS
-    const int NUM_PARTICLES_PER_GENERATION = 25;
-    const int NUM_GENERATIONS              = 10;
+    const int NUM_PARTICLES_PER_GENERATION = 100;
+    const int NUM_GENERATIONS              = 5;
 
     Pos best_guess  = initial_guess;
     float best_loss = calculate_loss(camera_image, best_guess);
@@ -99,9 +99,9 @@ CamProcessor::find_minima_regress(const cv::Mat &camera_image,
 
             // randomize new guess properties, with the randomness proportional to the best_loss
             new_guess.x =
-                (int)generate_random_number(new_guess.x, 8, 0, FIELD_WIDTH);
+                (int)generate_random_number(new_guess.x, 3, 0, FIELD_WIDTH);
             new_guess.y =
-                (int)generate_random_number(new_guess.y, 8, 0, FIELD_HEIGHT);
+                (int)generate_random_number(new_guess.y, 3, 0, FIELD_HEIGHT);
             new_guess.heading =
                 generate_random_number(
                     (int)(new_guess.heading * (float)180 / M_PI), 10, 0, 360) *
