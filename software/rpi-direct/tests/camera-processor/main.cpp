@@ -57,34 +57,36 @@ int main() {
                 << initial.first.heading * 180 / M_PI << "," << initial.second
                 << "," << 0.0f << std::endl;
 
+    Pos current_pos(initial.first.x, initial.first.y, initial.first.heading);
+
     // Process the video
-    // while (cap.read(frame)) {
-    //     // Time the get_points function
-    //     auto start_time = std::chrono::high_resolution_clock::now();
+    while (cap.read(frame)) {
+        // Time the get_points function
+        auto start_time = std::chrono::high_resolution_clock::now();
 
-    //     // use regression
-    //     auto points =
-    //         processor.find_minima_smart_search(frame, current_pos, 20, 3, 4);
+        // use regression
+        auto points = processor.find_minima_regress(frame, current_pos);
 
-    //     auto end_time = std::chrono::high_resolution_clock::now();
-    //     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
-    //                         end_time - start_time)
-    //                         .count();
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            end_time - start_time)
+                            .count();
 
-    //     total_time += duration;
+        total_time += duration;
 
-    //     // Write data to file in CSV format (including timing)
-    //     output_file << frame_count << "," << points.first.x << ","
-    //                 << points.first.y << "," << points.first.heading * 180 / M_PI << ","
-    //                 << points.second << "," << duration << std::endl;
+        // Write data to file in CSV format (including timing)
+        output_file << frame_count << "," << points.first.x << ","
+                    << points.first.y << "," << points.first.heading * 180 / M_PI << ","
+                    << points.second << "," << duration << std::endl;
 
-    //     // Print timing information for this frame
-    //     std::cout << "Frame " << frame_count << " took " << duration
-    //               << " ms (avg: " << (total_time / (frame_count + 1)) << " ms)"
-    //               << std::endl;
+        // Print timing information for this frame
+        std::cout << "Frame " << frame_count << " took " << duration
+                  << " ms (avg: " << (total_time / (frame_count + 1)) << " ms)"
+                  << std::endl;
 
-    //     frame_count++;
-    // }
+        current_pos = Pos(points.first.x, points.first.y, points.first.heading);
+        frame_count++;
+    }
 
     // Close the output file
     output_file.close();
