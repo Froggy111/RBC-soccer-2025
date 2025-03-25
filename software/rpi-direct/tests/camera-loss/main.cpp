@@ -1,3 +1,4 @@
+#include "field.hpp"
 #include "position.hpp"
 #include "processor.hpp"
 #include <chrono>
@@ -29,10 +30,8 @@ float clamp(float value, float min_val, float max_val) {
 
 int main(int argc, char **argv) {
     // Set up parameters
-    const int field_width        = 292;
-    const int field_height       = 350;
     const std::string video_path = "480p.mp4";
-    const int num_frames         = 360; // One frame per degree
+    const int num_frames         = 360;
 
     // Initialize processor
     camera::CamProcessor processor;
@@ -64,13 +63,14 @@ int main(int argc, char **argv) {
         float heading_rad = angle * M_PI / 180.0f;
 
         // Create empty image for the heatmap
-        cv::Mat heatmap(field_height, field_width, CV_8UC3,
+        cv::Mat heatmap(camera::FIELD_HEIGHT, camera::FIELD_WIDTH, CV_8UC3,
                         cv::Scalar(0, 0, 0));
 
         // Process each pixel/position in the field
-        for (int y = 0; y < 253; y++) {
-            for (int x = 0; x < 312; x++) {
-                Pos position(x - 312 / 2, y - 253 / 2, heading_rad);
+        for (int y = 0; y < camera::FIELD_HEIGHT; y++) {
+            for (int x = 0; x < camera::FIELD_WIDTH; x++) {
+                Pos position(x - camera::FIELD_HEIGHT / 2,
+                             y - camera::FIELD_WIDTH / 2, heading_rad);
                 float loss = processor.calculate_loss(test_frame, position);
 
                 // Ensure loss is between 0 and 1
@@ -80,13 +80,8 @@ int main(int argc, char **argv) {
                 // Low loss (good match) = blue, high loss (bad match) = red
                 int intensity = static_cast<int>((1.0f - loss) * 255);
 
-                heatmap.at<cv::Vec3b>(y, x) = cv::Vec3b(intensity, intensity, intensity);
-            }
-
-            // Print progress every 10% of field height
-            if (y % (field_height / 10) == 0) {
-                std::cout << "Progress: " << (y * 100 / field_height) << "%"
-                          << std::endl;
+                heatmap.at<cv::Vec3b>(y, x) =
+                    cv::Vec3b(intensity, intensity, intensity);
             }
         }
 
