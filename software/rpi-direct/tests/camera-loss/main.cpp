@@ -68,9 +68,9 @@ int main(int argc, char **argv) {
                         cv::Scalar(0, 0, 0));
 
         // Process each pixel/position in the field
-        for (int y = 0; y < field_height; y++) {
-            for (int x = 0; x < field_width; x++) {
-                Pos position(x, y, heading_rad);
+        for (int y = 0; y < 253; y++) {
+            for (int x = 0; x < 312; x++) {
+                Pos position(x - 312 / 2, y - 253 / 2, heading_rad);
                 float loss = processor.calculate_loss(test_frame, position);
 
                 // Ensure loss is between 0 and 1

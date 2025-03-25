@@ -72,7 +72,7 @@ def main():
     plt.ylabel('Y Coordinate')
 
     # Draw center of the field
-    plt.scatter(480 / 2, 680 / 2, s=100, c='red', label='Field Center')
+    plt.scatter(480 / 2, 640 / 2, s=100, c='red', label='Field Center')
 
     plt.show()
     

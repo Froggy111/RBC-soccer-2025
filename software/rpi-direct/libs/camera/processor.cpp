@@ -51,18 +51,18 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
         int32_t final_x = rotated_x_fp + 480 / 2;
         int32_t final_y = rotated_y_fp + 640 / 2;
 
-        // Check if the point is within image boundaries
-        if (final_x < 0 || final_x >= 480 || final_y < 0 ||
-            final_y >= 640) {
+        // Check if the point is within IMAGE boundaries
+        if (final_x < 0 || final_x >= 480 || final_y < 0 || final_y >= 640) {
             continue;
         }
 
         for (int j = 0; j < GRID_SIZE; j++) {
             for (int k = 0; k < GRID_SIZE; k++) {
                 // Get that pixel in the camera image (using direct pointer access for speed)
+                // std::printf("final_x: %d, final_y: %d\n", final_x, final_y);
                 const cv::Vec3b *row =
-                    camera_image.ptr<cv::Vec3b>(final_y * GRID_SIZE + j);
-                const cv::Vec3b &pixel = row[final_x * GRID_SIZE + k];
+                    camera_image.ptr<cv::Vec3b>(final_x * GRID_SIZE + k);
+                const cv::Vec3b &pixel = row[final_y * GRID_SIZE + j];
 
                 // Using optimized check with De Morgan's Law
                 if (pixel[0] <= COLOR_R_THRES || pixel[1] <= COLOR_G_THRES ||
