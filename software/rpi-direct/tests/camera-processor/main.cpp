@@ -51,11 +51,11 @@ int main() {
     // Process the first frame
     Pos center(0, 0);
     cap.read(frame);
-    Pos current_pos =
-        processor.find_minima_smart_search(frame, center, 150, 2, 2).first;
-    output_file << 0 << "," << current_pos.x << "," << current_pos.y << ","
-                << current_pos.heading * 180 / M_PI << "," << 0.0f << "," << 0.0f
-                << std::endl;
+    std::pair<Pos, int> initial =
+        processor.find_minima_smart_search(frame, center, 150, 2, 2);
+    output_file << 0 << "," << initial.first.x << "," << initial.first.y
+                << "," << initial.first.heading * 180 / M_PI << ","
+                << initial.second << "," << 0.0f << std::endl;
 
     // Process the video
     // while (cap.read(frame)) {

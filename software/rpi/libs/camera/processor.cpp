@@ -20,11 +20,11 @@ inline int generate_random_number(int mid, int variance, int min, int max) {
 
 float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     uint32_t count = 0, non_white = 0;
-    
+
     // Fixed-point scaling factor (Q16.16 format)
     constexpr int FP_SHIFT = 16;
-    constexpr int FP_ONE = 1 << FP_SHIFT;
-    
+    constexpr int FP_ONE   = 1 << FP_SHIFT;
+
     // Convert angles to fixed point representation
     int32_t sin_theta_fp = static_cast<int32_t>(sin(guess.heading) * FP_ONE);
     int32_t cos_theta_fp = static_cast<int32_t>(cos(guess.heading) * FP_ONE);
@@ -39,24 +39,27 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
         int32_t rel_y = y - guess.y;
 
         // Rotate using fixed-point arithmetic
-        int32_t rotated_x_fp = (rel_x * cos_theta_fp - rel_y * sin_theta_fp) >> FP_SHIFT;
-        int32_t rotated_y_fp = (rel_x * sin_theta_fp + rel_y * cos_theta_fp) >> FP_SHIFT;
-        
+        int32_t rotated_x_fp =
+            (rel_x * cos_theta_fp - rel_y * sin_theta_fp) >> FP_SHIFT;
+        int32_t rotated_y_fp =
+            (rel_x * sin_theta_fp + rel_y * cos_theta_fp) >> FP_SHIFT;
+
         // Convert back to integer coordinate space
         int32_t final_x = rotated_x_fp;
         int32_t final_y = rotated_y_fp;
 
         // Check if the point is within image boundaries
-        if (final_x < 0 || final_x >= FIELD_WIDTH || final_y < 0 || final_y >= FIELD_HEIGHT) {
+        if (final_x < 0 || final_x >= FIELD_X_SIZE || final_y < 0 ||
+            final_y >= FIELD_Y_SIZE) {
             continue;
         }
 
         // Get that pixel in the camera image (using direct pointer access for speed)
-        const cv::Vec3b *row = camera_image.ptr<cv::Vec3b>(final_y);
+        const cv::Vec3b *row   = camera_image.ptr<cv::Vec3b>(final_y);
         const cv::Vec3b &pixel = row[final_x];
 
         // Using optimized check with De Morgan's Law
-        if (pixel[0] <= COLOR_R_THRES || pixel[1] <= COLOR_G_THRES || 
+        if (pixel[0] <= COLOR_R_THRES || pixel[1] <= COLOR_G_THRES ||
             pixel[2] <= COLOR_B_THRES) {
             non_white++;
         }
@@ -90,9 +93,9 @@ CamProcessor::find_minima_regress(const cv::Mat &camera_image,
 
             // randomize new guess properties, with the randomness proportional to the best_loss
             new_guess.x =
-                (int)generate_random_number(new_guess.x, 8, 0, FIELD_WIDTH);
+                (int)generate_random_number(new_guess.x, 8, 0, FIELD_X_SIZE);
             new_guess.y =
-                (int)generate_random_number(new_guess.y, 8, 0, FIELD_HEIGHT);
+                (int)generate_random_number(new_guess.y, 8, 0, FIELD_Y_SIZE);
             new_guess.heading =
                 generate_random_number(
                     (int)(new_guess.heading * (float)180 / M_PI), 10, 0, 360) *
@@ -126,8 +129,8 @@ CamProcessor::find_minima_grid_search(const cv::Mat &camera_image) {
     float best_loss = 1.0f;
 
     // Perform grid search
-    for (int x = 0; x < FIELD_WIDTH; x += GRID_STEP) {
-        for (int y = 0; y < FIELD_HEIGHT; y += GRID_STEP) {
+    for (int x = 0; x < FIELD_X_SIZE; x += GRID_STEP) {
+        for (int y = 0; y < FIELD_Y_SIZE; y += GRID_STEP) {
             for (int heading = 0; heading < 360; heading += GRID_STEP_HEADING) {
                 Pos guess  = {x, y, heading * (float)M_PI / 180.0f};
                 float loss = calculate_loss(camera_image, guess);
@@ -149,28 +152,25 @@ CamProcessor::find_minima_grid_search(const cv::Mat &camera_image) {
 }
 
 std::pair<Pos, float>
-CamProcessor::find_minima_smart_search(const cv::Mat &camera_image,
-                                       Pos &center, int RADIUS, int STEP, int HEADING_STEP) {
+CamProcessor::find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
+                                       int RADIUS, int STEP, int HEADING_STEP) {
     Pos best_guess  = center;
     float best_loss = calculate_loss(camera_image, best_guess);
 
     // Search boundaries
     int x_min = 0;
-    int x_max = FIELD_WIDTH;
+    int x_max = FIELD_X_SIZE;
     int y_min = 0;
-    int y_max = FIELD_HEIGHT;
+    int y_max = FIELD_Y_SIZE;
 
     // Do the dense search first>
-    for (int x = center.x - RADIUS; x <= center.x + RADIUS;
-         x += STEP) {
-        for (int y = center.y - RADIUS; y <= center.y + RADIUS;
-             y += STEP) {
+    for (int x = center.x - RADIUS; x <= center.x + RADIUS; x += STEP) {
+        for (int y = center.y - RADIUS; y <= center.y + RADIUS; y += STEP) {
             if (x < x_min || x >= x_max || y < y_min || y >= y_max) {
                 continue;
             }
 
-            for (int heading = 0; heading < 360;
-                 heading += HEADING_STEP) {
+            for (int heading = 0; heading < 360; heading += HEADING_STEP) {
                 Pos guess  = {x, y, heading * (float)M_PI / 180.0f};
                 float loss = calculate_loss(camera_image, guess);
 

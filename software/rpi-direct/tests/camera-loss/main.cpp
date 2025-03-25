@@ -63,14 +63,14 @@ int main(int argc, char **argv) {
         float heading_rad = angle * M_PI / 180.0f;
 
         // Create empty image for the heatmap
-        cv::Mat heatmap(camera::FIELD_HEIGHT, camera::FIELD_WIDTH, CV_8UC3,
+        cv::Mat heatmap(camera::FIELD_Y_SIZE, camera::FIELD_X_SIZE, CV_8UC3,
                         cv::Scalar(0, 0, 0));
 
         // Process each pixel/position in the field
-        for (int y = 0; y < camera::FIELD_HEIGHT; y++) {
-            for (int x = 0; x < camera::FIELD_WIDTH; x++) {
-                Pos position(x - camera::FIELD_HEIGHT / 2,
-                             y - camera::FIELD_WIDTH / 2, heading_rad);
+        for (int y = 0; y < camera::FIELD_Y_SIZE; y++) {
+            for (int x = 0; x < camera::FIELD_X_SIZE; x++) {
+                Pos position(x - camera::FIELD_Y_SIZE / 2,
+                             y - camera::FIELD_X_SIZE / 2, heading_rad);
                 float loss = processor.calculate_loss(test_frame, position);
 
                 // Ensure loss is between 0 and 1

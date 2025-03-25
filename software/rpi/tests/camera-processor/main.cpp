@@ -51,7 +51,7 @@ int main() {
     double total_time = 0.0;
 
     // Process the first frame
-    Pos center(5, camera::FIELD_HEIGHT - 5, 55);
+    Pos center(5, camera::FIELD_Y_SIZE - 5, 55);
     cap.read(frame);
     Pos current_pos =
         processor.find_minima_smart_search(frame, center, 100, 3, 3).first;
