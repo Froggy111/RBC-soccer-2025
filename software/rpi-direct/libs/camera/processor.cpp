@@ -80,7 +80,7 @@ CamProcessor::find_minima_regress(const cv::Mat &camera_image,
                                   Pos &initial_guess) {
     // ? CONSTANTS
     const int NUM_PARTICLES_PER_GENERATION = 25;
-    const int NUM_GENERATIONS              = 3;
+    const int NUM_GENERATIONS              = 12;
 
     Pos best_guess  = initial_guess;
     float best_loss = calculate_loss(camera_image, best_guess);
@@ -94,9 +94,9 @@ CamProcessor::find_minima_regress(const cv::Mat &camera_image,
 
             // randomize new guess properties, with the randomness proportional to the best_loss
             new_guess.x =
-                (int)generate_random_number(new_guess.x, 10, 0, FIELD_X_SIZE);
+                (int)generate_random_number(new_guess.x, 3, -FIELD_X_SIZE / 2, FIELD_X_SIZE / 2);
             new_guess.y =
-                (int)generate_random_number(new_guess.y, 10, 0, FIELD_Y_SIZE);
+                (int)generate_random_number(new_guess.y, 3, -FIELD_Y_SIZE / 2, FIELD_Y_SIZE / 2);
             new_guess.heading =
                 generate_random_number(
                     (int)(new_guess.heading * (float)180 / M_PI), 10, 0, 360) *

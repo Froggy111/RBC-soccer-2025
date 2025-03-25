@@ -49,10 +49,10 @@ int main() {
     double total_time = 0.0;
 
     // Process the first frame
-    Pos center(0, 0);
+    Pos center(72, -104); // ^ change if needed
     cap.read(frame);
     std::pair<Pos, float> initial =
-        processor.find_minima_smart_search(frame, center, 150, 2, 2);
+        processor.find_minima_smart_search(frame, center, 30, 2, 2);
     output_file << 0 << "," << initial.first.x << "," << initial.first.y << ","
                 << initial.first.heading * 180 / M_PI << "," << initial.second
                 << "," << 0.0f << std::endl;
