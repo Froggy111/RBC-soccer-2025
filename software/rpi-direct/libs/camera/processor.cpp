@@ -66,7 +66,7 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     if (count == 0) {
         return 1.0f;
     }
-    // printf("Count: %d, Non-white: %d\n", count, non_white);
+    printf("Count: %d, Non-white: %d\n", count, non_white);
 
     // Use integer division if possible, or at least avoid double casting
     float loss = static_cast<float>(non_white) / count;
@@ -157,10 +157,10 @@ CamProcessor::find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
     float best_loss = calculate_loss(camera_image, best_guess);
 
     // Search boundaries
-    int x_min = -IMG_WIDTH / 2;
-    int x_max = IMG_WIDTH / 2;
-    int y_min = -IMG_HEIGHT / 2;
-    int y_max = IMG_HEIGHT / 2;
+    int x_min = -IMG_HEIGHT / 2;
+    int x_max = IMG_HEIGHT / 2;
+    int y_min = -IMG_WIDTH / 2;
+    int y_max = IMG_WIDTH / 2;
 
     // Do the dense search first>
     for (int x = center.x - RADIUS; x <= center.x + RADIUS; x += STEP) {
