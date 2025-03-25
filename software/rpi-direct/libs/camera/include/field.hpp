@@ -2,8 +2,8 @@
 #pragma once
 namespace camera {
 const int WHITE_LINES_LENGTH = 882;
-const int FIELD_WIDTH = 291;
-const int FIELD_HEIGHT = 350;
+const int FIELD_WIDTH = 253;
+const int FIELD_HEIGHT = 312;
 
 const int GRID_SIZE = 1;
 constexpr int WHITE_LINES[882][2] = {
