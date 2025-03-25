@@ -25,9 +25,12 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     constexpr int FP_SHIFT = 16;
     constexpr int FP_ONE   = 1 << FP_SHIFT;
 
+    // Make sure heading is in bound
+    float bounded_heading = std::fmod(std::abs(guess.heading), 2 * M_PI);
+
     // Convert angles to fixed point representation
-    int32_t sin_theta_fp = static_cast<int32_t>(sin(-guess.heading) * FP_ONE);
-    int32_t cos_theta_fp = static_cast<int32_t>(cos(-guess.heading) * FP_ONE);
+    int32_t sin_theta_fp = static_cast<int32_t>(sin(bounded_heading) * FP_ONE);
+    int32_t cos_theta_fp = static_cast<int32_t>(cos(bounded_heading) * FP_ONE);
 
     // Transform & rotate white line coords
     for (int i = 0; i < WHITE_LINES_LENGTH; i++) {
@@ -35,8 +38,8 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
         int16_t y = WHITE_LINES[i][1];
 
         // Transform to relative coordinates
-        int32_t rel_x = x - guess.x / GRID_SIZE;
-        int32_t rel_y = y - guess.y / GRID_SIZE;
+        int32_t rel_x = x + guess.x / GRID_SIZE;
+        int32_t rel_y = y + guess.y / GRID_SIZE;
 
         // Rotate using fixed-point arithmetic
         int32_t rotated_x_fp =
@@ -44,9 +47,9 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
         int32_t rotated_y_fp =
             (rel_x * sin_theta_fp + rel_y * cos_theta_fp) >> FP_SHIFT;
 
-        // Convert back to integer coordinate space
-        int32_t final_x = rotated_x_fp;
-        int32_t final_y = rotated_y_fp;
+        // Convert back to integer coordinate space with offset
+        int32_t final_x = rotated_x_fp + 480 / 2;
+        int32_t final_y = rotated_y_fp + 680 / 2;
 
         // Check if the point is within image boundaries
         if (final_x < 0 || final_x >= FIELD_WIDTH || final_y < 0 ||

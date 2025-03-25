@@ -51,12 +51,12 @@ int main() {
     double total_time = 0.0;
 
     // Process the first frame
-    Pos center(5, camera::FIELD_HEIGHT - 5, 55);
+    Pos center(0, 0);
     cap.read(frame);
     Pos current_pos =
-        processor.find_minima_smart_search(frame, center, 100, 3, 3).first;
+        processor.find_minima_smart_search(frame, center, 300, 3, 3).first;
     output_file << 0 << "," << current_pos.x << "," << current_pos.y << ","
-                << current_pos.heading << "," << 0.0f << "," << 0.0f
+                << current_pos.heading * 180 / M_PI << "," << 0.0f << "," << 0.0f
                 << std::endl;
 
     // Process the video
@@ -77,7 +77,7 @@ int main() {
 
         // Write data to file in CSV format (including timing)
         output_file << frame_count << "," << points.first.x << ","
-                    << points.first.y << "," << points.first.heading << ","
+                    << points.first.y << "," << points.first.heading * 180 / M_PI << ","
                     << points.second << "," << duration << std::endl;
 
         // Print timing information for this frame

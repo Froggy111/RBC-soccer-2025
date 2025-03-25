@@ -49,8 +49,8 @@ def main():
         rotated_y_fp = (rel_x * sin_theta_fp + rel_y * cos_theta_fp) >> FP_SHIFT
         
         # Convert back to integer coordinate space
-        final_x = int(rotated_x_fp + FIELD_WIDTH)
-        final_y = int(rotated_y_fp + FIELD_HEIGHT)
+        final_x = int(rotated_x_fp + 480 / 2)
+        final_y = int(rotated_y_fp + 680 / 2)
         
         # Check if the point is within image boundaries
         if final_x < 0 or final_x >= 480 or final_y < 0 or final_y >= 640:
