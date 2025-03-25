@@ -49,7 +49,8 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
         int32_t final_y = rotated_y_fp + IMG_WIDTH / 2;
 
         // Check if the point is within IMAGE boundaries
-        if (final_x < 0 || final_x >= IMG_HEIGHT || final_y < 0 || final_y >= IMG_WIDTH) {
+        if (final_x < 0 || final_x >= IMG_HEIGHT || final_y < 0 ||
+            final_y >= IMG_WIDTH) {
             continue;
         }
 
@@ -57,7 +58,8 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
         const cv::Vec3b *row = camera_image.ptr<cv::Vec3b>(IMG_WIDTH - final_y);
         const cv::Vec3b &pixel = row[final_x];
 
-        if (pixel[0] < COLOR_R_THRES || pixel[1] < COLOR_G_THRES || pixel[2] < COLOR_B_THRES) {
+        if (pixel[0] < COLOR_R_THRES || pixel[1] < COLOR_G_THRES ||
+            pixel[2] < COLOR_B_THRES) {
             non_white++;
         }
         count++;
@@ -66,7 +68,7 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     if (count == 0) {
         return 1.0f;
     }
-    printf("Count: %d, Non-white: %d\n", count, non_white);
+    // printf("Count: %d, Non-white: %d\n", count, non_white);
 
     // Use integer division if possible, or at least avoid double casting
     float loss = static_cast<float>(non_white) / count;
