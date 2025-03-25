@@ -6,17 +6,9 @@
 class MotionController{
     public:
 
-    void init(float kp, float ki, float kd){
-        error_buffer_index = 0;
-        translation_integral = 0;
-        rotation_integral = 0;
-        last_translation_error = 0;
-        last_rotation_error = 0;
-        
-        rotation_Kp = kp;
-        rotation_Ki = ki;
-        rotation_Kd = kd;
-    }
+    void init(float kp, float ki, float kd);
+
+    float angle_to_motor_speed(float angle);
 
     //pid_output -> Given the current heading, target heading, target direction and speed
     //              return the motor speeds to reach the target direction
@@ -37,6 +29,8 @@ class MotionController{
 
     //normalize -> map a given angle to a range [-PI, PI] in radians
     float normalize_angle(float angle);
+
+    float map_angle(float angle);
 
     private:
     //Constants we prolly need to tune
