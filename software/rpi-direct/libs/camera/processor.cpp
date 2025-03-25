@@ -56,22 +56,13 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
             continue;
         }
 
-        for (int j = 0; j < GRID_SIZE; j++) {
-            for (int k = 0; k < GRID_SIZE; k++) {
-                // Get that pixel in the camera image (using direct pointer access for speed)
-                // std::printf("final_x: %d, final_y: %d\n", final_x, final_y);
-                const cv::Vec3b *row =
-                    camera_image.ptr<cv::Vec3b>(final_x * GRID_SIZE + k);
-                const cv::Vec3b &pixel = row[final_y * GRID_SIZE + j];
+        const cv::Vec3b *row = camera_image.ptr<cv::Vec3b>(final_x);
+        const cv::Vec3b &pixel = row[final_y];
 
-                // Using optimized check with De Morgan's Law
-                if (pixel[0] <= COLOR_R_THRES || pixel[1] <= COLOR_G_THRES ||
-                    pixel[2] <= COLOR_B_THRES) {
-                    non_white += 1;
-                }
-                count++;
-            }
+        if (pixel[0] < COLOR_R_THRES || pixel[1] < COLOR_G_THRES || pixel[2] < COLOR_B_THRES) {
+            non_white++;
         }
+        count++;
     }
 
     if (count == 0) {

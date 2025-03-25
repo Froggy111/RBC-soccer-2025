@@ -67,8 +67,9 @@ int main(int argc, char **argv) {
         // Process each pixel/position in the field
         for (int y = 0; y < camera::FIELD_Y_SIZE; y++) {
             for (int x = 0; x < camera::FIELD_X_SIZE; x++) {
-                Pos position(x - camera::FIELD_Y_SIZE / 2,
-                             y - camera::FIELD_X_SIZE / 2, heading_rad);
+                Pos position(x - camera::FIELD_X_SIZE / 2,
+                             y - camera::FIELD_Y_SIZE / 2, heading_rad);
+
                 float loss = processor.calculate_loss(test_frame, position);
 
                 // Ensure loss is between 0 and 1

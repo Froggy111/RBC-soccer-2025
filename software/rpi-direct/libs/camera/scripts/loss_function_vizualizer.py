@@ -72,9 +72,10 @@ def main():
     plt.figure(figsize=(10, 8))
     plt.scatter(transformed_x, transformed_y, s=2, c="blue", alpha=0.7)
 
-    # Configure plot
+    # Configure plot with equal aspect ratio
     plt.xlim(0, 480)
     plt.ylim(0, 640)
+    plt.gca().set_aspect('equal', adjustable='box')  # Set equal scale for both axes
     plt.grid(True, alpha=0.3)
     plt.title(
         f"Transformed Field Coordinates\nGuess: ({args.guess_x}, {args.guess_y}, {args.guess_heading:.2f} rad)"
@@ -85,6 +86,7 @@ def main():
     # Draw center of the field
     plt.scatter(480 / 2, 640 / 2, s=100, c="red", label="Field Center")
 
+    plt.tight_layout()  # Adjust layout to make room for equal scaling
     plt.show()
 
     print(f"Transformed {len(transformed_x)} points out of {WHITE_LINES_LENGTH}")
