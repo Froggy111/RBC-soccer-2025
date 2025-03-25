@@ -15,7 +15,6 @@ target_include_directories(motion-control
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
 
-target_link_libraries(comms types)
 
 target_compile_features(motion-control PUBLIC cxx_std_17)
 target_link_globals(motion-control)
