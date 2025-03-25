@@ -191,4 +191,6 @@ CamProcessor::find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
 
     return std::make_pair(best_guess, best_loss);
 }
+
+
 } // namespace camera

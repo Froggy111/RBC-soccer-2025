@@ -65,5 +65,6 @@ class CamProcessor {
     static std::pair<Pos, float>
     find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
                              int RADIUS, int STEP, int HEADING_STEP);
+                             
 };
 } // namespace camera
