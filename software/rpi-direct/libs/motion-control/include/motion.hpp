@@ -20,7 +20,7 @@ class MotionController{
 
     //pid_output -> Given the current heading, target heading, target direction and speed
     //              return the motor speeds to reach the target direction
-    std::tuple<int, int, int, int> pid_output(float current_heading, float target_heading, float target_direction, float speed);
+    std::tuple<float, float, float, float> pid_output(float current_heading, float target_heading, float target_direction, float speed);
     
     
     void reset_pid();
@@ -28,11 +28,11 @@ class MotionController{
 
     //translate -> Move the bot in a specific bearing, 
     //             taking the front of the bot to be north
-    std::tuple<int, int, int, int> translate(float direction, float speed);
+    std::tuple<float, float, float, float> translate(float direction, float speed);
 
     //move_heading -> Given the bot's current heading, move in a specific bearing while
     //                maintaining the bot's heading
-    std::tuple<int, int, int, int> move_heading(float current_direction, float bearing, float speed);
+    std::tuple<float, float, float, float> move_heading(float current_direction, float bearing, float speed);
 
 
     //normalize -> map a given angle to a range [-PI, PI] in radians

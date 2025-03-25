@@ -11,14 +11,14 @@
 #define PI 3.14159265358979323846
 
 
-std::tuple<int, int, int, int> MotionController::pid_output(float current_heading, float target_heading, float target_direction, float speed){
+std::tuple<float, float, float, float> MotionController::pid_output(float current_heading, float target_heading, float target_direction, float speed){
     int rotation_error = target_heading - current_heading;
     
     //Update the integral sum, and derivate
     rotation_integral += rotation_error;
     int rotation_derivate = rotation_error - last_rotation_error;
 
-    std::tuple<int, int, int, int> translation_motor_values = move_heading(current_heading, target_direction, speed);
+    std::tuple<float, float, float, float> translation_motor_values = move_heading(current_heading, target_direction, speed);
 
     //Calculate PID Value
     int rotation_pid = rotation_error * rotation_Kp + rotation_integral * rotation_Ki + rotation_derivate * rotation_Kd;
@@ -26,10 +26,10 @@ std::tuple<int, int, int, int> MotionController::pid_output(float current_headin
     //Update last error 
     last_rotation_error = rotation_error;
 
-    int motor1 = std::max(-1, std::min(1, std::get<0>(translation_motor_values) - rotation_pid));
-    int motor2 = std::max(-1, std::min(1, std::get<1>(translation_motor_values) - rotation_pid));
-    int motor3 = std::max(-1, std::min(1, std::get<2>(translation_motor_values) - rotation_pid));
-    int motor4 = std::max(-1, std::min(1, std::get<3>(translation_motor_values) - rotation_pid));
+    int motor1 = std::max(float(-1.0), std::min(float(1.0), float(std::get<0>(translation_motor_values) - rotation_pid)));
+    int motor2 = std::max(float(-1.0), std::min(float(1.0), float(std::get<1>(translation_motor_values) - rotation_pid)));
+    int motor3 = std::max(float(-1.0), std::min(float(1.0), float(std::get<2>(translation_motor_values) - rotation_pid)));
+    int motor4 = std::max(float(-1.0), std::min(float(1.0), float(std::get<3>(translation_motor_values) - rotation_pid)));
 
     return std::make_tuple(motor1, motor2, motor3, motor4);   
 }
@@ -39,10 +39,10 @@ void MotionController::reset_pid(){
     last_rotation_error = 0;
 }
 
-std::tuple<int, int, int, int> MotionController::translate(float direction, float speed){
+std::tuple<float, float, float, float> MotionController::translate(float direction, float speed){
     //Normalize angle to a range [-PI, PI] in radians.
     direction = normalize_angle(direction);
-    std::cout << "Normalised Direction: " << direction << std::endl;
+    std::cout << "Normalised Direction: " << (direction*180.0/PI) << std::endl;
 
     //1 is top left, 2 is bottom left, 3 is top right, 4 is bottom right
     float motor1 = 0.0, motor2 = 0.0, motor3 = 0.0, motor4 = 0.0;
@@ -50,8 +50,8 @@ std::tuple<int, int, int, int> MotionController::translate(float direction, floa
         motor1 = -1.0;
         motor2 = -std::cos(direction*2);
         motor3 = std::cos(direction*2);
-        std::cout << "Motor 2: " << direction*2 << " " << -std::cos(direction*2) << std::endl;
-        std::cout << "Motor 3: " << direction*2 << " " << std::cos(direction*2) << std::endl;
+        //std::cout << "Motor 2: " << direction*2 << " " << -std::cos(direction*2) << std::endl;
+        //std::cout << "Motor 3: " << direction*2 << " " << std::cos(direction*2) << std::endl;
         motor4 = 1.0;   
     } else if (direction > PI*0.5){//090 to 180
         motor1 = -std::cos((direction-PI*0.5)*2);
@@ -73,7 +73,7 @@ std::tuple<int, int, int, int> MotionController::translate(float direction, floa
     return std::make_tuple(motor1, motor2, motor3, motor4);
 }
 
-std::tuple<int, int, int, int> MotionController::move_heading(float current_direction, float bearing, float speed){
+std::tuple<float, float, float, float> MotionController::move_heading(float current_direction, float bearing, float speed){
     int resultant_direction;
 
     //Normalise the angle
