@@ -49,11 +49,11 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
 
         // Convert back to integer coordinate space with offset
         int32_t final_x = rotated_x_fp + 480 / 2;
-        int32_t final_y = rotated_y_fp + 680 / 2;
+        int32_t final_y = rotated_y_fp + 640 / 2;
 
         // Check if the point is within image boundaries
-        if (final_x < 0 || final_x >= FIELD_WIDTH || final_y < 0 ||
-            final_y >= FIELD_HEIGHT) {
+        if (final_x < 0 || final_x >= 480 || final_y < 0 ||
+            final_y >= 640) {
             continue;
         }
 

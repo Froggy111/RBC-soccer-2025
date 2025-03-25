@@ -50,7 +50,7 @@ def main():
         
         # Convert back to integer coordinate space
         final_x = int(rotated_x_fp + 480 / 2)
-        final_y = int(rotated_y_fp + 680 / 2)
+        final_y = int(rotated_y_fp + 640 / 2)
         
         # Check if the point is within image boundaries
         if final_x < 0 or final_x >= 480 or final_y < 0 or final_y >= 640:
