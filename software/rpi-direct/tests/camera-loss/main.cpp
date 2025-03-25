@@ -29,9 +29,7 @@ float clamp(float value, float min_val, float max_val) {
 }
 
 int main(int argc, char **argv) {
-    // Set up parameters
     const std::string video_path = "480p.mp4";
-    const int num_frames         = 360;
 
     // Initialize processor
     camera::CamProcessor processor;
@@ -55,7 +53,7 @@ int main(int argc, char **argv) {
     system("mkdir -p heatmap_frames");
 
     // Process each heading angle (0 to 359 degrees)
-    for (int angle = 0; angle < num_frames; angle++) {
+    for (int angle = 0; angle < 360; angle++) {
         std::cout << "Generating heatmap for heading " << angle << " degrees..."
                   << std::endl;
 
