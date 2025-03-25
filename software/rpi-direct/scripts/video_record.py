@@ -31,7 +31,7 @@ class RecordingController:
         
         # Configure the camera
         config = self.picam2.create_video_configuration(
-            main={"size": (1280, 720)}
+            main={"size": (640, 480)}
         )
         self.picam2.configure(config)
         self.picam2.start()
