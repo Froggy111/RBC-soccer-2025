@@ -25,12 +25,9 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     constexpr int FP_SHIFT = 16;
     constexpr int FP_ONE   = 1 << FP_SHIFT;
 
-    // Make sure heading is in bound
-    float bounded_heading = std::fmod(std::abs(guess.heading), 2 * M_PI);
-
     // Convert angles to fixed point representation
-    int32_t sin_theta_fp = static_cast<int32_t>(sin(bounded_heading) * FP_ONE);
-    int32_t cos_theta_fp = static_cast<int32_t>(cos(bounded_heading) * FP_ONE);
+    int32_t sin_theta_fp = static_cast<int32_t>(sin(guess.heading) * FP_ONE);
+    int32_t cos_theta_fp = static_cast<int32_t>(cos(guess.heading) * FP_ONE);
 
     // Transform & rotate white line coords
     for (int i = 0; i < WHITE_LINES_LENGTH; i++) {
@@ -48,16 +45,17 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
             (rel_x * sin_theta_fp + rel_y * cos_theta_fp) >> FP_SHIFT;
 
         // Convert back to integer coordinate space with offset
-        int32_t final_x = rotated_x_fp + IMG_WIDTH / 2;
+        int32_t final_x = rotated_x_fp + IMG_HEIGHT / 2;
         int32_t final_y = rotated_y_fp + IMG_WIDTH / 2;
 
         // Check if the point is within IMAGE boundaries
-        if (final_x < 0 || final_x >= IMG_WIDTH || final_y < 0 || final_y >= IMG_HEIGHT) {
+        if (final_x < 0 || final_x >= IMG_HEIGHT || final_y < 0 || final_y >= IMG_WIDTH) {
             continue;
         }
 
-        const cv::Vec3b *row = camera_image.ptr<cv::Vec3b>(final_x);
-        const cv::Vec3b &pixel = row[final_y];
+        printf("FINAL X: %d, FINAL Y: %d\n", final_x, final_y);
+        const cv::Vec3b *row = camera_image.ptr<cv::Vec3b>(IMG_WIDTH - final_y);
+        const cv::Vec3b &pixel = row[final_x];
 
         if (pixel[0] < COLOR_R_THRES || pixel[1] < COLOR_G_THRES || pixel[2] < COLOR_B_THRES) {
             non_white++;
@@ -68,6 +66,7 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     if (count == 0) {
         return 1.0f;
     }
+    printf("Count: %d, Non-white: %d\n", count, non_white);
 
     // Use integer division if possible, or at least avoid double casting
     float loss = static_cast<float>(non_white) / count;

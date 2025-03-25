@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
             auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
                                current_time - start_time)
                                .count();
-            std::cout << "Overall progress: " << (angle * 100 / num_frames)
+            std::cout << "Overall progress: " << (angle * 100 / 360)
                       << "% ";
             std::cout << "(Elapsed time: " << elapsed << " seconds)"
                       << std::endl;
