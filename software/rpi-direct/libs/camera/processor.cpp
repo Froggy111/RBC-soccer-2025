@@ -53,7 +53,7 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
             continue;
         }
 
-        printf("FINAL X: %d, FINAL Y: %d\n", final_x, final_y);
+        // printf("FINAL X: %d, FINAL Y: %d\n", final_x, final_y);
         const cv::Vec3b *row = camera_image.ptr<cv::Vec3b>(IMG_WIDTH - final_y);
         const cv::Vec3b &pixel = row[final_x];
 
@@ -66,7 +66,7 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     if (count == 0) {
         return 1.0f;
     }
-    printf("Count: %d, Non-white: %d\n", count, non_white);
+    // printf("Count: %d, Non-white: %d\n", count, non_white);
 
     // Use integer division if possible, or at least avoid double casting
     float loss = static_cast<float>(non_white) / count;
