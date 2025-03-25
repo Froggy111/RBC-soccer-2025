@@ -79,7 +79,7 @@ std::pair<Pos, float>
 CamProcessor::find_minima_regress(const cv::Mat &camera_image,
                                   Pos &initial_guess) {
     // ? CONSTANTS
-    const int NUM_PARTICLES_PER_GENERATION = 25;
+    const int NUM_PARTICLES_PER_GENERATION = 10;
     const int NUM_GENERATIONS              = 12;
 
     Pos best_guess  = initial_guess;

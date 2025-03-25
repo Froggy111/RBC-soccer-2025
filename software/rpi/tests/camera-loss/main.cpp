@@ -1,3 +1,4 @@
+#include "field.hpp"
 #include "position.hpp"
 #include "processor.hpp"
 #include <chrono>
@@ -18,9 +19,7 @@ cv::Mat readFirstFrame(const std::string &video_path) {
     }
 
     cv::Mat frame;
-    for (int i = 0; i < 78; i++) {
-        cap >> frame;
-    }
+    cap >> frame;
     return frame;
 }
 
@@ -30,11 +29,7 @@ float clamp(float value, float min_val, float max_val) {
 }
 
 int main(int argc, char **argv) {
-    // Set up parameters
-    const int field_width        = 292;
-    const int field_height       = 350;
     const std::string video_path = "480p.mp4";
-    const int num_frames         = 360; // One frame per degree
 
     // Initialize processor
     camera::CamProcessor processor;
@@ -58,7 +53,7 @@ int main(int argc, char **argv) {
     system("mkdir -p heatmap_frames");
 
     // Process each heading angle (0 to 359 degrees)
-    for (int angle = 0; angle < num_frames; angle++) {
+    for (int angle = 0; angle < 360; angle++) {
         std::cout << "Generating heatmap for heading " << angle << " degrees..."
                   << std::endl;
 
@@ -66,13 +61,15 @@ int main(int argc, char **argv) {
         float heading_rad = angle * M_PI / 180.0f;
 
         // Create empty image for the heatmap
-        cv::Mat heatmap(field_height, field_width, CV_8UC3,
+        cv::Mat heatmap(camera::FIELD_Y_SIZE, camera::FIELD_X_SIZE, CV_8UC3,
                         cv::Scalar(0, 0, 0));
 
         // Process each pixel/position in the field
-        for (int y = 0; y < field_height; y++) {
-            for (int x = 0; x < field_width; x++) {
-                Pos position(x, y, heading_rad);
+        for (int y = 0; y < camera::FIELD_Y_SIZE; y++) {
+            for (int x = 0; x < camera::FIELD_X_SIZE; x++) {
+                Pos position(x - camera::FIELD_X_SIZE / 2,
+                             y - camera::FIELD_Y_SIZE / 2, heading_rad);
+
                 float loss = processor.calculate_loss(test_frame, position);
 
                 // Ensure loss is between 0 and 1
@@ -82,13 +79,8 @@ int main(int argc, char **argv) {
                 // Low loss (good match) = blue, high loss (bad match) = red
                 int intensity = static_cast<int>((1.0f - loss) * 255);
 
-                heatmap.at<cv::Vec3b>(y, x) = cv::Vec3b(intensity, intensity, intensity);
-            }
-
-            // Print progress every 10% of field height
-            if (y % (field_height / 10) == 0) {
-                std::cout << "Progress: " << (y * 100 / field_height) << "%"
-                          << std::endl;
+                heatmap.at<cv::Vec3b>(y, x) =
+                    cv::Vec3b(intensity, intensity, intensity);
             }
         }
 
@@ -115,7 +107,7 @@ int main(int argc, char **argv) {
             auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
                                current_time - start_time)
                                .count();
-            std::cout << "Overall progress: " << (angle * 100 / num_frames)
+            std::cout << "Overall progress: " << (angle * 100 / 360)
                       << "% ";
             std::cout << "(Elapsed time: " << elapsed << " seconds)"
                       << std::endl;

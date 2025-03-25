@@ -2,9 +2,10 @@
 #pragma once
 namespace camera {
 const int WHITE_LINES_LENGTH = 882;
-const int FIELD_X_SIZE       = 291;
-const int FIELD_Y_SIZE       = 350;
+const int FIELD_X_SIZE       = 253;
+const int FIELD_Y_SIZE       = 312;
 
+const int GRID_SIZE               = 1;
 constexpr int WHITE_LINES[882][2] = {
     {-126, -156}, {-123, -156}, {-120, -156}, {-117, -156}, {-114, -156},
     {-110, -156}, {-107, -156}, {-104, -156}, {-101, -156}, {-98, -156},

@@ -1,4 +1,6 @@
 add_subdirectory(camera)
 add_subdirectory(camera-processor)
 add_subdirectory(camera-loss)
+add_subdirectory(camera-loss-standalone)
 add_subdirectory(benchmark)
+add_subdirectory(motion)

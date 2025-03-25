@@ -29,13 +29,31 @@ class RecordingController:
         # Initialize Picamera2
         self.picam2 = Picamera2()
         
-        # Configure the camera
+        # Configure the camera with native 480p resolution
+        # Query the camera for available sensor modes
+        sensor_modes = self.picam2.sensor_modes
+        logging.info(f"Available sensor modes: {sensor_modes}")
+        
+        # Configure with a 4:3 aspect ratio at 480p without cropping
+        # Standard 480p resolution in 4:3 aspect ratio is 640x480
         config = self.picam2.create_video_configuration(
-            main={"size": (1280, 720)}
+            main={"size": (640, 480)},
+            buffer_count=4,  # Increase buffer for smoother recording
+            encode="main",   # Use the main stream for encoding
+            lores=None,      # Disable low-resolution stream to avoid resources conflict
+            display=None     # Disable display stream if not needed
         )
+        
+        # Set controls to ensure native capture
+        self.picam2.set_controls({
+            "FrameDurationLimits": (33333, 33333),  # ~30fps (in microseconds)
+            "NoiseReductionMode": 0,                # Minimal noise reduction to avoid processing
+            "ScalerCrop": (0, 0, 1, 1)              # Use full sensor area (normalized coordinates)
+        })
+        
         self.picam2.configure(config)
         self.picam2.start()
-        logging.info("Camera initialized")
+        logging.info("Camera initialized with native 480p resolution")
     
     def start_recording(self):
         if self.is_recording:
@@ -49,7 +67,7 @@ class RecordingController:
             
             # Create encoder
             self.encoder = H264Encoder(bitrate=10000000)
-            
+             
             # Start recording
             self.picam2.start_recording(self.encoder, FileOutput(self.output_file))
             

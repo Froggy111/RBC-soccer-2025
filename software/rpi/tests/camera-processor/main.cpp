@@ -1,7 +1,5 @@
-#include "field.hpp"
 #include "position.hpp"
 #include "processor.hpp"
-#include <chrono> // For timing measurements
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -51,13 +49,15 @@ int main() {
     double total_time = 0.0;
 
     // Process the first frame
-    Pos center(5, camera::FIELD_Y_SIZE - 5, 55);
+    Pos center(72, -104); // ^ change if needed
     cap.read(frame);
-    Pos current_pos =
-        processor.find_minima_smart_search(frame, center, 100, 3, 3).first;
-    output_file << 0 << "," << current_pos.x << "," << current_pos.y << ","
-                << current_pos.heading << "," << 0.0f << "," << 0.0f
-                << std::endl;
+    std::pair<Pos, float> initial =
+        processor.find_minima_smart_search(frame, center, 30, 2, 2);
+    output_file << 0 << "," << initial.first.x << "," << initial.first.y << ","
+                << initial.first.heading * 180 / M_PI << "," << initial.second
+                << "," << 0.0f << std::endl;
+
+    Pos current_pos(initial.first.x, initial.first.y, initial.first.heading);
 
     // Process the video
     while (cap.read(frame)) {
@@ -65,8 +65,7 @@ int main() {
         auto start_time = std::chrono::high_resolution_clock::now();
 
         // use regression
-        auto points =
-            processor.find_minima_smart_search(frame, current_pos, 20, 3, 4);
+        auto points = processor.find_minima_regress(frame, current_pos);
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -77,7 +76,7 @@ int main() {
 
         // Write data to file in CSV format (including timing)
         output_file << frame_count << "," << points.first.x << ","
-                    << points.first.y << "," << points.first.heading << ","
+                    << points.first.y << "," << points.first.heading * 180 / M_PI << ","
                     << points.second << "," << duration << std::endl;
 
         // Print timing information for this frame
@@ -85,6 +84,7 @@ int main() {
                   << " ms (avg: " << (total_time / (frame_count + 1)) << " ms)"
                   << std::endl;
 
+        current_pos = Pos(points.first.x, points.first.y, points.first.heading);
         frame_count++;
     }
 
