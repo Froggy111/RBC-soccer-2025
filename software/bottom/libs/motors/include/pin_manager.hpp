@@ -47,5 +47,6 @@ private:
   MCP23S17 dmux2;
   PICO_ADS1115 adc1;
   PICO_ADS1115 adc2;
+  bool adc_init[2] = {false, false};
 };
 }

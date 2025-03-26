@@ -12,7 +12,7 @@ driver::MotorDriver driver1, driver2, driver3, driver4;
 const int LED_PIN = 25;
 
 void motor_driver_task(void *args) {
-vTaskDelay(pdMS_TO_TICKS(15000));
+  comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
   
   if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.printf("SPI Initialization Failed!\n");
@@ -25,35 +25,28 @@ vTaskDelay(pdMS_TO_TICKS(15000));
   driver4.init(4, spi0);
 
   while (true) {
-    for (int i = 0; i <= 1050; i++) {
-      if (!driver1.command(-i * 10))
-        break;
-      busy_wait_us(2);
-      if (!driver2.command(i * 10))
-        break;
-      busy_wait_us(2);
-      if (!driver3.command(i * 10))
-        break;
-      busy_wait_us(2);
+    for (int i = 0; i <= 650; i++) {
+      if (!driver1.command(-i * 10)) break;
+      if (!driver2.command(i * 10)) break;
+      if (!driver3.command(i * 10)) break;
       if (!driver4.command(i * 10))
         break;
-      busy_wait_us(2);
+      
+      // comms::USB_CDC.printf("Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
+      //        driver3.read_current(), driver4.read_current());
+
       vTaskDelay(pdMS_TO_TICKS(10));
     }
+
     vTaskDelay(pdMS_TO_TICKS(10));
-    for (int i = 1050; i >= 0; i--) {
-      if (!driver1.command(-i * 10))
-        break;
-      busy_wait_us(2);
-      if (!driver2.command(i * 10))
-        break;
-      busy_wait_us(2);
-      if (!driver3.command(i * 10))
-        break;
-      busy_wait_us(2);
-      if (!driver4.command(i * 10))
-        break;
-      busy_wait_us(2);
+    for (int i = 650; i >= 0; i--) {
+      if (!driver1.command(-i * 10)) break;
+      if (!driver2.command(i * 10)) break;
+      if (!driver3.command(i * 10)) break;
+      if (!driver4.command(i * 10)) break;
+
+      // comms::USB_CDC.printf("Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
+      //        driver3.read_current(), driver4.read_current());
       vTaskDelay(pdMS_TO_TICKS(10));
     }
     vTaskDelay(pdMS_TO_TICKS(10));
