@@ -1,4 +1,6 @@
 #include "comms.hpp"
+#include "comms/usb.hpp"
+#include "projdefs.h"
 #include "types.hpp"
 #include "ALSPT19.hpp"
 
@@ -16,14 +18,14 @@ void line_sensor_poll_task(void *args) {
   } else {
     comms::USB_CDC.printf("SPI Initialization Successful!\r\n");
   }
-  line_sensor.init(1, spi0);
+  line_sensor.init(spi0);
 
   while (true) {
     for (int i = 0; i < 48; i++) {
       uint16_t val = line_sensor.read_raw(i);
       comms::USB_CDC.printf("Line sensor %d: %d\r\n", i, val);
     }
-    sleep_ms(1000);
+    vTaskDelay(pdMS_TO_TICKS(1000));
   }
 }
 

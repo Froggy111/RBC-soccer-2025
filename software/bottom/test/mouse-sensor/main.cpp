@@ -1,27 +1,14 @@
 #include "comms.hpp"
+#include "comms/usb.hpp"
 #include "projdefs.h"
 #include "types.hpp"
-#include <cstddef>
 #include <hardware/gpio.h>
 #include <pico/time.h>
 #include "PMW3360.hpp"
 
 const types::u8 LED_PIN = 25;
 
-MouseSensor sensor;
-
-void led_blink_task(void *args){
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, GPIO_OUT);
-    gpio_put(LED_PIN, 1);
-
-    for(;;){
-        vTaskDelay(pdMS_TO_TICKS(500));
-        gpio_put(LED_PIN, 0);
-        vTaskDelay(pdMS_TO_TICKS(500));
-        gpio_put(LED_PIN, 1);
-    }
-}
+mouse::MouseSensor sensor;
 
 void mouse_sensor_task(void *args) {
   comms::USB_CDC.wait_for_CDC_connection(0xffffffff);
@@ -43,9 +30,7 @@ void mouse_sensor_task(void *args) {
   }
   
   while (true) {
-      comms::USB_CDC.printf("====================================\r\n");
-
-      sleep_ms(500);
+      vTaskDelay(pdMS_TO_TICKS(1000));
       sensor.read_motion_burst();
 
       types::u16 x_delta, y_delta, shutter;
@@ -62,14 +47,12 @@ void mouse_sensor_task(void *args) {
 }
 
 int main() {
-
   gpio_init(LED_PIN);
   gpio_set_dir(LED_PIN, GPIO_OUT);
   gpio_put(LED_PIN, 1);
 
   comms::USB_CDC.init();
 
-  xTaskCreate(led_blink_task, "led_blink_task", 1024, NULL, 10, NULL);
   xTaskCreate(mouse_sensor_task, "mouse_sensor_task", 1024, NULL, 10, NULL);
   vTaskStartScheduler();
 
