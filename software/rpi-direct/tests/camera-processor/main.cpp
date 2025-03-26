@@ -52,7 +52,7 @@ int main() {
     Pos center(72, -104); // ^ change if needed
     cap.read(frame);
     std::pair<Pos, float> initial =
-        processor.find_minima_smart_search(frame, center, 30, 2, 2);
+        processor.find_minima_smart_search(frame, center, 10, 2, 2);
     output_file << 0 << "," << initial.first.x << "," << initial.first.y << ","
                 << initial.first.heading * 180 / M_PI << "," << initial.second
                 << "," << 0.0f << std::endl;
@@ -65,7 +65,8 @@ int main() {
         auto start_time = std::chrono::high_resolution_clock::now();
 
         // use regression
-        auto points = processor.find_minima_regress(frame, current_pos);
+        auto points =
+            processor.find_minima_scatter(frame, current_pos, 10, 3, 3);
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -76,8 +77,9 @@ int main() {
 
         // Write data to file in CSV format (including timing)
         output_file << frame_count << "," << points.first.x << ","
-                    << points.first.y << "," << points.first.heading * 180 / M_PI << ","
-                    << points.second << "," << duration << std::endl;
+                    << points.first.y << ","
+                    << points.first.heading * 180 / M_PI << "," << points.second
+                    << "," << duration << std::endl;
 
         // Print timing information for this frame
         std::cout << "Frame " << frame_count << " took " << duration
