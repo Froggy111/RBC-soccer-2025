@@ -4,6 +4,8 @@
 #include "types.hpp"
 #include "ALSPT19.hpp"
 
+// TODO: WEIRD SPI ERRORS 
+
 using namespace types;
 
 const u8 LED_PIN = 25;
@@ -23,7 +25,10 @@ void line_sensor_poll_task(void *args) {
   while (true) {
     for (int i = 0; i < 48; i++) {
       uint16_t val = line_sensor.read_raw(i);
-      comms::USB_CDC.printf("Line sensor %d: %d\r\n", i, val);
+      if (val > 1000) {
+        comms::USB_CDC.printf("Line sensor %d: %d\r\n", i, val);
+      }
+      busy_wait_us(1);
     }
     vTaskDelay(pdMS_TO_TICKS(1000));
   }
