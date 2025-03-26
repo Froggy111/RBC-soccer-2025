@@ -88,4 +88,12 @@ public:
    * @param on_A 
    */
   bool read_gpio(uint8_t pin, bool on_A);
+
+  /**
+   * @brief Pullup a GPIO pin.
+   * 
+   * @param pin 
+   * @param on_A 
+   */
+   void pullup_gpio(uint8_t pin, bool on_A);
 };

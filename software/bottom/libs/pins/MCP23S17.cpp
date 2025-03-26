@@ -157,12 +157,14 @@ void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
     return;
   }
 
-  comms::USB_CDC.printf("Initializing pin %d on %s as %s\r\n", pin,
-         on_A ? "GPIOA" : "GPIOB", is_output ? "OUTPUT" : "INPUT");
+  comms::USB_CDC.printf("InitializingA pin %d on %s as %s\r\n", pin,
+                        on_A ? "GPIOA" : "GPIOB",
+                        is_output ? "OUTPUT" : "INPUT");
 
   // configure direction
   write8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? IODIRA : IODIRB,
          !is_output << pin, 0b1 << pin);
+
   pin_state[pin + (on_A ? 0 : 8)] = is_output;
 }
 
@@ -173,7 +175,9 @@ void MCP23S17::write_gpio(uint8_t pin, bool on_A, bool value) {
   }
 
   if (pin_state[pin + (on_A ? 0 : 8)] != 1) {
-    comms::USB_CDC.printf("Error: Pin %d ID %d on_A %d is not configured as output\r\n", pin, id, on_A);
+    comms::USB_CDC.printf(
+        "Error: Pin %d ID %d on_A %d is not configured as output\r\n", pin, id,
+        on_A);
     return;
   }
 
@@ -200,11 +204,22 @@ bool MCP23S17::read_gpio(uint8_t pin, bool on_A) {
   }
 
   if (pin_state[pin + (on_A ? 0 : 8)] != 0) {
-    comms::USB_CDC.printf("Error: Pin %d ID %d on_A %d is not configured as input\r\n", pin, id, on_A);
+    comms::USB_CDC.printf(
+        "Error: Pin %d ID %d on_A %d is not configured as input\r\n", pin, id,
+        on_A);
     return false;
   }
 
   // read the pin
   return read8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? GPIOA : GPIOB) &
          (1 << pin);
+}
+
+void MCP23S17::pullup_gpio(uint8_t pin, bool on_A) {
+  if (pin < 0 || pin > 7) {
+    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
+  }
+
+  write8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? GPPUA : GPPUB, 1 << pin,
+         0b1 << pin);
 }
