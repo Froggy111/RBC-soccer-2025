@@ -40,6 +40,7 @@ void motor_driver_task(void *args) {
       busy_wait_us(2);
       vTaskDelay(pdMS_TO_TICKS(10));
     }
+    vTaskDelay(pdMS_TO_TICKS(10));
     for (int i = 625; i >= 0; i--) {
       if (!driver1.command(i * 10))
         break;
@@ -55,6 +56,7 @@ void motor_driver_task(void *args) {
       busy_wait_us(2);
       vTaskDelay(pdMS_TO_TICKS(10));
     }
+    vTaskDelay(pdMS_TO_TICKS(10));
   }
 }
 
