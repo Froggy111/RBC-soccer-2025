@@ -9,10 +9,12 @@ class MCP23S17 {
 private:
   types::u8 id;
   types::u8 pin_state[17];
-  spi_inst_t* spi_obj;
+  spi_inst_t *spi_obj;
+
+  static bool initialized[2];
 
   /**
-   * @brief Init the SPI interface. Calls configure_spi and sets any registers it needs to.
+   * @brief Init the fSPI interface. Calls configure_spi and sets any registers it needs to.
    * 
    */
   void init_spi();

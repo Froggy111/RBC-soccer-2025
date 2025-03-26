@@ -47,15 +47,23 @@ extern "C" {
 // spi masks
 #define SPI_CMD_DEFAULT 0b01000000
 
+bool MCP23S17::initialized[2] = {false, false};
+
 void MCP23S17::init(types::u8 device_id, spi_inst_t *spi_obj_touse) {
-  comms::USB_CDC.printf("-> Initializing MCP23S17\r\n");
   if (device_id != 1 && device_id != 2) {
     comms::USB_CDC.printf("Error: Invalid device ID\r\n");
     return;
   }
-  id = device_id;
 
+  id = device_id;
+  spi_obj = spi_obj_touse;
   memset(pin_state, 0, sizeof(pin_state));
+  if (initialized[device_id - 1]) {
+    return;
+  }
+  initialized[device_id - 1] = true;
+
+  comms::USB_CDC.printf("-> Initializing MCP23S17\r\n");
 
   // init gpio pins
   comms::USB_CDC.printf("Initializing pins\r\n");
@@ -66,7 +74,6 @@ void MCP23S17::init(types::u8 device_id, spi_inst_t *spi_obj_touse) {
 
   // init spi
   comms::USB_CDC.printf("Initializing SPI\r\n");
-  spi_obj = spi_obj_touse;
   init_spi();
 }
 
