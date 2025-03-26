@@ -7,7 +7,7 @@
 #include <map>
 
 namespace driver {
-class PinInputControl {
+class PinOutputControl {
 public:
   void init(bool dbg, spi_inst_t *spi_obj);
 
@@ -29,12 +29,13 @@ private:
   MCP23S17 dmux2;
 };
 
-class PinOutputControl {
+class PinInputControl {
 public:
   void init(bool dbg, spi_inst_t *spi_obj);
 
   // * Digital Pins
   void init_digital(types::u8 pin, PinInterface interface = GPIO);
+  void pullup_digital(types::u8 pin, PinInterface interface = GPIO);
   bool read_digital(types::u8 pin, PinInterface interface = GPIO);
 
   // * Analog Pins

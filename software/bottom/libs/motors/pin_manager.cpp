@@ -18,7 +18,7 @@ extern "C" {
 
 namespace driver {
 //! Input Control
-void PinInputControl::init(bool dbg, spi_inst_t *spi_obj) {
+void PinOutputControl::init(bool dbg, spi_inst_t *spi_obj) {
   debug = dbg;
   if (!debug) {
     dmux1.init(1, spi_obj);
@@ -29,7 +29,7 @@ void PinInputControl::init(bool dbg, spi_inst_t *spi_obj) {
 // * Digital Pins
 
 // pins responsible for providing input to DRV8244
-void PinInputControl::init_digital(types::u8 pin, bool value,
+void PinOutputControl::init_digital(types::u8 pin, bool value,
                                    PinInterface interface) {
   if (debug || interface == GPIO) {
     gpio_init(pin);
@@ -45,7 +45,7 @@ void PinInputControl::init_digital(types::u8 pin, bool value,
   write_digital(pin, value, interface);
 }
 
-void PinInputControl::write_digital(types::u8 pin, bool value,
+void PinOutputControl::write_digital(types::u8 pin, bool value,
                                     PinInterface interface) {
   if (this->digital_cache.find(pin) == this->digital_cache.end()) {
     comms::USB_CDC.printf("Pin not initialized! pin %d\r\n", pin);
@@ -65,7 +65,7 @@ void PinInputControl::write_digital(types::u8 pin, bool value,
   this->digital_cache[pin] = value;
 }
 
-bool PinInputControl::get_last_value_digital(types::u8 pin) {
+bool PinOutputControl::get_last_value_digital(types::u8 pin) {
   if (this->digital_cache.find(pin) == this->digital_cache.end()) {
     comms::USB_CDC.printf("Pin not initialized! pin %d\r\n", pin);
     // TODO: Fix return value
@@ -77,7 +77,7 @@ bool PinInputControl::get_last_value_digital(types::u8 pin) {
 
 //* PWM
 
-void PinInputControl::init_pwm(types::u8 pin, int value) {
+void PinOutputControl::init_pwm(types::u8 pin, int value) {
   gpio_set_function(pin, GPIO_FUNC_PWM);
   uint slice_num = pwm_gpio_to_slice_num(pin);
   uint channel = pwm_gpio_to_channel(pin);
@@ -94,7 +94,7 @@ void PinInputControl::init_pwm(types::u8 pin, int value) {
   pwm_set_enabled(slice_num, true);
 }
 
-void PinInputControl::write_pwm(types::u8 pin, int value) {
+void PinOutputControl::write_pwm(types::u8 pin, int value) {
   if (this->pwm_cache.find(pin) == this->pwm_cache.end()) {
     comms::USB_CDC.printf("Pin not initialized! pin %d\r\n", pin);
     return;
@@ -107,7 +107,7 @@ void PinInputControl::write_pwm(types::u8 pin, int value) {
 
 //! Output Control
 
-void PinOutputControl::init(bool dbg, spi_inst_t *spi_obj) {
+void PinInputControl::init(bool dbg, spi_inst_t *spi_obj) {
   debug = dbg;
   if (!debug) {
     dmux1.init(1, spi_obj);
@@ -133,7 +133,7 @@ void PinOutputControl::init(bool dbg, spi_inst_t *spi_obj) {
 }
 
 // * Digital Pins
-void PinOutputControl::init_digital(types::u8 pin, PinInterface interface) {
+void PinInputControl::init_digital(types::u8 pin, PinInterface interface) {
   if (debug) {
     gpio_init(pin);
     gpio_set_dir(pin, GPIO_IN);
@@ -145,7 +145,18 @@ void PinOutputControl::init_digital(types::u8 pin, PinInterface interface) {
   }
 }
 
-bool PinOutputControl::read_digital(types::u8 pin, PinInterface interface) {
+void PinInputControl::pullup_digital(types::u8 pin, PinInterface interface) {
+  if (debug) {
+    gpio_pull_up(pin);
+  } else {
+    if (interface == MUX1A || interface == MUX1B)
+      dmux1.pullup_gpio(pin, interface == MUX1A);
+    else
+      dmux2.pullup_gpio(pin, interface == MUX2A);
+  }
+}
+
+bool PinInputControl::read_digital(types::u8 pin, PinInterface interface) {
   if (debug) {
     bool result = gpio_get(pin);
     // comms::USB_CDC.printf("%d has been read from pin %d\n", result, pin);
@@ -160,7 +171,7 @@ bool PinOutputControl::read_digital(types::u8 pin, PinInterface interface) {
 
 // * Analog Pins
 
-int16_t PinOutputControl::read_analog(types::u8 pin, PinInterface interface) {
+int16_t PinInputControl::read_analog(types::u8 pin, PinInterface interface) {
   if (debug) {
     // TODO
     return 0;

@@ -164,10 +164,6 @@ void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
     return;
   }
 
-  comms::USB_CDC.printf("InitializingA pin %d on %s as %s\r\n", pin,
-                        on_A ? "GPIOA" : "GPIOB",
-                        is_output ? "OUTPUT" : "INPUT");
-
   // configure direction
   write8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? IODIRA : IODIRB,
          !is_output << pin, 0b1 << pin);

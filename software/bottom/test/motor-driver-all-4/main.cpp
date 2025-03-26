@@ -12,8 +12,8 @@ driver::MotorDriver driver1, driver2, driver3, driver4;
 const int LED_PIN = 25;
 
 void motor_driver_task(void *args) {
-  comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
-
+vTaskDelay(pdMS_TO_TICKS(15000));
+  
   if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.printf("SPI Initialization Failed!\n");
   }
@@ -25,8 +25,8 @@ void motor_driver_task(void *args) {
   driver4.init(4, spi0);
 
   while (true) {
-    for (int i = 0; i <= 625; i++) {
-      if (!driver1.command(i * 10))
+    for (int i = 0; i <= 1050; i++) {
+      if (!driver1.command(-i * 10))
         break;
       busy_wait_us(2);
       if (!driver2.command(i * 10))
@@ -41,8 +41,8 @@ void motor_driver_task(void *args) {
       vTaskDelay(pdMS_TO_TICKS(10));
     }
     vTaskDelay(pdMS_TO_TICKS(10));
-    for (int i = 625; i >= 0; i--) {
-      if (!driver1.command(i * 10))
+    for (int i = 1050; i >= 0; i--) {
+      if (!driver1.command(-i * 10))
         break;
       busy_wait_us(2);
       if (!driver2.command(i * 10))
