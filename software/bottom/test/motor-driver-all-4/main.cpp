@@ -28,23 +28,31 @@ void motor_driver_task(void *args) {
     for (int i = 0; i <= 625; i++) {
       if (!driver1.command(i * 10))
         break;
+      busy_wait_us(2);
       if (!driver2.command(i * 10))
         break;
+      busy_wait_us(2);
       if (!driver3.command(i * 10))
         break;
+      busy_wait_us(2);
       if (!driver4.command(i * 10))
         break;
+      busy_wait_us(2);
       vTaskDelay(pdMS_TO_TICKS(10));
     }
     for (int i = 625; i >= 0; i--) {
       if (!driver1.command(i * 10))
         break;
+      busy_wait_us(2);
       if (!driver2.command(i * 10))
         break;
+      busy_wait_us(2);
       if (!driver3.command(i * 10))
         break;
+      busy_wait_us(2);
       if (!driver4.command(i * 10))
         break;
+      busy_wait_us(2);
       vTaskDelay(pdMS_TO_TICKS(10));
     }
   }
