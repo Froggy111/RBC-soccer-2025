@@ -4,7 +4,6 @@ extern "C" {
 #include <hardware/gpio.h>
 #include <hardware/timer.h>
 #include <pico/stdlib.h>
-#include <cstdint>
 }
 #include "PMW3360.hpp"
 #include "types.hpp"
@@ -98,6 +97,8 @@ extern "C" {
 
 namespace mouse {
 bool MouseSensor::dmux_init[2] = {false, false};
+MCP23S17 MouseSensor::dmux1;
+MCP23S17 MouseSensor::dmux2;
 
 bool MouseSensor::init(int id, spi_inst_t *spi_obj_touse) {
   pins.set_mouse_sensor_id(id);
@@ -203,7 +204,7 @@ bool MouseSensor::init_srom() {
   // ~ sleep_us(120); // wait cuz they said at least 120 microseconds
 
   // * Load the SROM firmware
-  // Custom SPI write
+  // Custom SP\I write
   uint8_t srom_address = 0x62 | 0x80;
 
   gpio_put(
@@ -221,6 +222,14 @@ bool MouseSensor::init_srom() {
   gpio_put(
       (uint)(_id == 1 ? pinmap::Pico::MOUSE1_SCS : pinmap::Pico::MOUSE2_SCS),
       1);
+
+  // * read PRODUCT_ID register
+  uint8_t product_id = read8(PRODUCT_ID);
+  if (product_id != product_ID) {
+    comms::USB_CDC.printf("Product ID Mismatch: %d, expected: %d\r\n", product_id,
+                          product_ID);
+    return false;
+  }
 
   // * read SROM register
   uint8_t srom_id = read8(SROM_ID);

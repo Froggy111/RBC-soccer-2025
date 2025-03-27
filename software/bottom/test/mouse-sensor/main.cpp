@@ -24,7 +24,7 @@ void mouse_sensor_task(void *args) {
   comms::USB_CDC.printf("CDC Connected!\r\n");
 
   //usb::CDC *cdc = (usb::CDC *)args;
-  if (!spi_init(spi0, 1000000)) {
+  if (!spi_init(spi0, 1000000)) { 
     comms::USB_CDC.printf("SPI Initialization Failed!\r\n");
     urgent_blink();
   } else {
