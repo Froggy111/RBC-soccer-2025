@@ -3,13 +3,14 @@
 #include "comms/default_usb_config.h"
 #include "identifiers.hpp"
 #include "types.hpp"
+#include <cstring>
 #include <libusb-1.0/libusb.h>
 #include <vector>
 #include <string>
 #include <functional>
 #include <thread>
 #include <mutex>
-#include <condition_variable>
+#include <map>
 
 namespace usb {
 
@@ -66,7 +67,7 @@ struct CurrentRXState {
         length_bytes_received = false;
         expected_length = 0;
         if (data_buffer) {
-            memset(data_buffer, 0, MAX_RX_BUF_SIZE);
+            std::memset(data_buffer, 0, MAX_RX_BUF_SIZE);
         }
     }
 };

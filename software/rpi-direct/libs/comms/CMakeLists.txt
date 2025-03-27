@@ -3,7 +3,6 @@ target_sources(comms
   PRIVATE
     comms.cpp
     usb.cpp
-    ${LIBUSB_LDFLAGS}
   PUBLIC
     include/comms/usb.hpp
     include/comms/default_usb_config.h
