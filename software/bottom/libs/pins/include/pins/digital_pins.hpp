@@ -1,24 +1,16 @@
 #pragma once
-#include "hardware/gpio.h"
-#include "hardware/spi.h"
+
 #include "pinmap.hpp"
 #include "types.hpp"
+#include "pins/types.hpp"
+
+extern "C" {
+#include "hardware/gpio.h"
+#include "hardware/spi.h"
 #include <pico/stdlib.h>
+}
 
-namespace Pins {
-
-// NOTE: INPUT_PULLDOWN is not defined as MCP23S17 only has internal pullups, not pulldowns
-// NOTE: If INPUT_PULLUP functionality is needed, inform me.
-enum class DigitalPinMode : types::u8 { INPUT, OUTPUT, INPUT_PULLUP };
-enum class DigitalPinInterruptState : types::u8 {
-  EDGE_RISE = GPIO_IRQ_EDGE_RISE,
-  EDGE_FALL = GPIO_IRQ_EDGE_FALL,
-  LEVEL_HIGH = GPIO_IRQ_LEVEL_HIGH,
-  LEVEL_LOW = GPIO_IRQ_LEVEL_LOW
-};
-
-using DigitalPinInterrupt = void (*)(pinmap::DigitalPins,
-                                     DigitalPinInterruptState, void *);
+namespace pins {
 
 class DigitalPins {
 public:
@@ -28,9 +20,9 @@ public:
    * @warning MUST be called before any other class functions (checks will be made)
    */
   bool init(void);
-  bool read(pinmap::DigitalPins pin);
-  bool write(pinmap::DigitalPins pin, bool value);
-  bool change_mode(pinmap::DigitalPins pin, DigitalPinMode pin_mode);
+  bool read(pinmap::Digital pin);
+  bool write(pinmap::Digital pin, bool value);
+  bool change_mode(pinmap::Digital pin, DigitalPinMode pin_mode);
   /**
    * @brief attach interrupt to digital pin
    * @param pin: digital pin selection
@@ -38,14 +30,14 @@ public:
    * @param interrupt_handler: function to be run for this interrupt condition
    * @param args: custom user args to be passed
    */
-  bool attach_interrupt(pinmap::DigitalPins pin,
+  bool attach_interrupt(pinmap::Digital pin,
                         DigitalPinInterruptState interrupt_state,
                         DigitalPinInterrupt interrupt_handler, void *args);
-  bool detach_interrupt(pinmap::DigitalPins pin);
-  bool enable_interrupt(pinmap::DigitalPins pin);
-  bool disable_interrupt(pinmap::DigitalPins pin);
+  bool detach_interrupt(pinmap::Digital pin);
+  bool enable_interrupt(pinmap::Digital pin);
+  bool disable_interrupt(pinmap::Digital pin);
 
 private:
 };
 
-} // namespace Pins
+} // namespace pins
