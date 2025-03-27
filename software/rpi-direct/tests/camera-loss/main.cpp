@@ -19,7 +19,14 @@ cv::Mat readFirstFrame(const std::string &video_path) {
     }
 
     cv::Mat frame;
-    cap >> frame;
+    for (int i = 0; i < 296; i++) {
+        cap >> frame;
+        if (frame.empty()) {
+            std::cerr << "Error: Could not read frame from video file "
+                      << video_path << std::endl;
+            return cv::Mat();
+        }
+    }
     return frame;
 }
 
@@ -107,8 +114,7 @@ int main(int argc, char **argv) {
             auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
                                current_time - start_time)
                                .count();
-            std::cout << "Overall progress: " << (angle * 100 / 360)
-                      << "% ";
+            std::cout << "Overall progress: " << (angle * 100 / 360) << "% ";
             std::cout << "(Elapsed time: " << elapsed << " seconds)"
                       << std::endl;
         }
