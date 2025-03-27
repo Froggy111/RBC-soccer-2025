@@ -65,7 +65,7 @@ int main() {
         auto start_time = std::chrono::high_resolution_clock::now();
 
         // use regression
-        auto points = processor.find_minima_regress(frame, current_pos);
+        auto points = processor.find_minima_regress(frame, current_pos, 10, 10, 4);
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(

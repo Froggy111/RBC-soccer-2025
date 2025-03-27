@@ -3,6 +3,7 @@ add_library(utils)
 target_sources(utils
     PUBLIC
     include/position.hpp
+    include/types.hpp
     PRIVATE
     position.cpp
 )

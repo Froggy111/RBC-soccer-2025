@@ -19,7 +19,14 @@ cv::Mat readFirstFrame(const std::string &video_path) {
     }
 
     cv::Mat frame;
-    cap >> frame;
+    for (int i = 0; i < 296; i++) {
+        cap >> frame;
+        if (frame.empty()) {
+            std::cerr << "Error: Could not read frame from video file "
+                      << video_path << std::endl;
+            return cv::Mat();
+        }
+    }
     return frame;
 }
 
@@ -79,7 +86,7 @@ int main(int argc, char **argv) {
                 // Low loss (good match) = blue, high loss (bad match) = red
                 int intensity = static_cast<int>((1.0f - loss) * 255);
 
-                heatmap.at<cv::Vec3b>(y, x) =
+                heatmap.at<cv::Vec3b>(y, camera::FIELD_X_SIZE - x) =
                     cv::Vec3b(intensity, intensity, intensity);
             }
         }
@@ -107,8 +114,7 @@ int main(int argc, char **argv) {
             auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
                                current_time - start_time)
                                .count();
-            std::cout << "Overall progress: " << (angle * 100 / 360)
-                      << "% ";
+            std::cout << "Overall progress: " << (angle * 100 / 360) << "% ";
             std::cout << "(Elapsed time: " << elapsed << " seconds)"
                       << std::endl;
         }
