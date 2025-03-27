@@ -94,16 +94,28 @@ enum class Analog : types::u8 {
   AMUX1_COM = 2,
 
   // adc1
-  DRV2_IPROPI = 0,
-  LIGHTGATE = 1,
-  DRV3_IPROPI = 2,
-  DRV5_IPROPI = 3
+  DRV2_IPROPI = 3,
+  LIGHTGATE = 4,
+  DRV3_IPROPI = 5,
+  DRV5_IPROPI = 6,
+
+  // adc2
+  LOADCELL_AMINUS = 7,
+  LOADCELL_APLUS = 8,
+  DRV1_IPROPI = 9,
+  DRV4_IPROPI = 10,
 };
 
 inline types::u8 pin_number(Analog pin) {
   types::u8 pin_val = (types::u8)pin;
   if (pin_val <= 3) { // pico
     return pin_val + 26;
+  } else if (pin_val <= 6) {
+    return pin_val - 3;
+  } else if (pin_val <= 10) {
+    return pin_val - 7;
+  } else {
+    return 255;
   }
 }
 
