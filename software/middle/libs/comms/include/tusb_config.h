@@ -1,4 +1,5 @@
 #include "comms/default_usb_config.h"
+#include "config.hpp"
 #ifndef _TUSB_CONFIG_H_
 #define _TUSB_CONFIG_H_
 
@@ -18,5 +19,12 @@
 #define CFG_TUD_VENDOR 1
 #define CFG_TUD_VENDOR_RX_BUFSIZE USB_RX_BUFSIZE
 #define CFG_TUD_VENDOR_TX_BUFSIZE USB_TX_BUFSIZE
+
+#ifndef CFG_TUSB_VID
+#define CFG_TUSB_VID 0x2E8A
+#endif
+#ifndef CFG_TUSB_PID
+#define CFG_TUSB_PID 0xFFF0
+#endif
 
 #endif /* _TUSB_CONFIG_H_ */
