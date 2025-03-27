@@ -166,7 +166,8 @@ std::string CDC::get_tty_device(const types::u16 vid, const types::u16 pid, cons
         if (!vendorFile.is_open() || !productFile.is_open()) {
             continue;
         }
-        
+
+        // Read the vendor and product IDs
         std::string vendorStr, productStr;
         vendorFile >> vendorStr;
         productFile >> productStr;
@@ -287,8 +288,7 @@ bool CDC::connect(USBDevice& device) {
         return false;
     }
     
-    // Save the file descriptor
-    device.fileDescriptor = fd;
+ccc    device.fileDescriptor = fd;
     _connected_devices.push_back(device);
     
     // Start the read thread
@@ -356,25 +356,6 @@ bool CDC::write(const USBDevice& device, const comms::SendIdentifiers identifier
     // Write to device
     ssize_t written = ::write(device.fileDescriptor, buffer, offset);
     return written == offset;
-}
-
-bool CDC::printf(const USBDevice& device, const char *format, ...) {
-    if (device.fileDescriptor < 0) {
-        return false;
-    }
-    
-    char formatted[MAX_TX_BUF_SIZE];
-    va_list args;
-    va_start(args, format);
-    int size = vsnprintf(formatted, sizeof(formatted), format, args);
-    va_end(args);
-    
-    if (size < 0 || size >= MAX_TX_BUF_SIZE) {
-        return false;
-    }
-    
-    ssize_t written = ::write(device.fileDescriptor, formatted, size);
-    return written == size;
 }
 
 void CDC::register_callback(comms::RecvIdentifiers identifier, 

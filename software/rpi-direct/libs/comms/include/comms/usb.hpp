@@ -126,12 +126,6 @@ public:
                const types::u8 *data, const types::u16 data_len);
 
     /**
-     * @brief Just a regular printf to the specified device
-     * @returns false if device not connected
-     */
-    bool printf(const USBDevice& device, const char *format, ...);
-
-    /**
      * @brief Register a callback function for receiving data
      * @param identifier Command identifier to listen for
      * @param callback Function to call when data with this identifier is received
