@@ -4,7 +4,6 @@
 #include "identifiers.hpp"
 #include "types.hpp"
 #include <cstring>
-#include <libusb-1.0/libusb.h>
 #include <vector>
 #include <string>
 #include <functional>
@@ -82,7 +81,7 @@ public:
     ~CDC();
 
     /**
-     * @brief Initializes libusb and scanning thread
+     * @brief Initializes communication
      * @returns true if successfully initialized, false if not
      */
     bool init(void);
@@ -153,15 +152,23 @@ private:
     void process_data(const USBDevice& device, const types::u8* data, types::u16 length);
 
     /**
-     * @brief Gets TTY device node for a USB device
+     * @brief Gets device information from sysfs
+     * @param ttyDevice Path to tty device (e.g. "/dev/ttyACM0")
+     * @return USBDevice with filled information
      */
-    std::string get_tty_device(const types::u16 vid, const types::u16 pid, const std::string& serial);
+    USBDevice get_device_info(const std::string& ttyDevice);
+    
+    /**
+     * @brief Read a value from a sysfs file
+     * @param path Path to the file
+     * @return String content of the file
+     */
+    std::string read_sysfs_value(const std::string& path);
     
     /* *************************************************************** *
      * Private buffers, synchronization primitives and other variables *
      * *************************************************************** */
     
-    libusb_context* _context;
     std::vector<USBDevice> _connected_devices;
     std::vector<std::thread> _read_threads;
     std::mutex _devices_mutex;

@@ -1,6 +1,5 @@
 #include "comms.hpp"
 #include "debug.hpp"
-#include <iostream>
 #include <unistd.h>
 #include <signal.h>
 #include <cstdlib>

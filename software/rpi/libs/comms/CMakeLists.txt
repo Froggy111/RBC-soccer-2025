@@ -11,14 +11,7 @@ target_sources(comms
     include/comms/errors.hpp
 )
 
-# Find libusb
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
-
-target_include_directories(comms PUBLIC   ${CMAKE_CURRENT_SOURCE_DIR}/include
-${LIBUSB_INCLUDE_DIRS})
-target_link_libraries(comms   ${LIBUSB_LIBRARIES}
-)
+target_include_directories(comms PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_globals(comms)
 
 add_library(debug_) # named debug_ to avoid clashing with cmake option debug

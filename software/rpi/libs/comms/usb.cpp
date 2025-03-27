@@ -12,10 +12,12 @@
 #include <iostream>
 #include <algorithm>
 #include <sstream>
+#include <regex>
+#include <filesystem>
 
 namespace usb {
 
-CDC::CDC() : _context(nullptr), _initialized(false), _running(false) {
+CDC::CDC() : _initialized(false), _running(false) {
     // Initialize device identifiers with default values
     _device_identifiers[DeviceType::TOP_PLATE] = {RP2040_VID, RP2040_PID};
     _device_identifiers[DeviceType::MIDDLE_PLATE] = {RP2040_VID, RP2040_PID};
@@ -38,17 +40,9 @@ CDC::~CDC() {
             close(device.fileDescriptor);
         }
     }
-    
-    if (_initialized) {
-        libusb_exit(_context);
-    }
 }
 
 bool CDC::init(void) {
-    if (libusb_init(&_context) != 0) {
-        return false;
-    }
-    
     _initialized = true;
     _running = true;
     return true;
@@ -61,166 +55,107 @@ std::vector<USBDevice> CDC::scan_devices() {
         return devices;
     }
     
-    libusb_device **dev_list;
-    ssize_t cnt = libusb_get_device_list(_context, &dev_list);
-    
-    if (cnt < 0) {
+    // Scan /dev for ttyACM devices
+    DIR *dir = opendir("/dev");
+    if (!dir) {
         return devices;
     }
     
-    for (ssize_t i = 0; i < cnt; i++) {
-        libusb_device *device = dev_list[i];
-        libusb_device_descriptor desc;
-        
-        if (libusb_get_device_descriptor(device, &desc) != 0) {
-            continue;
-        }
-        
-        // Check if this is a Raspberry Pi Pico device or matches any of our expected devices
-        bool is_match = false;
-        DeviceType device_type = DeviceType::UNKNOWN;
-        
-        for (const auto& pair : _device_identifiers) {
-            if (desc.idVendor == pair.second.first && desc.idProduct == pair.second.second) {
-                is_match = true;
-                device_type = pair.first;
-                break;
-            }
-        }
-        
-        if (!is_match) {
-            continue;
-        }
-        
-        USBDevice usb_device;
-        usb_device.vid = desc.idVendor;
-        usb_device.pid = desc.idProduct;
-        usb_device.type = device_type;
-        
-        // Get additional device details
-        libusb_device_handle *handle;
-        if (libusb_open(device, &handle) == 0) {
-            char string[256];
-            
-            if (desc.iSerialNumber) {
-                if (libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, 
-                    (unsigned char*)string, sizeof(string)) > 0) {
-                    usb_device.serialNumber = string;
-                }
-            }
-            
-            if (desc.iManufacturer) {
-                if (libusb_get_string_descriptor_ascii(handle, desc.iManufacturer, 
-                    (unsigned char*)string, sizeof(string)) > 0) {
-                    usb_device.manufacturer = string;
-                }
-            }
-            
-            if (desc.iProduct) {
-                if (libusb_get_string_descriptor_ascii(handle, desc.iProduct, 
-                    (unsigned char*)string, sizeof(string)) > 0) {
-                    usb_device.product = string;
-                }
-            }
-            
-            libusb_close(handle);
-        }
-        
-        // Find the TTY device node
-        usb_device.deviceNode = get_tty_device(usb_device.vid, usb_device.pid, usb_device.serialNumber);
-        
-        if (!usb_device.deviceNode.empty()) {
-            devices.push_back(usb_device);
-        }
-    }
-    
-    libusb_free_device_list(dev_list, 1);
-    return devices;
-}
-
-std::string CDC::get_tty_device(const types::u16 vid, const types::u16 pid, const std::string& serial) {
-    // Check each USB device in /sys/bus/usb/devices/
-    DIR *dir = opendir("/sys/bus/usb/devices/");
-    if (!dir) {
-        return "";
-    }
-    
-    std::string result;
     struct dirent *entry;
+    std::regex ttyACMPattern("ttyACM[0-9]+");
     
     while ((entry = readdir(dir)) != nullptr) {
-        std::string path = "/sys/bus/usb/devices/";
-        path += entry->d_name;
-        
-        // Skip . and ..
-        if (entry->d_name[0] == '.') {
-            continue;
-        }
-        
-        // Check if this is a USB device
-        std::string idVendorPath = path + "/idVendor";
-        std::string idProductPath = path + "/idProduct";
-        std::ifstream vendorFile(idVendorPath);
-        std::ifstream productFile(idProductPath);
-        
-        if (!vendorFile.is_open() || !productFile.is_open()) {
-            continue;
-        }
-
-        // Read the vendor and product IDs
-        std::string vendorStr, productStr;
-        vendorFile >> vendorStr;
-        productFile >> productStr;
-        
-        // Convert hex strings to integers
-        types::u16 deviceVid, devicePid;
-        std::stringstream ss;
-        ss << std::hex << vendorStr;
-        ss >> deviceVid;
-        ss.clear();
-        ss << std::hex << productStr;
-        ss >> devicePid;
-        
-        if (deviceVid == vid && devicePid == pid) {
-            // Found matching VID/PID, now look for the tty device
-            // First check if there's a matching serial number
-            std::string serialPath = path + "/serial";
-            std::ifstream serialFile(serialPath);
-            std::string deviceSerial;
+        std::string name = entry->d_name;
+        if (std::regex_match(name, ttyACMPattern)) {
+            std::string devicePath = "/dev/" + name;
+            USBDevice device = get_device_info(devicePath);
             
-            if (serialFile.is_open()) {
-                serialFile >> deviceSerial;
-                if (!serial.empty() && deviceSerial != serial) {
-                    continue; // Serial number doesn't match
+            // Check if device matches any of our expected devices
+            bool is_match = false;
+            for (const auto& pair : _device_identifiers) {
+                if (device.vid == pair.second.first && device.pid == pair.second.second) {
+                    device.type = pair.first;
+                    is_match = true;
+                    break;
                 }
             }
             
-            // Look for tty devices
-            DIR *ttyDir = opendir(path.c_str());
-            if (ttyDir) {
-                struct dirent *ttyEntry;
-                while ((ttyEntry = readdir(ttyDir)) != nullptr) {
-                    std::string ttyName = ttyEntry->d_name;
-                    if (ttyName.find("tty") != std::string::npos) {
-                        // Check if this is a CDC ACM device
-                        std::string ttyPath = path + "/" + ttyName;
-                        if (ttyName.find("ttyACM") != std::string::npos) {
-                            result = "/dev/" + ttyName;
-                            break;
-                        }
-                    }
-                }
-                closedir(ttyDir);
-            }
-            
-            if (!result.empty()) {
-                break;
+            if (is_match && device.vid != 0) {
+                devices.push_back(device);
             }
         }
     }
     
     closedir(dir);
-    return result;
+    return devices;
+}
+
+std::string CDC::read_sysfs_value(const std::string& path) {
+    std::ifstream file(path);
+    std::string value;
+    
+    if (file.is_open()) {
+        std::getline(file, value);
+        file.close();
+    }
+    
+    return value;
+}
+
+USBDevice CDC::get_device_info(const std::string& ttyDevice) {
+    USBDevice device;
+    device.deviceNode = ttyDevice;
+    
+    // Extract the ACM number
+    std::string acmNum = ttyDevice.substr(ttyDevice.find("ttyACM") + 6);
+    
+    // Find the USB device by looking at the symbolic link
+    std::string devPath = "/sys/class/tty/ttyACM" + acmNum + "/device";
+    
+    // Follow symlinks to get to the USB device
+    try {
+        std::filesystem::path symlinkPath(devPath);
+        std::filesystem::path realPath = std::filesystem::canonical(symlinkPath);
+        
+        // Find USB path by going up the directory tree
+        std::filesystem::path usbPath = realPath;
+        while (!usbPath.empty()) {
+            std::string idVendorPath = (usbPath / "idVendor").string();
+            std::string idProductPath = (usbPath / "idProduct").string();
+            
+            // Check if this is a USB device with VID/PID
+            if (std::filesystem::exists(idVendorPath) && std::filesystem::exists(idProductPath)) {
+                // Read the VID and PID
+                std::string vidStr = read_sysfs_value(idVendorPath);
+                std::string pidStr = read_sysfs_value(idProductPath);
+                
+                if (!vidStr.empty() && !pidStr.empty()) {
+                    // Convert hex string to integer
+                    device.vid = std::stoi(vidStr, nullptr, 16);
+                    device.pid = std::stoi(pidStr, nullptr, 16);
+                    
+                    // Read additional properties
+                    device.path = usbPath.string();
+                    device.manufacturer = read_sysfs_value((usbPath / "manufacturer").string());
+                    device.product = read_sysfs_value((usbPath / "product").string());
+                    device.serialNumber = read_sysfs_value((usbPath / "serial").string());
+                    
+                    break;
+                }
+            }
+            
+            // Go up one directory
+            if (usbPath.has_parent_path()) {
+                usbPath = usbPath.parent_path();
+            } else {
+                break;
+            }
+        }
+    } catch (const std::exception& e) {
+        // Failed to follow symlink, leave device with default values
+    }
+    
+    return device;
 }
 
 bool CDC::connect(USBDevice& device) {
@@ -288,7 +223,7 @@ bool CDC::connect(USBDevice& device) {
         return false;
     }
     
-ccc    device.fileDescriptor = fd;
+    device.fileDescriptor = fd;
     _connected_devices.push_back(device);
     
     // Start the read thread
