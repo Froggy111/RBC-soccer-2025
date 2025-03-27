@@ -1,6 +1,7 @@
 #include "pins/MCP23S17.hpp"
 #include "pinmap.hpp"
 #include "types.hpp"
+#include <hardware/timer.h>
 #include <pico/types.h>
 #include "comms.hpp"
 
@@ -103,6 +104,7 @@ void MCP23S17::write8(uint8_t device_address, uint8_t reg_address, uint8_t data,
                         (uint8_t)((current & ~mask) | (data & mask))};
 
   gpio_put((uint)pinmap::Pico::DMUX_SCS, 0);
+  busy_wait_us(1);
   spi_write_blocking(spi_obj, tx_data, 3);
   gpio_put((uint)pinmap::Pico::DMUX_SCS, 1);
 
@@ -130,6 +132,7 @@ uint8_t MCP23S17::read8(uint8_t device_address, uint8_t reg_address) {
   uint8_t rx_data;
 
   gpio_put((uint)pinmap::Pico::DMUX_SCS, 0);
+  busy_wait_us(1);
   spi_write_blocking(spi_obj, tx_data, 2);
   spi_read_blocking(spi_obj, 0xFF, &rx_data, 1);
   gpio_put((uint)pinmap::Pico::DMUX_SCS, 1);
@@ -163,10 +166,6 @@ void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
     comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
     return;
   }
-
-  comms::USB_CDC.printf("InitializingA pin %d on %s as %s\r\n", pin,
-                        on_A ? "GPIOA" : "GPIOB",
-                        is_output ? "OUTPUT" : "INPUT");
 
   // configure direction
   write8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? IODIRA : IODIRB,

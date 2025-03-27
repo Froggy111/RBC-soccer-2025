@@ -1,4 +1,5 @@
 #pragma once
+#include "registers.hpp"
 #include "types.hpp"
 #include "pin_manager.hpp"
 #include "pin_selector.hpp"
@@ -143,6 +144,20 @@ public:
    * @return int16_t 
    */
   int16_t read_current();
+
+  /**
+   * @brief Set the ITRIP register to the current_limit at which the motor should regulate
+   * 
+   * @param current_limit 
+   */
+  bool set_ITRIP(ITRIP::ITRIP current_limit);
+
+  /**
+   * @brief Set the OCP register to the current limit at which the motor should trip
+   * 
+   * @param current_limit 
+   */
+  bool set_OCP(OCP::OCP current_limit);
 };
 
 }

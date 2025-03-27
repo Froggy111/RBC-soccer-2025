@@ -1,6 +1,8 @@
 #include <cstdint>
 #include <cmath>
 #include <algorithm>
+#include <cstdlib>
+#include <queue>
 #include <tuple>
 #include <iostream>
 
@@ -51,6 +53,28 @@ std::tuple<float, float, float, float> MotionController::pid_output(float curren
     return std::make_tuple(motor1, motor2, motor3, motor4);   
 }
 
+std::tuple<float, float, float, float> MotionController::position_pid(std::tuple<float, float> current_position, std::tuple<float, float> target_position, float current_heading, float target_heading,  float speed){
+    float delta_x = std::get<0>(target_position) - std::get<0>(current_position);
+    float delta_y = std::get<1>(target_position) - std::get<1>(current_position);
+
+    if(delta_x == 0) delta_x += 0.1;
+    
+    float target_direction = 0.0;
+    target_direction = std::atan2(delta_y, delta_x);
+
+    float distance_left = std::sqrt((delta_x*delta_x + delta_y*delta_y));
+        
+    if(position_queue.size() <= 1){
+        speed = speed * (std::max(1.0, std::abs((100.0 - distance_left))/100.0));
+    }
+
+    if(not position_queue.empty()){
+        if(distance_left < 7) position_queue.pop();
+    }
+
+    return pid_output(current_heading, target_heading, target_direction, speed);
+}
+
 void MotionController::reset_pid(){
     rotation_integral = 0;
     last_rotation_error = 0;
@@ -64,26 +88,31 @@ std::tuple<float, float, float, float> MotionController::translate(float directi
     //1 is top left, 2 is bottom left, 3 is top right, 4 is bottom right
     float motor1 = 0.0, motor2 = 0.0, motor3 = 0.0, motor4 = 0.0;
     if(direction >= 0.0 and direction <= PI*0.5){ //000 to 090
+        //std::cout << "IF 1" << std::endl;
         motor1 = -1.0;
-        motor2 = -angle_to_motor_speed(direction);
-        motor3 = angle_to_motor_speed(direction);
+        motor2 = angle_to_motor_speed(direction);
+        motor3 = -angle_to_motor_speed(direction);
         //std::cout << "Motor 2: " << direction*2 << " " << -std::cos(direction*2) << std::endl;
         //std::cout << "Motor 3: " << direction*2 << " " << std::cos(direction*2) << std::endl;
         motor4 = 1.0;   
     } else if (direction > PI*0.5){//090 to 180
-        motor1 = -angle_to_motor_speed((direction-PI*0.5));
+        //std::cout << "IF 2" << std::endl;
+        motor1 = angle_to_motor_speed((direction-PI*0.5));
         motor2 = 1.0;
         motor3 = -1.0;
-        motor4 = angle_to_motor_speed((direction-PI*0.5));
-    } else if (direction <= 0 and direction > -(PI*2)){//-090 to 000 (270 to 000)
-        motor1 = -angle_to_motor_speed(-(direction));
+        motor4 = -angle_to_motor_speed((direction-PI*0.5));
+        
+    } else if (direction <= 0 and direction >= -(PI*0.5)){//-090 to 000 (270 to 000)
+        //std::cout << "IF 3" << std::endl;
+        motor1 = -angle_to_motor_speed(PI*0.5 + (direction));
         motor2 = -1.0;
-        motor3 = -1.0;
-        motor4 = angle_to_motor_speed(-(direction));
+        motor3 = 1.0;
+        motor4 = angle_to_motor_speed(PI*0.5 + (direction));
     } else {//-180 to -090 (180 to 270)
+        //std::cout << "IF 4" << std::endl;
         motor1 = 1.0;
-        motor2 = -angle_to_motor_speed((PI*0.5+direction)); 
-        motor3 = angle_to_motor_speed((PI*0.5+direction)); 
+        motor2 = angle_to_motor_speed(std::abs(direction) - PI*0.5); 
+        motor3 = -angle_to_motor_speed(std::abs(direction) - PI*0.5); 
         motor4 = -1.0;   
     }
 

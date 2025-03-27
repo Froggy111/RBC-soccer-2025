@@ -6,13 +6,12 @@
 namespace camera {
 class CamProcessor {
   public:
-    CamProcessor(Pos initial_pos) { current_pos = initial_pos; }
-    CamProcessor() = default;
+    CamProcessor()  = default;
     ~CamProcessor() = default;
 
-    // * Constants
-    static Pos current_pos;
-    static int current_frame;
+    static std::tuple<std::pair<Pos, float>, std::pair<Pos, float>,
+                      std::pair<Pos, float>, std::pair<Pos, float>>
+    get_points(const cv::Mat &frame);
 
     /**
      * @brief Process a frame and perform any necessary operations
@@ -34,21 +33,30 @@ class CamProcessor {
 
     /**
      * @brief Find the minima from an initial guess, using regression
-     * ^ Works well when we are close to the minima
+     * ^ Works VERY well ONLY for a good initial guess
      * 
      * @param camera_image 
      * @param initial_guess 
      * @return std::pair<Pos, float> returns the position and the loss
      */
     static std::pair<Pos, float>
-    find_minima_regress(const cv::Mat &camera_image,
-      Pos &initial_guess, int particles_per_generation = 10, int particles_dispersal = 12,
-      int num_generations = 3);
+    find_minima_regress(const cv::Mat &camera_image, Pos &initial_guess);
+
+    /**
+     * @brief Find the minima from an initial guess, using grid search
+     * ^ This works well for small steps, but takes a long time
+     * ^ Still slightly RNG
+     * 
+     * @param camera_image 
+     * @return std::pair<Pos, float> returns the position and the loss
+     */
+    static std::pair<Pos, float>
+    find_minima_grid_search(const cv::Mat &camera_image);
 
     /**
      * @brief Find the minima from an initial guess, using smart search
      * Aims to do grid search efficiently by searching middle first
-     * ^ Works well for a good initial guess, and a small search radius
+     * ^ Works quite well for most getting roughly where the bot is quickly
      * 
      * @param camera_image 
      * @param center 
@@ -57,5 +65,6 @@ class CamProcessor {
     static std::pair<Pos, float>
     find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
                              int RADIUS, int STEP, int HEADING_STEP);
+                             
 };
 } // namespace camera

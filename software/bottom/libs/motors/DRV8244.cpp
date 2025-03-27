@@ -1,3 +1,4 @@
+#include "registers.hpp"
 #include <cstdint>
 extern "C" {
 #include <hardware/spi.h>
@@ -8,8 +9,7 @@ extern "C" {
 #include "types.hpp"
 #include "pin_selector.hpp"
 #include "pin_manager.hpp"
-#include "faults.hpp"
-#include "status.hpp"
+#include "registers.hpp"
 #include "comms.hpp"
 
 #define DEFAULT_NSLEEP 1 // not sleeping by default
@@ -65,8 +65,8 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
     pins.set_debug_mode(false);
     pins.set_driver_id(id);
   }
-  inputControl.init(id == -1, spi_obj_touse);
   outputControl.init(id == -1, spi_obj_touse);
+  inputControl.init(id == -1, spi_obj_touse);
 
   comms::USB_CDC.printf("-> Initializing SPI\r\n");
   spi_obj = spi_obj_touse;
@@ -87,27 +87,29 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
 void MotorDriver::init_pins() {
   // Initialize pins
   // nFault
-  outputControl.init_digital(pins.get_pin(NFAULT),
-                             pins.get_pin_interface(NFAULT));
+  inputControl.init_digital(pins.get_pin(NFAULT),
+                            pins.get_pin_interface(NFAULT));
+  inputControl.pullup_digital(pins.get_pin(NFAULT),
+                              pins.get_pin_interface(NFAULT));
 
   // nSleep
-  inputControl.init_digital(pins.get_pin(NSLEEP), DEFAULT_NSLEEP,
-                            pins.get_pin_interface(NSLEEP));
+  outputControl.init_digital(pins.get_pin(NSLEEP), DEFAULT_NSLEEP,
+                             pins.get_pin_interface(NSLEEP));
 
   // DRVOFF
-  inputControl.init_digital(pins.get_pin(DRVOFF), DEFAULT_DRVOFF,
-                            pins.get_pin_interface(DRVOFF));
+  outputControl.init_digital(pins.get_pin(DRVOFF), DEFAULT_DRVOFF,
+                             pins.get_pin_interface(DRVOFF));
 
   // EN/IN1
-  inputControl.init_pwm(pins.get_pin(IN1), DEFAULT_IN1);
+  outputControl.init_pwm(pins.get_pin(IN1), DEFAULT_IN1);
 
   // PH/IN2
-  inputControl.init_digital(pins.get_pin(IN2), DEFAULT_IN2,
-                            pins.get_pin_interface(IN2));
+  outputControl.init_digital(pins.get_pin(IN2), DEFAULT_IN2,
+                             pins.get_pin_interface(IN2));
 
   // CS
-  inputControl.init_digital(pins.get_pin(CS), DEFAULT_CS,
-                            pins.get_pin_interface(CS));
+  outputControl.init_digital(pins.get_pin(CS), DEFAULT_CS,
+                             pins.get_pin_interface(CS));
 }
 
 //! spi/register handling
@@ -132,13 +134,13 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   //* Write & Read Feedback
   // Initialize CS pin as GPIO
 
-  inputControl.write_digital(pins.get_pin(CS), 0, pins.get_pin_interface(CS));
+  outputControl.write_digital(pins.get_pin(CS), 0, pins.get_pin_interface(CS));
 
   configure_spi();
   int bytes_written =
       spi_write16_read16_blocking(spi_obj, &reg_value, &rx_data, 1);
 
-  inputControl.write_digital(pins.get_pin(CS), 1, pins.get_pin_interface(CS));
+  outputControl.write_digital(pins.get_pin(CS), 1, pins.get_pin_interface(CS));
 
   // comms::USB_CDC.printf("SPI Write - Sent: 0x%04X, Received: 0x%04X\r\n",
   //                       reg_value, rx_data);
@@ -164,7 +166,7 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
           "SPI Write - No fault found in fault register, moving on...\r\n");
     } else {
       comms::USB_CDC.printf("SPI Write - %s\n",
-                            Fault::get_fault_description(fault).c_str());
+                            FAULT::get_fault_description(fault).c_str());
       return false;
     }
   }
@@ -193,12 +195,12 @@ uint8_t MotorDriver::read8(uint8_t reg) {
   reg_value |= ((reg << SPI_ADDRESS_POS) & SPI_ADDRESS_MASK_READ);
   reg_value |= SPI_RW_BIT_MASK;
 
-  inputControl.write_digital(pins.get_pin(CS), 0, pins.get_pin_interface(CS));
+  outputControl.write_digital(pins.get_pin(CS), 0, pins.get_pin_interface(CS));
 
   configure_spi();
   spi_write16_read16_blocking(spi_obj, &reg_value, &rx_data, 1);
 
-  inputControl.write_digital(pins.get_pin(CS), 1, pins.get_pin_interface(CS));
+  outputControl.write_digital(pins.get_pin(CS), 1, pins.get_pin_interface(CS));
 
   // comms::USB_CDC.printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\r\n",
   //                       reg_value, rx_data);
@@ -224,7 +226,7 @@ uint8_t MotorDriver::read8(uint8_t reg) {
           "SPI Write - No fault found in fault register, moving on...\r\n");
     } else {
       comms::USB_CDC.printf("SPI Write - %s\n",
-                            Fault::get_fault_description(fault).c_str());
+                            FAULT::get_fault_description(fault).c_str());
       return false;
     }
   }
@@ -271,7 +273,7 @@ bool MotorDriver::check_registers() {
   types::u8 faultSummary = read8(FAULT_SUMMARY_REG);
   if (faultSummary != 0) {
     comms::USB_CDC.printf("Error: FAULT_SUMMARY: %s\r\n",
-                          Fault::get_fault_description(faultSummary).c_str());
+                          FAULT::get_fault_description(faultSummary).c_str());
     return false;
   }
 
@@ -279,7 +281,7 @@ bool MotorDriver::check_registers() {
   types::u8 status1 = read8(STATUS1_REG);
   if (status1 != STATUS1_REG_EXPECTED) {
     comms::USB_CDC.printf("Error: STATUS1: %s\r\n",
-                          Status::get_status1_description(status1).c_str());
+                          STATUS::get_status1_description(status1).c_str());
     return false;
   }
 
@@ -287,7 +289,7 @@ bool MotorDriver::check_registers() {
   types::u8 status2 = read8(STATUS2_REG);
   if (status2 != STATUS2_REG_EXPECTED) {
     comms::USB_CDC.printf("Error: STATUS2: %s\r\n",
-                          Status::get_status2_description(status2).c_str());
+                          STATUS::get_status2_description(status2).c_str());
     return false;
   }
 
@@ -297,17 +299,17 @@ bool MotorDriver::check_registers() {
 std::string MotorDriver::read_fault_summary() {
   types::u8 faultSummary =
       read8(FAULT_SUMMARY_REG); // e.g., FAULT_SUMMARY register
-  return Fault::get_fault_description(faultSummary);
+  return FAULT::get_fault_description(faultSummary);
 }
 
 std::string MotorDriver::read_status1() {
   types::u8 statusSummary = read8(0x02); // e.g., FAULT_SUMMARY register
-  return Status::get_status1_description(statusSummary);
+  return STATUS::get_status1_description(statusSummary);
 }
 
 std::string MotorDriver::read_status2() {
   types::u8 statusSummary = read8(0x03); // e.g., FAULT_SUMMARY register
-  return Status::get_status1_description(statusSummary);
+  return STATUS::get_status1_description(statusSummary);
 }
 
 //! on error
@@ -339,21 +341,28 @@ void MotorDriver::handle_error(MotorDriver *driver) {
 
 bool MotorDriver::check_config() {
   // check if the driver is active
-  if (!inputControl.get_last_value_digital(pins.get_pin(NSLEEP))) {
+  if (!outputControl.get_last_value_digital(pins.get_pin(NSLEEP))) {
     comms::USB_CDC.printf("Driver is not active. Cannot command motor.\r\n");
     return false;
   }
 
   // check if the driver is off
-  if (inputControl.get_last_value_digital(pins.get_pin(DRVOFF))) {
+  if (outputControl.get_last_value_digital(pins.get_pin(DRVOFF))) {
     comms::USB_CDC.printf("Driver is off. Cannot command motor.\r\n");
     return false;
   }
 
   // check if the driver is in fault
-  if (outputControl.read_digital(pins.get_pin(NFAULT),
+  if (!inputControl.read_digital(pins.get_pin(NFAULT),
                                  pins.get_pin_interface(NFAULT))) {
     comms::USB_CDC.printf("Driver has faulted. Cannot command motor.\r\n");
+
+    types::u8 faultSummary = read8(FAULT_SUMMARY_REG);
+    if (faultSummary != 0) {
+      comms::USB_CDC.printf("Error: FAULT_SUMMARY: %s\r\n",
+                            FAULT::get_fault_description(faultSummary).c_str());
+      return false;
+    }
     return false;
   }
 
@@ -370,15 +379,15 @@ bool MotorDriver::check_config() {
 
 void MotorDriver::set_sleep(bool sleep) {
   // Set the sleep pinwrite_analog
-  inputControl.write_digital(pins.get_pin(NSLEEP), !sleep,
-                             pins.get_pin_interface(NSLEEP));
+  outputControl.write_digital(pins.get_pin(NSLEEP), !sleep,
+                              pins.get_pin_interface(NSLEEP));
   comms::USB_CDC.printf("Motor sleep set to %d\r\n", !sleep);
 }
 
 int16_t MotorDriver::read_current() {
   // Read the current from the ADC
-  int16_t current = outputControl.read_analog(pins.get_pin(IPROPI),
-                                              pins.get_pin_interface(IPROPI));
+  int16_t current = inputControl.read_analog(pins.get_pin(IPROPI),
+                                             pins.get_pin_interface(IPROPI));
   return current;
 }
 
@@ -401,13 +410,25 @@ bool MotorDriver::command(types::i16 duty_cycle) {
   duty_cycle = abs(duty_cycle);
 
   // Command motor by setting one channel to PWM and the other low
-  inputControl.write_digital(pins.get_pin(IN2), direction,
-                             pins.get_pin_interface(IN2));
-  inputControl.write_pwm(pins.get_pin(IN1), duty_cycle);
+  outputControl.write_digital(pins.get_pin(IN2), direction,
+                              pins.get_pin_interface(IN2));
+  outputControl.write_pwm(pins.get_pin(IN1), duty_cycle);
 
   comms::USB_CDC.printf(
       "Motor command executed: Duty cycle = %d, Direction = %d\r\n", duty_cycle,
       direction);
   return true;
+}
+
+bool MotorDriver::set_ITRIP(ITRIP::ITRIP current_limit) {
+  uint8_t config2_reg = read8(CONFIG2_REG);
+  config2_reg |= ((uint8_t)current_limit);
+  return write8(CONFIG2_REG, config2_reg);
+}
+
+bool MotorDriver::set_OCP(OCP::OCP current_limit) {
+  uint8_t config4_reg = read8(CONFIG4_REG);
+  config4_reg |= ((uint8_t)current_limit) << 3;
+  return write8(CONFIG4_REG, config4_reg);
 }
 } // namespace driver

@@ -7,9 +7,6 @@
 #include <utility>
 
 namespace camera {
-int CamProcessor::current_frame = 0;
-Pos CamProcessor::current_pos = {0, 0, 0};
-
 inline int generate_random_number(int mid, int variance, int min, int max) {
     // Generate a random number between mid - variance and mid + variance
     int random_number = mid - variance + (rand() % (int)(2 * variance + 1));
@@ -80,23 +77,26 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
 
 std::pair<Pos, float>
 CamProcessor::find_minima_regress(const cv::Mat &camera_image,
-                                  Pos &initial_guess, int particles_per_generation, int particles_dispersal,
-                                  int num_generations) {
+                                  Pos &initial_guess) {
+    // ? CONSTANTS
+    const int NUM_PARTICLES_PER_GENERATION = 25;
+    const int NUM_GENERATIONS              = 12;
+
     Pos best_guess  = initial_guess;
     float best_loss = calculate_loss(camera_image, best_guess);
-    for (int i = 0; i < num_generations; i++) {
+    for (int i = 0; i < NUM_GENERATIONS; i++) {
         Pos current_best_guess  = best_guess;
         float current_best_loss = best_loss;
 
         // disperse points x times
-        for (int j = 0; j < particles_per_generation; j++) {
+        for (int j = 0; j < NUM_PARTICLES_PER_GENERATION; j++) {
             Pos new_guess = best_guess;
 
             // randomize new guess properties, with the randomness proportional to the best_loss
             new_guess.x =
-                (int)generate_random_number(new_guess.x, particles_dispersal, -FIELD_X_SIZE / 2, FIELD_X_SIZE / 2);
+                (int)generate_random_number(new_guess.x, 3, -FIELD_X_SIZE / 2, FIELD_X_SIZE / 2);
             new_guess.y =
-                (int)generate_random_number(new_guess.y, particles_dispersal, -FIELD_Y_SIZE / 2, FIELD_Y_SIZE / 2);
+                (int)generate_random_number(new_guess.y, 3, -FIELD_Y_SIZE / 2, FIELD_Y_SIZE / 2);
             new_guess.heading =
                 generate_random_number(
                     (int)(new_guess.heading * (float)180 / M_PI), 10, 0, 360) *
@@ -114,6 +114,38 @@ CamProcessor::find_minima_regress(const cv::Mat &camera_image,
         if (current_best_loss < best_loss) {
             best_guess = current_best_guess;
             best_loss  = current_best_loss;
+        }
+    }
+
+    return std::make_pair(best_guess, best_loss);
+}
+
+std::pair<Pos, float>
+CamProcessor::find_minima_grid_search(const cv::Mat &camera_image) {
+    // ? CONSTANTS
+    const int GRID_STEP         = 3;
+    const int GRID_STEP_HEADING = 3;
+
+    Pos best_guess  = {0, 0, 0};
+    float best_loss = 1.0f;
+
+    // Perform grid search
+    for (int x = 0; x < FIELD_X_SIZE; x += GRID_STEP) {
+        for (int y = 0; y < FIELD_Y_SIZE; y += GRID_STEP) {
+            for (int heading = 0; heading < 360; heading += GRID_STEP_HEADING) {
+                Pos guess  = {x, y, heading * (float)M_PI / 180.0f};
+                float loss = calculate_loss(camera_image, guess);
+
+                // Check if the new guess is better than the best guess
+                if (loss < best_loss) {
+                    best_guess = guess;
+                    best_loss  = loss;
+                }
+
+                if (best_loss < 0.4f) {
+                    return std::make_pair(best_guess, best_loss);
+                }
+            }
         }
     }
 
@@ -160,20 +192,5 @@ CamProcessor::find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
     return std::make_pair(best_guess, best_loss);
 }
 
-void CamProcessor::process_frame(const cv::Mat &frame) {
-    // * Initialize and do a grid search
-    if (current_frame == 0) {
-        current_pos = {0, 0, 0};
-        std::pair<Pos, float> minima = find_minima_smart_search(frame, current_pos, 30, 2, 2);
-        current_pos = minima.first;
-        printf("Initial guess: x: %d, y: %d, heading: %f\n", current_pos.x, current_pos.y, current_pos.heading);
-    }
-    // * Do regression
-    else {
-        auto points = find_minima_regress(frame, current_pos);
-        current_pos = points.first;
-        printf("Regression guess: x: %d, y: %d, heading: %f\n", current_pos.x, current_pos.y, current_pos.heading);
-    }
-    current_frame++;
-}
+
 } // namespace camera

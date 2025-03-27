@@ -1,9 +1,11 @@
 #include "DRV8244.hpp"
 #include "comms/usb.hpp"
+#include <hardware/i2c.h>
 
 extern "C" {
 #include <pico/stdlib.h>
 #include <hardware/spi.h>
+#include <hardware/i2c.h>
 }
 #include "comms.hpp"
 
@@ -24,13 +26,19 @@ void motor_driver_task(void *args) {
     for (int i = 0; i <= 625; i++) {
       if (!motor_driver.command(-i * 10))
         break;
+
+      comms::USB_CDC.printf("Motor Driver Current: %d\n", motor_driver.read_current());
       vTaskDelay(pdMS_TO_TICKS(10));
     }
+    vTaskDelay(pdMS_TO_TICKS(10));
     for (int i = 625; i >= 0; i--) {
       if (!motor_driver.command(-i * 10))
         break;
+
+      comms::USB_CDC.printf("Motor Driver Current: %d\n", motor_driver.read_current());
       vTaskDelay(pdMS_TO_TICKS(10));
     }
+    vTaskDelay(pdMS_TO_TICKS(10));
   }
 }
 
