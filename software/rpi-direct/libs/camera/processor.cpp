@@ -7,7 +7,9 @@
 #include <utility>
 
 namespace camera {
-inline int generate_random_number(int mid, int variance, int min, int max) {
+
+int CamProcessor::generate_random_number(int mid, int variance, int min,
+                                         int max) {
     // Generate a random number between mid - variance and mid + variance
     int random_number = mid - variance + (rand() % (int)(2 * variance + 1));
     if (random_number > max) {
@@ -72,31 +74,30 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
 
     // Use integer division if possible, or at least avoid double casting
     float loss = static_cast<float>(non_white) / count;
-    return loss * loss;
+    return loss;
 }
 
-std::pair<Pos, float>
-CamProcessor::find_minima_regress(const cv::Mat &camera_image,
-                                  Pos &initial_guess) {
-    // ? CONSTANTS
-    const int NUM_PARTICLES_PER_GENERATION = 25;
-    const int NUM_GENERATIONS              = 12;
-
+std::pair<Pos, float> CamProcessor::find_minima_regress(
+    const cv::Mat &camera_image, Pos &initial_guess, int num_particles,
+    int num_generations, int variance_per_generation) {
     Pos best_guess  = initial_guess;
     float best_loss = calculate_loss(camera_image, best_guess);
-    for (int i = 0; i < NUM_GENERATIONS; i++) {
+
+    for (int i = 0; i < num_generations; i++) {
         Pos current_best_guess  = best_guess;
         float current_best_loss = best_loss;
 
         // disperse points x times
-        for (int j = 0; j < NUM_PARTICLES_PER_GENERATION; j++) {
+        for (int j = 0; j < num_particles; j++) {
             Pos new_guess = best_guess;
 
             // randomize new guess properties, with the randomness proportional to the best_loss
-            new_guess.x =
-                (int)generate_random_number(new_guess.x, 3, -FIELD_X_SIZE / 2, FIELD_X_SIZE / 2);
-            new_guess.y =
-                (int)generate_random_number(new_guess.y, 3, -FIELD_Y_SIZE / 2, FIELD_Y_SIZE / 2);
+            new_guess.x = (int)generate_random_number(
+                new_guess.x, variance_per_generation, -FIELD_X_SIZE / 2,
+                FIELD_X_SIZE / 2);
+            new_guess.y = (int)generate_random_number(
+                new_guess.y, variance_per_generation, -FIELD_Y_SIZE / 2,
+                FIELD_Y_SIZE / 2);
             new_guess.heading =
                 generate_random_number(
                     (int)(new_guess.heading * (float)180 / M_PI), 10, 0, 360) *
@@ -121,18 +122,15 @@ CamProcessor::find_minima_regress(const cv::Mat &camera_image,
 }
 
 std::pair<Pos, float>
-CamProcessor::find_minima_grid_search(const cv::Mat &camera_image) {
-    // ? CONSTANTS
-    const int GRID_STEP         = 3;
-    const int GRID_STEP_HEADING = 3;
-
+CamProcessor::find_minima_grid_search(const cv::Mat &camera_image,
+                                      int grid_step, int grid_step_heading) {
     Pos best_guess  = {0, 0, 0};
     float best_loss = 1.0f;
 
     // Perform grid search
-    for (int x = 0; x < FIELD_X_SIZE; x += GRID_STEP) {
-        for (int y = 0; y < FIELD_Y_SIZE; y += GRID_STEP) {
-            for (int heading = 0; heading < 360; heading += GRID_STEP_HEADING) {
+    for (int x = 0; x < FIELD_X_SIZE; x += grid_step) {
+        for (int y = 0; y < FIELD_Y_SIZE; y += grid_step) {
+            for (int heading = 0; heading < 360; heading += grid_step_heading) {
                 Pos guess  = {x, y, heading * (float)M_PI / 180.0f};
                 float loss = calculate_loss(camera_image, guess);
 
@@ -154,7 +152,7 @@ CamProcessor::find_minima_grid_search(const cv::Mat &camera_image) {
 
 std::pair<Pos, float>
 CamProcessor::find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
-                                       int RADIUS, int STEP, int HEADING_STEP) {
+                                       int radius, int step, int heading_step) {
     Pos best_guess  = center;
     float best_loss = calculate_loss(camera_image, best_guess);
 
@@ -164,16 +162,15 @@ CamProcessor::find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
     int y_min = -IMG_WIDTH / 2;
     int y_max = IMG_WIDTH / 2;
 
-    // Do the dense search first>
-    for (int x = center.x - RADIUS; x <= center.x + RADIUS; x += STEP) {
-        for (int y = center.y - RADIUS; y <= center.y + RADIUS; y += STEP) {
+    // Do the dense search first
+    for (int x = center.x - radius; x <= center.x + radius; x += step) {
+        for (int y = center.y - radius; y <= center.y + radius; y += step) {
             if (x < x_min || x >= x_max || y < y_min || y >= y_max) {
                 continue;
             }
 
-            for (int heading = 0; heading < 360; heading += HEADING_STEP) {
-                Pos guess = {x, y, heading * (float)M_PI / 180.0f};
-                // printf("x: %d, y: %d, heading: %d\n", x, y, heading);
+            for (int heading = 0; heading < 360; heading += heading_step) {
+                Pos guess  = {x, y, heading * (float)M_PI / 180.0f};
                 float loss = calculate_loss(camera_image, guess);
 
                 // Check if the new guess is better than the best guess
@@ -184,6 +181,7 @@ CamProcessor::find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
             }
         }
     }
+
     // If the loss is already low, return the best guess
     if (best_loss < 0.4f) {
         return std::make_pair(best_guess, best_loss);
@@ -191,6 +189,5 @@ CamProcessor::find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
 
     return std::make_pair(best_guess, best_loss);
 }
-
 
 } // namespace camera
