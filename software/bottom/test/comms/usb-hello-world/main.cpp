@@ -1,5 +1,6 @@
 #include "comms.hpp"
 #include "types.hpp"
+#include "debug.hpp"
 
 using namespace types;
 
@@ -10,7 +11,7 @@ void hello_world_task(void *args) {
   while (true) {
     gpio_put(LED_PIN, 0);
     sleep_ms(500);
-    comms::USB_CDC.printf(payload);
+    debug::log(payload);
     gpio_put(LED_PIN, 1);
     sleep_ms(500);
   }
