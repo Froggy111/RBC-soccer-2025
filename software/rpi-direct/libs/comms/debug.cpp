@@ -8,157 +8,120 @@
 
 namespace debug {
 
-void log(char *format, ...) {
-  va_list args;
-  va_start(args, format);
-  vfprintf(stdout, format, args);
-  va_end(args);
-  fflush(stdout);
-  
-  // Also send over USB
-  if (comms::USB_CDC.device_connected()) {
+void log(const char *format, ...) {
+    va_list args;
     va_start(args, format);
     char buffer[256];
     vsnprintf(buffer, sizeof(buffer), format, args);
+    std::cout << "[LOG] " << buffer << std::endl;
     va_end(args);
-    
-    comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG, 
-                        (types::u8*)buffer, strlen(buffer));
-  }
 }
 
-void debug(char *format, ...) {
-  va_list args;
-  va_start(args, format);
-  fprintf(stdout, "[DEBUG] ");
-  vfprintf(stdout, format, args);
-  va_end(args);
-  fflush(stdout);
-  
-  if (comms::USB_CDC.device_connected()) {
+void debug(const char *format, ...) {
+    va_list args;
     va_start(args, format);
     char buffer[256];
-    snprintf(buffer, sizeof(buffer), "[DEBUG] ");
-    vsnprintf(buffer + 8, sizeof(buffer) - 8, format, args);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    std::cout << "[DEBUG] " << buffer << std::endl;
     va_end(args);
-    
-    comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG, 
-                        (types::u8*)buffer, strlen(buffer));
-  }
 }
 
-void info(char *format, ...) {
-  va_list args;
-  va_start(args, format);
-  fprintf(stdout, "[INFO] ");
-  vfprintf(stdout, format, args);
-  va_end(args);
-  fflush(stdout);
-  
-  if (comms::USB_CDC.device_connected()) {
+void info(const char *format, ...) {
+    va_list args;
     va_start(args, format);
     char buffer[256];
-    snprintf(buffer, sizeof(buffer), "[INFO] ");
-    vsnprintf(buffer + 7, sizeof(buffer) - 7, format, args);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    std::cout << "[INFO] " << buffer << std::endl;
     va_end(args);
-    
-    comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG, 
-                        (types::u8*)buffer, strlen(buffer));
-  }
 }
 
-void warn(char *format, ...) {
-  va_list args;
-  va_start(args, format);
-  fprintf(stderr, "[WARN] ");
-  vfprintf(stderr, format, args);
-  va_end(args);
-  fflush(stderr);
-  
-  if (comms::USB_CDC.device_connected()) {
+void warn(const char *format, ...) {
+    va_list args;
     va_start(args, format);
     char buffer[256];
-    snprintf(buffer, sizeof(buffer), "[WARN] ");
-    vsnprintf(buffer + 7, sizeof(buffer) - 7, format, args);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    std::cout << "[WARN] " << buffer << std::endl;
     va_end(args);
-    
-    comms::USB_CDC.write(comms::SendIdentifiers::COMMS_WARN, 
-                        (types::u8*)buffer, strlen(buffer));
-  }
 }
 
-void error(char *format, ...) {
-  va_list args;
-  va_start(args, format);
-  fprintf(stderr, "[ERROR] ");
-  vfprintf(stderr, format, args);
-  va_end(args);
-  fflush(stderr);
-  
-  if (comms::USB_CDC.device_connected()) {
+void error(const char *format, ...) {
+    va_list args;
     va_start(args, format);
     char buffer[256];
-    snprintf(buffer, sizeof(buffer), "[ERROR] ");
-    vsnprintf(buffer + 8, sizeof(buffer) - 8, format, args);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    std::cerr << "[ERROR] " << buffer << std::endl;
     va_end(args);
-    
-    comms::USB_CDC.write(comms::SendIdentifiers::COMMS_ERROR, 
-                        (types::u8*)buffer, strlen(buffer));
-  }
 }
 
-void fatal(char *format, ...) {
-  va_list args;
-  va_start(args, format);
-  fprintf(stderr, "[FATAL] ");
-  vfprintf(stderr, format, args);
-  va_end(args);
-  fflush(stderr);
-  
-  if (comms::USB_CDC.device_connected()) {
+void fatal(const char *format, ...) {
+    va_list args;
     va_start(args, format);
     char buffer[256];
-    snprintf(buffer, sizeof(buffer), "[FATAL] ");
-    vsnprintf(buffer + 8, sizeof(buffer) - 8, format, args);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    std::cerr << "[FATAL] " << buffer << std::endl;
     va_end(args);
-    
-    comms::USB_CDC.write(comms::SendIdentifiers::COMMS_ERROR, 
-                        (types::u8*)buffer, strlen(buffer));
-  }
 }
 
 void msg(std::string format, LogLevel log_level, ...) {
-  va_list args;
-  va_start(args, log_level);
-  
-  switch (log_level) {
-    case LogLevel::TRACE:
-      fprintf(stdout, "[TRACE] ");
-      break;
-    case LogLevel::DEBUG:
-      fprintf(stdout, "[DEBUG] ");
-      break;
-    case LogLevel::INFO:
-      fprintf(stdout, "[INFO] ");
-      break;
-    case LogLevel::WARN:
-      fprintf(stderr, "[WARN] ");
-      break;
-    case LogLevel::ERROR:
-      fprintf(stderr, "[ERROR] ");
-      break;
-    case LogLevel::FATAL:
-      fprintf(stderr, "[FATAL] ");
-      break;
-  }
-  
-  vfprintf(log_level > LogLevel::INFO ? stderr : stdout, format.c_str(), args);
-  va_end(args);
-  fflush(log_level > LogLevel::INFO ? stderr : stdout);
+    va_list args;
+    va_start(args, log_level);
+    char buffer[256];
+    vsnprintf(buffer, sizeof(buffer), format.c_str(), args);
+    
+    switch (log_level) {
+        case LogLevel::TRACE:
+            std::cout << "[TRACE] " << buffer << std::endl;
+            break;
+        case LogLevel::DEBUG:
+            std::cout << "[DEBUG] " << buffer << std::endl;
+            break;
+        case LogLevel::INFO:
+            std::cout << "[INFO] " << buffer << std::endl;
+            break;
+        case LogLevel::WARN:
+            std::cout << "[WARN] " << buffer << std::endl;
+            break;
+        case LogLevel::ERROR:
+            std::cerr << "[ERROR] " << buffer << std::endl;
+            break;
+        case LogLevel::FATAL:
+            std::cerr << "[FATAL] " << buffer << std::endl;
+            break;
+    }
+    
+    va_end(args);
 }
 
-void msg_UART(std::string format, LogLevel log_level, ...) {
-  // This function can be implemented when UART communication is added
+void msg_device(const usb::USBDevice& device, std::string format, LogLevel log_level, ...) {
+    va_list args;
+    va_start(args, log_level);
+    char buffer[256];
+    vsnprintf(buffer, sizeof(buffer), format.c_str(), args);
+    
+    std::string device_info = "[" + device.deviceNode + "] ";
+    
+    switch (log_level) {
+        case LogLevel::TRACE:
+            std::cout << "[TRACE] " << device_info << buffer << std::endl;
+            break;
+        case LogLevel::DEBUG:
+            std::cout << "[DEBUG] " << device_info << buffer << std::endl;
+            break;
+        case LogLevel::INFO:
+            std::cout << "[INFO] " << device_info << buffer << std::endl;
+            break;
+        case LogLevel::WARN:
+            std::cout << "[WARN] " << device_info << buffer << std::endl;
+            break;
+        case LogLevel::ERROR:
+            std::cerr << "[ERROR] " << device_info << buffer << std::endl;
+            break;
+        case LogLevel::FATAL:
+            std::cerr << "[FATAL] " << device_info << buffer << std::endl;
+            break;
+    }
+    
+    va_end(args);
 }
 
 } // namespace debug

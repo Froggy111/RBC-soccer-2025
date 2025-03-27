@@ -3,6 +3,7 @@
 #include "comms/identifiers.hpp"
 #include "types.hpp"
 #include "comms.hpp"
+#include <string>
 
 namespace debug {
 
@@ -15,14 +16,14 @@ enum class LogLevel : types::u8 {
   FATAL,
 };
 
-void log(char *format, ...);
-void debug(char *format, ...);
-void info(char *format, ...);
-void warn(char *format, ...);
-void error(char *format, ...);
-void fatal(char *format, ...);
+void log(const char *format, ...);
+void debug(const char *format, ...);
+void info(const char *format, ...);
+void warn(const char *format, ...);
+void error(const char *format, ...);
+void fatal(const char *format, ...);
 
 void msg(std::string format, LogLevel log_level = LogLevel::INFO, ...);
-void msg_UART(std::string format, LogLevel log_level = LogLevel::INFO, ...);
+void msg_device(const usb::USBDevice& device, std::string format, LogLevel log_level = LogLevel::INFO, ...);
 
 } // namespace debug
