@@ -3,15 +3,13 @@ target_sources(DRV8244
   PRIVATE
     DRV8244.cpp
     pin_manager.cpp
-    faults.cpp
-    status.cpp
+    registers.cpp
     pin_selector.cpp
   PUBLIC
     include/DRV8244.hpp
     include/pin_selector.hpp
     include/pin_manager.hpp
-    include/faults.hpp
-    include/status.hpp
+    include/registers.hpp
 )
 
 target_include_directories(DRV8244 PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
