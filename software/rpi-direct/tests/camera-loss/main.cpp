@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
                 // Low loss (good match) = blue, high loss (bad match) = red
                 int intensity = static_cast<int>((1.0f - loss) * 255);
 
-                heatmap.at<cv::Vec3b>(y, x) =
+                heatmap.at<cv::Vec3b>(y, camera::FIELD_X_SIZE - x) =
                     cv::Vec3b(intensity, intensity, intensity);
             }
         }
