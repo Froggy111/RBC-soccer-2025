@@ -1,6 +1,5 @@
 #include "comms.hpp"
 #include "debug.hpp"
-#include <iostream>
 #include <unistd.h>
 #include <signal.h>
 #include <cstdlib>
@@ -20,18 +19,20 @@ int main(int argc, char* argv[]) {
     signal(SIGINT, signal_handler);
     
     // Parse command line argument for blink duration
-    types::u16 blink_duration = 500; // Default 500ms
+    types::u16 blink_duration = 10000; // Default 500ms
     if (argc > 1) {
         blink_duration = static_cast<types::u16>(std::atoi(argv[1]));
     }
     
-    // Initialize communications
+    // * Initialize communications
     if (!comms::comms_init()) {
         debug::error("Failed to initialize communications");
         return 1;
+    } else {
+        debug::info("Communications initialized successfully");
     }
     
-    // Scan for devices
+    // * Scan for devices
     debug::info("Scanning for devices...");
     std::vector<usb::USBDevice> devices = comms::get_connected_devices();
     if (devices.empty()) {
@@ -50,7 +51,7 @@ int main(int argc, char* argv[]) {
                    devices[i].pid);
     }
     
-    // Try to open a connection to each device
+    // * Try to open a connection to each device
     usb::USBDevice connected_device;
     bool connected = false;
     
@@ -76,7 +77,7 @@ int main(int argc, char* argv[]) {
     // Send the command to blink the LED
     debug::info("Sending blink command with duration %u ms", blink_data.blink_time_ms);
     if (comms::USB_CDC.write(connected_device, 
-                             comms::SendIdentifiers::COMMS_DEBUG, 
+                             comms::SendIdentifiers::DEBUG_TEST_BLINK, 
                              reinterpret_cast<types::u8*>(&blink_data), 
                              sizeof(blink_data))) {
         debug::info("Command sent successfully");
