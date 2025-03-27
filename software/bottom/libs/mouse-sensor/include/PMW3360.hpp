@@ -1,10 +1,9 @@
 #pragma once
 #include "types.hpp"
-#include "dbg_pins.hpp"
 #include "pin_selector.hpp"
 #include <hardware/spi.h>
 #include <pico/types.h>
-#include <string>
+#include "pins/MCP23S17.hpp"
 
 namespace mouse {
 class MouseSensor {
@@ -27,10 +26,12 @@ private:
   types::u8 read8(types::u8 reg);
   void write8(types::u8 reg, types::u8 data);
 
-  PinInputControl inputControl;
-  PinOutputControl outputControl;
   Pins pins;
-
   spi_inst_t *spi_obj;
+
+  int _id = 0;
+
+  static MCP23S17 dmux1, dmux2;
+  static bool dmux_init[2];
 };
-}
+} // namespace mouse

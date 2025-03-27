@@ -10,6 +10,15 @@ const types::u8 LED_PIN = 25;
 
 mouse::MouseSensor sensor;
 
+int urgent_blink() {
+  while (true) {
+    gpio_put(LED_PIN, 1);
+    sleep_ms(100);
+    gpio_put(LED_PIN, 0);
+    sleep_ms(100);
+  }
+}
+
 void mouse_sensor_task(void *args) {
   comms::USB_CDC.wait_for_CDC_connection(0xffffffff);
   comms::USB_CDC.printf("CDC Connected!\r\n");
@@ -17,14 +26,14 @@ void mouse_sensor_task(void *args) {
   //usb::CDC *cdc = (usb::CDC *)args;
   if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.printf("SPI Initialization Failed!\r\n");
-    return;
+    urgent_blink();
   } else {
     comms::USB_CDC.printf("SPI Initialization Successful!\r\n");
   }
 
   if (!sensor.init(1, spi0)) {
     comms::USB_CDC.printf("Mouse Sensor Initialization Failed!\r\n");
-    return;
+    urgent_blink();
   } else {
     comms::USB_CDC.printf("Mouse Sensor Initialised!\r\n");
   }
