@@ -22,7 +22,4 @@ void warn(char *format, ...);
 void error(char *format, ...);
 void fatal(char *format, ...);
 
-void msg(std::string format, LogLevel log_level = LogLevel::INFO, ...);
-void msg_UART(std::string format, LogLevel log_level = LogLevel::INFO, ...);
-
 } // namespace debug
