@@ -16,10 +16,6 @@ using namespace types;
 
 namespace pins {
 
-// addresses of the MCP23S17
-const u8 ADDRESS_1 = 0b000;
-const u8 ADDRESS_2 = 0b001;
-
 // default values for pins
 const u8 DEFAULT_CS = 1; // CS high by default
 
@@ -299,10 +295,15 @@ bool MCP23S17::attach_interrupt(u8 pin, bool on_A,
 }
 
 void MCP23S17::interrupt_handler(void *params) {
-  BaseType_t higher_priority_task_woken;
-  xTaskNotifyFromISR(interrupt_handler_task_handle, 0, eNoAction,
-                     &higher_priority_task_woken);
-  portYIELD_FROM_ISR(higher_priority_task_woken);
+  if (_int_from_isr) {
+    BaseType_t higher_priority_task_woken;
+    xTaskNotifyFromISR(interrupt_handler_task_handle, 0, eNoAction,
+                       &higher_priority_task_woken);
+    portYIELD_FROM_ISR(higher_priority_task_woken);
+  } else {
+    xTaskNotify(interrupt_handler_task_handle, 0, eNoAction);
+  }
+  return;
 }
 
 void MCP23S17::interrupt_handler_task(void *params) {
