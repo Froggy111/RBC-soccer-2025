@@ -1,4 +1,5 @@
 #include "pins/MCP23S17.hpp"
+#include "debug.hpp"
 #include "pinmap.hpp"
 #include "types.hpp"
 #include "comms.hpp"
@@ -70,17 +71,17 @@ MCP23S17::MCP23S17(u8 SCLK, u8 MISO, u8 MOSI, u8 SCS, u8 RESET, u8 address,
 }
 
 void MCP23S17::init() {
-  comms::USB_CDC.printf("-> Initializing MCP23S17\r\n");
+  debug::log("-> Initializing MCP23S17 with address %u\r\n", _address);
 
   // init gpio pins
-  comms::USB_CDC.printf("Initializing pins\r\n");
+  debug::log("Initializing pins\r\n");
   init_pins();
 
   // reset using the reset pin
   reset();
 
   // init spi
-  comms::USB_CDC.printf("Initializing SPI\r\n");
+  debug::log("Initializing SPI\r\n");
   init_spi();
 
   // set interrupt condition to INTPOL
@@ -91,7 +92,7 @@ void MCP23S17::init() {
   write8(IOCON, 0b01000000, 0b01000000);
 
   // create interrupt handling task
-  comms::USB_CDC.printf("Creating interrupt handling task\r\n");
+  debug::log("Creating interrupt handling task\r\n");
   xTaskCreate(interrupt_handler_task, "MCP23S17 interrupt handling task",
               INTERRUPT_TASK_STACK_SIZE, this, INTERRUPT_TASK_PRIORITY,
               &interrupt_handler_task_handle);
@@ -127,15 +128,14 @@ void MCP23S17::write8(u8 reg_address, u8 data, u8 mask) {
   u8 res = read8(reg_address);
   if (res != tx_data[2]) {
     // print tx_data in binary
-    for (int i = 0; i < 3; i++) {
-      for (int j = 7; j >= 0; j--) {
-        comms::USB_CDC.printf("%d", (tx_data[i] >> j) & 1);
+    for (u8 i = 0; i < 3; i++) {
+      for (u8 j = 7; j >= 0; j--) {
+        debug::log("%u", (tx_data[i] >> j) & 1);
       }
-      comms::USB_CDC.printf(" ");
+      debug::log(" ");
     }
-    comms::USB_CDC.printf(
-        "ERROR: MCP23S17 write8 to register failed. Expected %d, got %d\r\n",
-        tx_data[2], res);
+    debug::error("MCP23S17 write8 to register failed. Expected %u, got %u\r\n",
+                 tx_data[2], res);
   }
 }
 
@@ -176,7 +176,7 @@ void MCP23S17::reset() {
 
 void MCP23S17::set_pin_mode(u8 pin, bool on_A, DigitalPinMode pinmode) {
   if (pin < 0 || pin > 7) {
-    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
+    debug::error("Error: Invalid pin number: %u\r\n", pin);
     return;
   }
 
@@ -200,41 +200,41 @@ void MCP23S17::set_pin_mode(u8 pin, bool on_A, DigitalPinMode pinmode) {
 
 void MCP23S17::write(u8 pin, bool on_A, bool value) {
   if (pin < 0 || pin > 7) {
-    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
+    debug::error("Error: Invalid pin number: %u\r\n", pin);
     return;
   }
 
   if (_pin_state[pin + (on_A ? 0 : 8)] != 0) {
-    comms::USB_CDC.printf(
-        "Error: Pin %d on_A %d is not configured as output\r\n", pin, on_A);
+    debug::error("Error: Pin %u on_A %u is not configured as output\r\n", pin,
+                 on_A);
     return;
   }
 
   // write to the pin
   write8(on_A ? GPIOA : GPIOB, value << pin, 0b1 << pin);
 
-  // comms::USB_CDC.printf("Driver ID: %d, A: %d, Wrote to pin %d with value %d\r\n", id, on_A, pin, value);
+  debug::log("MCP23S17 address %u wrote to pin %u on bus %u with value %u\r\n",
+             _address, pin, on_A, value);
 
   // check that OUTPUT_LATCH has the written bit
   u8 res = read8(on_A ? OLATA : OLATB);
 
   if ((res & (1 << pin)) != (value << pin)) {
-    comms::USB_CDC.printf(
-        "ERROR: Write to MCP23S17 GPIO failed. Expected %d, got %d\r\n",
+    debug::error(
+        "ERROR: Write to MCP23S17 GPIO failed. Expected %u, got %u\r\n",
         value << pin, res);
   }
 }
 
 bool MCP23S17::read(u8 pin, bool on_A) {
   if (pin < 0 || pin > 7) {
-    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
+    debug::error("Error: Invalid pin number: %u\r\n", pin);
     return false;
   }
 
   if (_pin_state[pin + (on_A ? 0 : 8)] != 1) {
-    comms::USB_CDC.printf(
-        "Error: Pin %d ID %d on_A %d is not configured as input\r\n", pin,
-        on_A);
+    debug::error("Error: Pin %u ID %u on_A %u is not configured as input\r\n",
+                 pin, on_A);
     return false;
   }
 
@@ -247,12 +247,12 @@ bool MCP23S17::attach_interrupt(u8 pin, bool on_A,
                                 DigitalPinInterruptState interrupt_state,
                                 void *interrupt_fn_params) {
   if (pin < 0 || pin > 7) {
-    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
+    comms::USB_CDC.printf("Error: Invalid pin number: %u\r\n", pin);
     return false;
   }
   if (_pin_state[pin + (on_A ? 0 : 8)] != 1) {
     comms::USB_CDC.printf(
-        "Error: Pin %d ID %d on_A %d is not configured as input\r\n", pin,
+        "Error: Pin %u ID %u on_A %u is not configured as input\r\n", pin,
         on_A);
     return false;
   }
@@ -292,8 +292,21 @@ bool MCP23S17::attach_interrupt(u8 pin, bool on_A,
   }
   _interrupt_handlers[pin + (on_A ? 0 : 8)] = interrupt_fn;
   // enable interrupt on that pin
-  write8(on_A ? GPINTENA : GPINTENB, 0 << pin, 0b1 << pin);
+  write8(on_A ? GPINTENA : GPINTENB, 1 << pin, 0b1 << pin);
   return true;
+}
+
+void MCP23S17::detach_interrupt(u8 pin, bool on_A) {
+  disable_interrupt(pin, on_A);
+  _interrupt_handlers[pin + (on_A ? 0 : 8)] = nullptr;
+}
+
+void MCP23S17::disable_interrupt(u8 pin, bool on_A) {
+  write8(on_A ? GPINTENA : GPINTENB, 0 << pin, 0b1 << pin);
+}
+
+void MCP23S17::enable_interrupt(u8 pin, bool on_A) {
+  write8(on_A ? GPINTENA : GPINTENB, 1 << pin, 0b1 << pin);
 }
 
 void MCP23S17::interrupt_handler(void *params) {
@@ -305,7 +318,6 @@ void MCP23S17::interrupt_handler(void *params) {
   } else {
     xTaskNotify(interrupt_handler_task_handle, 0, eNoAction);
   }
-  return;
 }
 
 void MCP23S17::interrupt_handler_task(void *params) {
@@ -323,6 +335,13 @@ void MCP23S17::interrupt_handler_task(void *params) {
     // bus A
     if (int_flags_a) {
       for (u8 pin = 0; pin < 8; pin++) {
+        if (!_this->_interrupt_handlers[pin]) {
+          // complain (very loudly)
+          debug::fatal("interrupt on pin %u without handler attached in \
+MCP23S17 with address %u\r\n",
+                       pin, _this->_address);
+          continue; // handle gracefully
+        }
         u8 pin_mask = (1 << pin);
         if (int_flags_a & pin_mask) { // pin flagged
           // check if int_cap has the same trigger condition as attached
@@ -331,28 +350,24 @@ void MCP23S17::interrupt_handler_task(void *params) {
           case DigitalPinInterruptState::LEVEL_HIGH:
             if (pin_state) {
               _this->_interrupt_handlers[pin](
-                  DigitalPinInterruptState::LEVEL_HIGH,
                   _this->_interrupt_handler_args[pin]);
             }
             break;
           case DigitalPinInterruptState::LEVEL_LOW:
             if (!pin_state) {
               _this->_interrupt_handlers[pin](
-                  DigitalPinInterruptState::LEVEL_LOW,
                   _this->_interrupt_handler_args[pin]);
             }
             break;
           case DigitalPinInterruptState::EDGE_RISE:
             if (pin_state) {
               _this->_interrupt_handlers[pin](
-                  DigitalPinInterruptState::EDGE_RISE,
                   _this->_interrupt_handler_args[pin]);
             }
             break;
           case DigitalPinInterruptState::EDGE_FALL:
             if (!pin_state) {
               _this->_interrupt_handlers[pin](
-                  DigitalPinInterruptState::EDGE_FALL,
                   _this->_interrupt_handler_args[pin]);
             }
             break;

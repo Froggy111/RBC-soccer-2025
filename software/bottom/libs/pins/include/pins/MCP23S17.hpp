@@ -30,16 +30,13 @@ public:
   bool attach_interrupt(types::u8 pin, bool on_A,
                         DigitalPinInterrupt interrupt_handler,
                         DigitalPinInterruptState interrupt_state, void *args);
+  // WARN: this just detaches the interrupt. currently no checks being made if an interrupt is enabled after detaching and before attaching
+  // WARN: if the interrupt condition is triggered it will error as nullptr is checked
+  void detach_interrupt(types::u8 pin, bool on_A);
+  void enable_interrupt(types::u8 pin, bool on_A);
+  void disable_interrupt(types::u8 pin, bool on_A);
   // attach this to external, just notifies interrupt_handler_task
   void interrupt_handler(void *args);
-
-  // these should be private, but are public for static funcs to use
-  types::u8 read8(types::u8 reg_address);
-  void write8(types::u8 reg_address, types::u8 data, types::u8 mask = 0xFF);
-  DigitalPinInterrupt _interrupt_handlers[16] = {nullptr};
-  DigitalPinInterruptState _interrupt_states[16] = {
-      DigitalPinInterruptState::EDGE_FALL};
-  void *_interrupt_handler_args[16] = {nullptr};
 
 private:
   types::u8 _pin_state[16];
@@ -64,6 +61,14 @@ private:
   void init_pins();
 
   void configure_spi();
+
+  types::u8 read8(types::u8 reg_address);
+  void write8(types::u8 reg_address, types::u8 data, types::u8 mask = 0xFF);
+
+  DigitalPinInterrupt _interrupt_handlers[16] = {nullptr};
+  DigitalPinInterruptState _interrupt_states[16] = {
+      DigitalPinInterruptState::EDGE_FALL};
+  void *_interrupt_handler_args[16] = {nullptr};
 
   // params is this
   static void interrupt_handler_task(void *params);
