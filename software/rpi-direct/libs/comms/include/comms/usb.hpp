@@ -125,12 +125,13 @@ public:
                const types::u8 *data, const types::u16 data_len);
 
     /**
-     * @brief Register a callback function for receiving data
+     * @brief Register a callback function for receiving data from a specific device
+     * @param device The specific device to listen to
      * @param identifier Command identifier to listen for
      * @param callback Function to call when data with this identifier is received
      */
-    void register_callback(comms::RecvIdentifiers identifier, 
-                          std::function<void(const USBDevice&, const types::u8*, types::u16)> callback);
+     void register_callback(const USBDevice& device, comms::RecvIdentifiers identifier,
+        std::function<void(const types::u8*, types::u16)> callback);
 
 private:
     /* **************** *
@@ -177,8 +178,9 @@ private:
     std::map<DeviceType, std::pair<types::u16, types::u16>> _device_identifiers;
     
     // Callbacks for received data
-    std::map<comms::RecvIdentifiers, 
-             std::function<void(const USBDevice&, const types::u8*, types::u16)>> _callbacks;
+    std::map<std::string, // device path as identifier
+             std::map<comms::RecvIdentifiers,
+                     std::function<void(const types::u8*, types::u16)>>> _device_callbacks;
     std::mutex _callbacks_mutex;
     
     bool _initialized;
