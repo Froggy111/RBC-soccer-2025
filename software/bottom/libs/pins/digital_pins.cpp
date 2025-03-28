@@ -273,7 +273,7 @@ bool DigitalPins::disable_interrupt(pinmap::Digital pin) {
   return true;
 }
 
-void DigitalPins::pico_gpio_interrupt_handler(u32 gpio, u32 event) {
+void DigitalPins::pico_gpio_interrupt_handler(uint gpio, uint event) {
   if (_interrupts[gpio] == nullptr) {
     return;
   }

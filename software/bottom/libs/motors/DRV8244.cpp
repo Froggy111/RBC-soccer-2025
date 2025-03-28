@@ -79,8 +79,8 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
   comms::USB_CDC.printf("-> Initializing AMUX\r\n");
   if (!adc_init[0] &&
       !adc1.beginADSX((PICO_ADS1115::ADSXAddressI2C_e)ADC1_ADDR, i2c1,
-                      ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C0_SDA,
-                      (uint8_t)pinmap::Pico::I2C0_SCL, 1000)) {
+                      ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C1_SDA,
+                      (uint8_t)pinmap::Pico::I2C1_SCL, 1000)) {
     comms::USB_CDC.printf("ADC1 not found!\r\n");
   } else {
     adc_init[0] = true;
@@ -90,8 +90,8 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
 
   if (!adc_init[1] &&
       !adc2.beginADSX((PICO_ADS1115::ADSXAddressI2C_e)ADC2_ADDR, i2c1,
-                      ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C0_SDA,
-                      (uint8_t)pinmap::Pico::I2C0_SCL, 1000)) {
+                      ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C1_SDA,
+                      (uint8_t)pinmap::Pico::I2C1_SCL, 1000)) {
     comms::USB_CDC.printf("ADC2 not found!\r\n");
   } else {
     adc_init[1] = true;
@@ -395,9 +395,11 @@ void MotorDriver::set_sleep(bool sleep) {
 int16_t MotorDriver::read_current() {
   // Read the current from the ADC
   if (id == 1 || id == 4)
-    return adc2.readADC_SingleEnded((PICO_ADS1X15::ADSX_AINX_e) pins.get_pin(IPROPI));
+    return adc2.readADC_SingleEnded(
+        (PICO_ADS1X15::ADSX_AINX_e)pins.get_pin(IPROPI));
   else
-    return adc1.readADC_SingleEnded((PICO_ADS1X15::ADSX_AINX_e) pins.get_pin(IPROPI));
+    return adc1.readADC_SingleEnded(
+        (PICO_ADS1X15::ADSX_AINX_e)pins.get_pin(IPROPI));
   return 0;
 }
 
