@@ -1,16 +1,9 @@
-#include <cstdint>
 #include <cmath>
 #include <algorithm>
-#include <chrono>
 #include <cstdlib>
 #include <queue>
 #include <tuple>
-#include <iostream>
-#include <type_traits>
-
 #include "include/motion.hpp"
-
-
 
 #define PI 3.14159265358979323846
 #define SLIDING_WINDOW_SIZE 10
