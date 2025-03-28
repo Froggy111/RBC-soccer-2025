@@ -4,9 +4,9 @@
 namespace comms {
 
 enum class SendIdentifiers : types::u8 {
-  COMMS_WARN = 0,
-  COMMS_ERROR = 1,
-  COMMS_DEBUG = 2,
+  COMMS_WARN = 0,  // warnings should be sent here
+  COMMS_ERROR = 1, // hard errors sent here
+  COMMS_DEBUG = 2, // everything should fall under here by default
   SPI_INIT_FAIL = 3,
   LINE_SENSOR_DATA = 4
 };
