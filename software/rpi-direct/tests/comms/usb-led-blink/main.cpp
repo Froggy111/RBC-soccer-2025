@@ -1,97 +1,57 @@
 #include "comms.hpp"
 #include "comms/identifiers.hpp"
 #include "debug.hpp"
-#include <cstdlib>
-#include <signal.h>
-#include <unistd.h>
+#include <csignal>
+#include <cstring>
+#include <iostream>
+#include <thread>
 
-// Structure matching the one on the Pico
-struct BlinkOnCmdData {
-    types::u16 blink_time_ms = 0;
-};
+// Flag for program termination
+volatile bool running = true;
 
-bool running = true;
+// Signal handler for Ctrl+C
+void signalHandler(int signum) {
+    std::cout << "Interrupt received, terminating..." << std::endl;
+    running = false;
+}
 
-void signal_handler(int signal) { running = false; }
+int main() {
+    // Register signal handler for clean termination
+    signal(SIGINT, signalHandler);
 
-int main(int argc, char *argv[]) {
-    signal(SIGINT, signal_handler);
+    debug::info("Starting USB communication with top plate...");
 
-    // Parse command line argument for blink duration
-    types::u16 blink_duration = 10000; // Default 500ms
-    if (argc > 1) {
-        blink_duration = static_cast<types::u16>(std::atoi(argv[1]));
-    }
-
-    // * Initialize communications
-    if (!comms::comms_init()) {
+    // Initialize the communication library
+    if (!comms::USB_CDC.init()) {
         debug::error("Failed to initialize communications");
         return 1;
+    }
+
+    debug::info("Communication initialized");
+
+    debug::info(
+        "Listening for messages from top plate. Press Ctrl+C to exit...");
+    debug::info("Will send test commands when device is connected...");
+
+    while (!comms::USB_CDC.is_connected(
+            usb::DeviceType::TOP_PLATE)) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    types::u8 testData[] = {10};
+    bool success         = comms::USB_CDC.write(
+        usb::DeviceType::TOP_PLATE,
+        (types::u8)comms::SendTopPicoIdentifiers::DEBUG_TEST_BLINK, testData,
+        sizeof(testData));
+
+    if (success) {
+        debug::info("Sent test blink command to top plate");
     } else {
-        debug::info("Communications initialized successfully");
+        debug::error("Failed to send command to top plate");
     }
 
-    // * Scan for devices
-    debug::info("Scanning for devices...");
-    std::vector<usb::USBDevice> devices = comms::get_connected_devices();
-    if (devices.empty()) {
-        debug::error("No Pico devices found");
-        return 1;
-    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    debug::info("Found %zu devices", devices.size());
-
-    // Print out found devices
-    for (size_t i = 0; i < devices.size(); i++) {
-        debug::info("Device %zu: %s (VID: 0x%04X, PID: 0x%04X)", i,
-                    devices[i].deviceNode.c_str(), devices[i].vid,
-                    devices[i].pid);
-    }
-
-    // * Try to open a connection to each device
-    usb::USBDevice connected_device;
-    bool connected = false;
-
-    for (auto &device : devices) {
-        debug::info("Attempting to connect to %s...",
-                    device.deviceNode.c_str());
-        if (comms::USB_CDC.connect(device)) {
-            connected_device = device;
-            connected        = true;
-            debug::info("Connected to %s successfully",
-                        device.deviceNode.c_str());
-            break;
-        }
-    }
-
-    if (!connected) {
-        debug::error("Failed to connect to any Pico device");
-        return 1;
-    }
-
-    // Create the blink command data
-    BlinkOnCmdData blink_data;
-    blink_data.blink_time_ms = blink_duration;
-
-    // Send the command to blink the LED
-    debug::info("Sending blink command with duration %u ms",
-                blink_data.blink_time_ms);
-    if (comms::USB_CDC.write(
-            connected_device,
-            (types::u8)comms::SendBottomPicoIdentifiers::DEBUG_TEST_BLINK,
-            reinterpret_cast<types::u8 *>(&blink_data), sizeof(blink_data))) {
-        debug::info("Command sent successfully");
-    } else {
-        debug::error("Failed to send command");
-        return 1;
-    }
-
-    // Wait for the blink to complete (plus a small buffer)
-    debug::info("Waiting for LED to blink...");
-    usleep((blink_data.blink_time_ms + 100) * 1000);
-
-    debug::info("Test complete, disconnecting from device");
-    comms::USB_CDC.disconnect(connected_device);
-
+    debug::info("Exiting...");
     return 0;
 }
