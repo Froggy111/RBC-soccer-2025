@@ -51,8 +51,8 @@ const u8 SPI_CMD_DEFAULT = 0b01000000;
 const u16 INTERRUPT_TASK_STACK_SIZE = 256;
 const u8 INTERRUPT_TASK_PRIORITY = 12;
 
-void MCP23S17::init(u8 SCLK, u8 MISO, u8 MOSI, u8 SCS, u8 RESET, u8 address,
-                    bool int_from_isr, spi_inst_t *spi_obj) {
+MCP23S17::MCP23S17(u8 SCLK, u8 MISO, u8 MOSI, u8 SCS, u8 RESET, u8 address,
+                   bool int_from_isr, spi_inst_t *spi_obj) {
   _spi_obj = spi_obj;
   memset(_pin_state, 0, sizeof(_pin_state));
   // prevent multiple init
@@ -67,7 +67,9 @@ void MCP23S17::init(u8 SCLK, u8 MISO, u8 MOSI, u8 SCS, u8 RESET, u8 address,
   _RESET = RESET;
   _address = address;
   _int_from_isr = int_from_isr;
+}
 
+void MCP23S17::init() {
   comms::USB_CDC.printf("-> Initializing MCP23S17\r\n");
 
   // init gpio pins
@@ -263,32 +265,32 @@ bool MCP23S17::attach_interrupt(u8 pin, bool on_A,
     // default value high, interrupt on change
     write8(on_A ? DEFVALA : DEFVALB, 1 << pin, 0b1 << pin);
     write8(on_A ? INTCONA : INTCONB, 0 << pin, 0b1 << pin);
-    _interrupt_funcs_state[pin + (on_A ? 0 : 8)] =
+    _interrupt_states[pin + (on_A ? 0 : 8)] =
         DigitalPinInterruptState::EDGE_FALL;
     break;
   case DigitalPinInterruptState::EDGE_RISE:
     // default value high, interrupt on change
     write8(on_A ? DEFVALA : DEFVALB, 1 << pin, 0b1 << pin);
     write8(on_A ? INTCONA : INTCONB, 0 << pin, 0b1 << pin);
-    _interrupt_funcs_state[pin + (on_A ? 0 : 8)] =
+    _interrupt_states[pin + (on_A ? 0 : 8)] =
         DigitalPinInterruptState::EDGE_RISE;
     break;
   case DigitalPinInterruptState::LEVEL_HIGH:
     // default value high, interrupt on change
     write8(on_A ? DEFVALA : DEFVALB, 0 << pin, 0b1 << pin);
     write8(on_A ? INTCONA : INTCONB, 1 << pin, 0b1 << pin);
-    _interrupt_funcs_state[pin + (on_A ? 0 : 8)] =
+    _interrupt_states[pin + (on_A ? 0 : 8)] =
         DigitalPinInterruptState::LEVEL_HIGH;
     break;
   case DigitalPinInterruptState::LEVEL_LOW:
     // default value high, interrupt on change
     write8(on_A ? DEFVALA : DEFVALB, 1 << pin, 0b1 << pin);
     write8(on_A ? INTCONA : INTCONB, 1 << pin, 0b1 << pin);
-    _interrupt_funcs_state[pin + (on_A ? 0 : 8)] =
+    _interrupt_states[pin + (on_A ? 0 : 8)] =
         DigitalPinInterruptState::LEVEL_LOW;
     break;
   }
-  _interrupt_funcs[pin + (on_A ? 0 : 8)] = interrupt_fn;
+  _interrupt_handlers[pin + (on_A ? 0 : 8)] = interrupt_fn;
   // enable interrupt on that pin
   write8(on_A ? GPINTENA : GPINTENB, 0 << pin, 0b1 << pin);
   return true;
