@@ -1,9 +1,7 @@
 #pragma once
 #include <tuple>
-#include <cstdint>
 #include <queue>
 #include <deque>
-#include <vector>
 
 typedef std::tuple<float, float, float, float> tuple_4;
 typedef std::tuple<float, float> tuple_2;
@@ -26,8 +24,6 @@ class MotionController{
 
     float expected_velocity = 0.0;
     float expected_direction = 0.0;
-
-    
 
     void init(float kp, float ki, float kd);
 
@@ -113,11 +109,8 @@ class MotionController{
     float rotation_integral = 0;
     float last_rotation_error = 0;
 
-
     //Factor to multiply position values by, so that at max speed, the change between last
     //and first is approx. 1
 
     float position_factor = 1.0; //TODO: NEED TO TUNE
-
-    
 };

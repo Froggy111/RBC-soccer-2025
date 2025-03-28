@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <utility>
+#include "debug.hpp"
 
 namespace camera {
 
@@ -77,7 +78,7 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     return loss;
 }
 
-std::pair<Pos, float> CamProcessor::find_minima_regress(
+std::pair<Pos, float> CamProcessor::find_minima_particle_search(
     const cv::Mat &camera_image, Pos &initial_guess, int num_particles,
     int num_generations, int variance_per_generation) {
     Pos best_guess  = initial_guess;
@@ -122,35 +123,6 @@ std::pair<Pos, float> CamProcessor::find_minima_regress(
 }
 
 std::pair<Pos, float>
-CamProcessor::find_minima_grid_search(const cv::Mat &camera_image,
-                                      int grid_step, int grid_step_heading) {
-    Pos best_guess  = {0, 0, 0};
-    float best_loss = 1.0f;
-
-    // Perform grid search
-    for (int x = 0; x < FIELD_X_SIZE; x += grid_step) {
-        for (int y = 0; y < FIELD_Y_SIZE; y += grid_step) {
-            for (int heading = 0; heading < 360; heading += grid_step_heading) {
-                Pos guess  = {x, y, heading * (float)M_PI / 180.0f};
-                float loss = calculate_loss(camera_image, guess);
-
-                // Check if the new guess is better than the best guess
-                if (loss < best_loss) {
-                    best_guess = guess;
-                    best_loss  = loss;
-                }
-
-                if (best_loss < 0.4f) {
-                    return std::make_pair(best_guess, best_loss);
-                }
-            }
-        }
-    }
-
-    return std::make_pair(best_guess, best_loss);
-}
-
-std::pair<Pos, float>
 CamProcessor::find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
                                        int radius, int step, int heading_step) {
     Pos best_guess  = center;
@@ -188,6 +160,26 @@ CamProcessor::find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
     }
 
     return std::make_pair(best_guess, best_loss);
+}
+
+int CamProcessor::_frame_count = 0;
+Pos CamProcessor::_current_pos = {0, 0, 0}; 
+
+void CamProcessor::process_frame(const cv::Mat &frame) {
+    if (_frame_count == 0) {
+        auto res = find_minima_smart_search(frame, _current_pos, GRID_SEARCH_RADIUS, GRID_SEARCH_STEP, GRID_SEARCH_HEADING_STEP);
+        _current_pos = res.first;
+        debug::log("Found position: (%d, %d, %f) with loss: %f",
+                   _current_pos.x, _current_pos.y,
+                   _current_pos.heading * (float)180 / M_PI, res.second);
+    } else {
+        auto res = find_minima_particle_search(frame, _current_pos, PARTICLE_SEARCH_NUM, PARTICLE_SEARCH_GEN, PARTICLE_SEARCH_VAR);
+        _current_pos = res.first;
+        debug::log("Found position: (%d, %d, %f) with loss: %f",
+                   _current_pos.x, _current_pos.y,
+                   _current_pos.heading * (float)180 / M_PI, res.second);
+    }
+    _frame_count += 1;
 }
 
 } // namespace camera
