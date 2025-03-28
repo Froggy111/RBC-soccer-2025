@@ -324,29 +324,33 @@ void MCP23S17::interrupt_handler_task(void *params) {
         if (int_flags_a & pin_mask) { // pin flagged
           // check if int_cap has the same trigger condition as attached
           bool pin_state = int_cap_a & pin_mask;
-          switch (_this->_interrupt_funcs_state[pin]) {
+          switch (_this->_interrupt_states[pin]) {
           case DigitalPinInterruptState::LEVEL_HIGH:
             if (pin_state) {
-              _this->_interrupt_funcs[pin](DigitalPinInterruptState::LEVEL_HIGH,
-                                           _this->_interrupt_funcs_params[pin]);
+              _this->_interrupt_handlers[pin](
+                  DigitalPinInterruptState::LEVEL_HIGH,
+                  _this->_interrupt_handler_args[pin]);
             }
             break;
           case DigitalPinInterruptState::LEVEL_LOW:
             if (!pin_state) {
-              _this->_interrupt_funcs[pin](DigitalPinInterruptState::LEVEL_LOW,
-                                           _this->_interrupt_funcs_params[pin]);
+              _this->_interrupt_handlers[pin](
+                  DigitalPinInterruptState::LEVEL_LOW,
+                  _this->_interrupt_handler_args[pin]);
             }
             break;
           case DigitalPinInterruptState::EDGE_RISE:
             if (pin_state) {
-              _this->_interrupt_funcs[pin](DigitalPinInterruptState::EDGE_RISE,
-                                           _this->_interrupt_funcs_params[pin]);
+              _this->_interrupt_handlers[pin](
+                  DigitalPinInterruptState::EDGE_RISE,
+                  _this->_interrupt_handler_args[pin]);
             }
             break;
           case DigitalPinInterruptState::EDGE_FALL:
             if (!pin_state) {
-              _this->_interrupt_funcs[pin](DigitalPinInterruptState::EDGE_FALL,
-                                           _this->_interrupt_funcs_params[pin]);
+              _this->_interrupt_handlers[pin](
+                  DigitalPinInterruptState::EDGE_FALL,
+                  _this->_interrupt_handler_args[pin]);
             }
             break;
           }

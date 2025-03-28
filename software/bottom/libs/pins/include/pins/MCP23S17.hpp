@@ -15,10 +15,11 @@ namespace pins {
 
 class MCP23S17 {
 public:
+  MCP23S17(types::u8 SCLK, types::u8 MISO, types::u8 MOSI, types::u8 SCS,
+           types::u8 RESET, types::u8 address, bool int_from_isr,
+           spi_inst_t *spi_obj);
   // WARN: MUST BE CALLED AFTER SCHEDULER START
-  void init(types::u8 SCLK, types::u8 MISO, types::u8 MOSI, types::u8 SCS,
-            types::u8 RESET, types::u8 address, bool int_from_isr,
-            spi_inst_t *spi_obj);
+  void init();
 
   void reset();
 
