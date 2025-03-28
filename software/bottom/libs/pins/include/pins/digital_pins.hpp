@@ -22,7 +22,7 @@ public:
   bool init(void);
   bool read(pinmap::Digital pin);
   bool write(pinmap::Digital pin, bool value);
-  bool change_mode(pinmap::Digital pin, DigitalPinMode pin_mode);
+  bool set_mode(pinmap::Digital pin, DigitalPinMode pin_mode);
   /**
    * @brief attach interrupt to digital pin
    * @param pin: digital pin selection
@@ -38,8 +38,10 @@ public:
   bool disable_interrupt(pinmap::Digital pin);
 
 private:
-  MCP23S17 dmux_1;
-  MCP23S17 dmux_2;
+  MCP23S17 _dmux_1 = MCP23S17();
+  MCP23S17 _dmux_2 = MCP23S17();
+
+  static void pico_gpio_interrupt_handler(void);
 };
 
 } // namespace pins
