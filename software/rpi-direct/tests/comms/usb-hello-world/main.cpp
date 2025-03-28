@@ -14,15 +14,14 @@ void signalHandler(int signum) {
     running = false;
 }
 
-// Callback for handling raw data received from the Pico
-void rawDataCallback(const types::u8 *data,
-                     types::u16 length) {
+// Callback for handling debug messages from the bottom plate
+void debugCallback(const types::u8 *data, types::u16 length) {
     // Create a null-terminated string (assuming the data is text)
     char *text = new char[length + 1];
     std::memcpy(text, data, length);
     text[length] = '\0';
 
-    std::cout << "Received: " << text << std::endl;
+    std::cout << "Received from bottom plate: " << text << std::endl;
     delete[] text;
 }
 
@@ -30,69 +29,40 @@ int main() {
     // Register signal handler for clean termination
     signal(SIGINT, signalHandler);
 
-    debug::info("Starting USB listener for Pico...");
+    debug::info("Starting USB listener for bottom plate...");
 
     // Initialize the communication library
-    if (!comms::comms_init()) {
+    if (!comms::USB_CDC.init()) {
         debug::error("Failed to initialize communications");
         return 1;
     }
 
     debug::info("Communication initialized");
-    debug::info("Scanning for Pico devices...");
 
-    // Scan for connected devices
-    auto devices = comms::get_connected_devices();
+    // Register callback for the debug message type from bottom plate
+    comms::USB_CDC.register_callback(usb::DeviceType::TOP_PLATE, 
+        (types::u8)comms::RecvBottomPicoIdentifiers::COMMS_DEBUG, 
+        debugCallback);
 
-    if (devices.empty()) {
-        debug::error(
-            "No Pico devices found. Make sure your Pico is connected via USB.");
-        return 1;
-    }
-
-    debug::info("Found %d USB devices", devices.size());
-
-    // Connect to the first device or you can choose a specific one based on type
-    usb::USBDevice connectedDevice;
-    bool connected = false;
-
-    for (const auto &device : devices) {
-        debug::info("Found device: %s (%s) VID:PID %04x:%04x",
-                    device.product.c_str(), device.serialNumber.c_str(),
-                    device.vid, device.pid);
-
-        // Try to connect
-        usb::USBDevice tempDevice = device;
-        if (comms::USB_CDC.connect(tempDevice)) {
-            connectedDevice = tempDevice;
-            connected       = true;
-            debug::info("Connected to %s (%s)", connectedDevice.product.c_str(),
-                        connectedDevice.serialNumber.c_str());
-            break;
-        }
-    }
-
-    if (!connected) {
-        debug::error("Failed to connect to any Pico device");
-        return 1;
-    }
-
-    // Register callback for debug messages (ID 2)
-    comms::USB_CDC.register_callback(connectedDevice,
-        (types::u8)comms::RecvBottomPicoIdentifiers::COMMS_DEBUG,
-        rawDataCallback);
-
-    debug::info("Listening for messages. Press Ctrl+C to exit...");
+    debug::info("Listening for messages from bottom plate. Press Ctrl+C to exit...");
 
     // Main loop
     while (running) {
-        // The USB CDC class handles reading in a separate thread, so we just need to sleep
+        // The comms library handles device scanning and message reading in the background
+        
+        // Periodically check if bottom plate is connected
+        static int counter = 0;
+        if (counter++ % 20 == 0) {  // Check approximately every 2 seconds
+            if (comms::USB_CDC.is_connected(usb::DeviceType::BOTTOM_PLATE)) {
+                debug::info("Bottom plate is connected");
+            } else {
+                debug::info("Waiting for bottom plate to connect...");
+            }
+        }
+        
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    // Cleanup
-    comms::USB_CDC.disconnect(connectedDevice);
-    debug::info("Disconnected. Exiting...");
-
+    debug::info("Exiting...");
     return 0;
 }

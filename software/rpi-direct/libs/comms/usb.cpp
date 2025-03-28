@@ -1,6 +1,8 @@
 #include "comms/usb.hpp"
+#include "comms.hpp"
 #include "comms/errors.hpp"
 #include "comms/identifiers.hpp"
+#include "debug.hpp"
 #include <algorithm>
 #include <cstdarg>
 #include <cstdio>
@@ -17,13 +19,18 @@ namespace usb {
 
 CDC::CDC() : _initialized(false), _running(false) {
     // Initialize device identifiers with default values
-    _device_identifiers[DeviceType::TOP_PLATE]    = {RP2040_VID, RP2040_PID};
+    _device_identifiers[DeviceType::TOP_PLATE]    = {RP2040_VID, 0x000A};
     _device_identifiers[DeviceType::MIDDLE_PLATE] = {RP2040_VID, RP2040_PID};
     _device_identifiers[DeviceType::BOTTOM_PLATE] = {RP2040_VID, RP2040_PID};
 }
 
 CDC::~CDC() {
     _running = false;
+
+    // Join scan thread
+    if (_scan_thread.joinable()) {
+        _scan_thread.join();
+    }
 
     // Join all read threads
     for (auto &thread : _read_threads) {
@@ -33,9 +40,10 @@ CDC::~CDC() {
     }
 
     // Close all open devices
-    for (auto &device : _connected_devices) {
-        if (device.fileDescriptor >= 0) {
-            close(device.fileDescriptor);
+    std::lock_guard<std::mutex> lock(_device_map_mutex);
+    for (auto &pair : _device_map) {
+        if (pair.second.fileDescriptor >= 0) {
+            close(pair.second.fileDescriptor);
         }
     }
 }
@@ -43,7 +51,50 @@ CDC::~CDC() {
 bool CDC::init(void) {
     _initialized = true;
     _running     = true;
+
+    // Start the background scanning thread
+    _scan_thread = std::thread(&CDC::scan_thread, this);
+
     return true;
+}
+
+void CDC::scan_thread() {
+    while (_running) {
+        auto devices = scan_devices();
+
+        // For each discovered device, try to connect it and assign to right type
+        for (auto &device : devices) {
+            // Skip devices that don't match our known types
+            if (device.type == DeviceType::UNKNOWN) {
+                continue;
+            }
+
+            // Check if we already have a device of this type connected
+            bool connect_device = false;
+            {
+                std::lock_guard<std::mutex> lock(_device_map_mutex);
+                auto it = _device_map.find(device.type);
+                if (it == _device_map.end() || it->second.fileDescriptor < 0) {
+                    // We don't have this type or it's disconnected, so connect
+                    connect_device = true;
+                } else if (it->second.deviceNode != device.deviceNode) {
+                    // We have this type but it's a different device, disconnect old one first
+                    disconnect(it->second);
+                    connect_device = true;
+                }
+            }
+
+            if (connect_device) {
+                if (connect(device)) {
+                    std::lock_guard<std::mutex> lock(_device_map_mutex);
+                    _device_map[device.type] = device;
+                }
+            }
+        }
+
+        // Sleep for a bit before scanning again
+        usleep(DEVICE_SCAN_INTERVAL * 1000);
+    }
 }
 
 std::vector<USBDevice> CDC::scan_devices() {
@@ -167,16 +218,6 @@ bool CDC::connect(USBDevice &device) {
         return false;
     }
 
-    // Check if already connected
-    std::lock_guard<std::mutex> lock(_devices_mutex);
-    for (const auto &connected : _connected_devices) {
-        if (connected.deviceNode == device.deviceNode) {
-            // Already connected
-            device = connected;
-            return true;
-        }
-    }
-
     // Open the device
     int fd = open(device.deviceNode.c_str(), O_RDWR | O_NOCTTY);
     if (fd < 0) {
@@ -229,7 +270,6 @@ bool CDC::connect(USBDevice &device) {
     }
 
     device.fileDescriptor = fd;
-    _connected_devices.push_back(device);
 
     // Start the read thread
     _read_threads.emplace_back(&CDC::read_thread, this, device);
@@ -238,26 +278,11 @@ bool CDC::connect(USBDevice &device) {
 }
 
 void CDC::disconnect(USBDevice &device) {
-    std::lock_guard<std::mutex> lock(_devices_mutex);
-
-    // Find the device
-    auto it = std::find_if(_connected_devices.begin(), _connected_devices.end(),
-                           [&device](const USBDevice &d) {
-                               return d.deviceNode == device.deviceNode;
-                           });
-
-    if (it != _connected_devices.end()) {
-        // Close the file descriptor
-        if (it->fileDescriptor >= 0) {
-            close(it->fileDescriptor);
-        }
-
-        // Remove from the list
-        _connected_devices.erase(it);
+    // Close the file descriptor
+    if (device.fileDescriptor >= 0) {
+        close(device.fileDescriptor);
+        device.fileDescriptor = -1;
     }
-
-    // Reset the device
-    device.fileDescriptor = -1;
 }
 
 void CDC::set_device_identifiers(DeviceType type, types::u16 vid,
@@ -265,12 +290,17 @@ void CDC::set_device_identifiers(DeviceType type, types::u16 vid,
     _device_identifiers[type] = {vid, pid};
 }
 
-bool CDC::write(const USBDevice &device,
-                types::u8 identifier, const types::u8 *data,
+bool CDC::write(DeviceType type, types::u8 identifier, const types::u8 *data,
                 const types::u16 data_len) {
-    if (device.fileDescriptor < 0) {
-        return false;
+    std::lock_guard<std::mutex> lock(_device_map_mutex);
+
+    // Find the device of this type
+    auto it = _device_map.find(type);
+    if (it == _device_map.end() || it->second.fileDescriptor < 0) {
+        return false; // Device not found or not connected
     }
+
+    const USBDevice &device = it->second;
 
     types::u16 reported_len = data_len + sizeof(identifier);
     types::u16 packet_len   = sizeof(reported_len) + reported_len;
@@ -301,10 +331,16 @@ bool CDC::write(const USBDevice &device,
 }
 
 void CDC::register_callback(
-    const USBDevice &device, types::u8 identifier,
+    DeviceType type, types::u8 identifier,
     std::function<void(const types::u8 *, types::u16)> callback) {
     std::lock_guard<std::mutex> lock(_callbacks_mutex);
-    _device_callbacks[device.deviceNode][identifier] = callback;
+    _callbacks[type][identifier] = callback;
+}
+
+bool CDC::is_connected(DeviceType type) {
+    std::lock_guard<std::mutex> lock(_device_map_mutex);
+    auto it = _device_map.find(type);
+    return (it != _device_map.end() && it->second.fileDescriptor >= 0);
 }
 
 void CDC::read_thread(USBDevice device) {
@@ -313,16 +349,14 @@ void CDC::read_thread(USBDevice device) {
     state.data_buffer = new types::u8[MAX_RX_BUF_SIZE];
 
     while (_running) {
-        // Check if the device is still in our list
+        // Check if the device is still valid
         {
-            std::lock_guard<std::mutex> lock(_devices_mutex);
-            auto it = std::find_if(_connected_devices.begin(),
-                                   _connected_devices.end(),
-                                   [&device](const USBDevice &d) {
-                                       return d.deviceNode == device.deviceNode;
-                                   });
-
-            if (it == _connected_devices.end()) {
+            std::lock_guard<std::mutex> lock(_device_map_mutex);
+            auto it = _device_map.find(device.type);
+            if (it == _device_map.end() ||
+                it->second.deviceNode != device.deviceNode ||
+                it->second.fileDescriptor < 0) {
+                // Device no longer in our map or disconnected
                 break;
             }
         }
@@ -394,12 +428,13 @@ void CDC::process_data(const USBDevice &device, const types::u8 *data,
                 // Find and call the appropriate callback
                 std::lock_guard<std::mutex> lock(_callbacks_mutex);
 
-                // Check for device-specific callback first
-                auto device_it = _device_callbacks.find(device.deviceNode);
-                if (device_it != _device_callbacks.end()) {
-                    auto callback_it = device_it->second.find(recv_id);
-                    if (callback_it != device_it->second.end()) {
-                        // We found a device-specific callback for this identifier
+                // Find callbacks for this device type
+                auto device_callbacks = _callbacks.find(device.type);
+                if (device_callbacks != _callbacks.end()) {
+                    // Look for a callback for this identifier
+                    auto callback_it = device_callbacks->second.find(recv_id);
+                    if (callback_it != device_callbacks->second.end()) {
+                        // Found a callback, execute it
                         callback_it->second(data_buffer + 1,
                                             state.expected_length - 1);
                     }
