@@ -12,6 +12,9 @@ extern "C" {
 
 namespace pins {
 
+const types::u8 DMUX_1_ADDRESS = 0b000;
+const types::u8 DMUX_2_ADDRESS = 0b001;
+
 class DigitalPins {
 public:
   DigitalPins();
@@ -38,10 +41,18 @@ public:
   bool disable_interrupt(pinmap::Digital pin);
 
 private:
-  MCP23S17 _dmux_1 =
-      MCP23S17((types::u8)pinmap::Pico::SPI0_SCLK,
-               (types::u8)pinmap::Pico::SPI0_MISO, pinmap::Pico::SPI0_MOSI);
-  MCP23S17 _dmux_2 = MCP23S17();
+  MCP23S17 _dmux_1 = MCP23S17((types::u8)pinmap::Digital::SPI0_SCLK,
+                              (types::u8)pinmap::Digital::SPI0_MISO,
+                              (types::u8)pinmap::Digital::SPI0_MOSI,
+                              (types::u8)pinmap::Digital::DMUX_SCS,
+                              (types::u8)pinmap::Digital::DMUX_RESET,
+                              DMUX_1_ADDRESS, false, spi0);
+  MCP23S17 _dmux_2 = MCP23S17((types::u8)pinmap::Digital::SPI0_SCLK,
+                              (types::u8)pinmap::Digital::SPI0_MISO,
+                              (types::u8)pinmap::Digital::SPI0_MOSI,
+                              (types::u8)pinmap::Digital::DMUX_SCS,
+                              (types::u8)pinmap::Digital::DMUX_RESET,
+                              DMUX_2_ADDRESS, true, spi0);
 
   static void pico_gpio_interrupt_handler(void);
 };
