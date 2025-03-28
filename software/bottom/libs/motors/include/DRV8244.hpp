@@ -1,12 +1,10 @@
 #pragma once
 #include "registers.hpp"
 #include "types.hpp"
-#include "pin_manager.hpp"
 #include "pin_selector.hpp"
-#include <cstdint>
 #include <hardware/spi.h>
 #include <pico/types.h>
-#include <string>
+#include "pins/ADS1115.hpp"
 
 namespace driver {
 
@@ -96,12 +94,14 @@ private:
    */
   bool check_config();
 
-  PinInputControl inputControl;
-  PinOutputControl outputControl;
   Pins pins;
 
   types::i16 duty_cycle_cache;
   spi_inst_t *spi_obj;
+
+  bool adc_init[2];
+  PICO_ADS1115 adc1;
+  PICO_ADS1115 adc2;
 
 public:
   /**

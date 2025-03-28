@@ -1,16 +1,19 @@
+#include "pinmap.hpp"
+#include "pins.hpp"
 #include "registers.hpp"
 #include <cstdint>
 extern "C" {
 #include <hardware/spi.h>
 #include <hardware/gpio.h>
+#include <hardware/pwm.h>
 #include <pico/stdlib.h>
 }
 #include "DRV8244.hpp"
 #include "types.hpp"
 #include "pin_selector.hpp"
-#include "pin_manager.hpp"
 #include "registers.hpp"
 #include "comms.hpp"
+#include "pins/digital_pins.hpp"
 
 #define DEFAULT_NSLEEP 1 // not sleeping by default
 #define DEFAULT_DRVOFF 0 // driver on by default
@@ -65,8 +68,6 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
     pins.set_debug_mode(false);
     pins.set_driver_id(id);
   }
-  outputControl.init(id == -1, spi_obj_touse);
-  inputControl.init(id == -1, spi_obj_touse);
 
   comms::USB_CDC.printf("-> Initializing SPI\r\n");
   spi_obj = spi_obj_touse;
@@ -74,6 +75,29 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
 
   comms::USB_CDC.printf("-> Initializing pins\r\n");
   init_pins();
+
+  comms::USB_CDC.printf("-> Initializing AMUX\r\n");
+  if (!adc_init[0] &&
+      !adc1.beginADSX((PICO_ADS1115::ADSXAddressI2C_e)ADC1_ADDR, i2c1,
+                      ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C0_SDA,
+                      (uint8_t)pinmap::Pico::I2C0_SCL, 1000)) {
+    comms::USB_CDC.printf("ADC1 not found!\r\n");
+  } else {
+    adc_init[0] = true;
+    adc1.setGain(PICO_ADS1115::ADSXGain_TWO);
+    adc1.setDataRate(ADC_DATA_RATE);
+  }
+
+  if (!adc_init[1] &&
+      !adc2.beginADSX((PICO_ADS1115::ADSXAddressI2C_e)ADC2_ADDR, i2c1,
+                      ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C0_SDA,
+                      (uint8_t)pinmap::Pico::I2C0_SCL, 1000)) {
+    comms::USB_CDC.printf("ADC2 not found!\r\n");
+  } else {
+    adc_init[1] = true;
+    adc2.setGain(PICO_ADS1115::ADSXGain_TWO);
+    adc2.setDataRate(ADC_DATA_RATE);
+  }
 
   comms::USB_CDC.printf("-> Configuring registers\r\n");
   if (!init_registers()) {
@@ -85,31 +109,28 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
 }
 
 void MotorDriver::init_pins() {
-  // Initialize pins
-  // nFault
-  inputControl.init_digital(pins.get_pin(NFAULT),
-                            pins.get_pin_interface(NFAULT));
-  inputControl.pullup_digital(pins.get_pin(NFAULT),
-                              pins.get_pin_interface(NFAULT));
+  pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(NFAULT),
+                              pins::DigitalPinMode::INPUT_PULLUP);
+  pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(NSLEEP),
+                              pins::DigitalPinMode::OUTPUT);
+  pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(DRVOFF),
+                              pins::DigitalPinMode::OUTPUT);
+  pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(IN2),
+                              pins::DigitalPinMode::OUTPUT);
+  pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(CS),
+                              pins::DigitalPinMode::OUTPUT);
 
-  // nSleep
-  outputControl.init_digital(pins.get_pin(NSLEEP), DEFAULT_NSLEEP,
-                             pins.get_pin_interface(NSLEEP));
+  // Init IN1
+  uint8_t pin = pins.get_pin(IN1);
+  gpio_set_function(pin, GPIO_FUNC_PWM);
+  uint slice_num = pwm_gpio_to_slice_num(pin);
+  uint channel = pwm_gpio_to_channel(pin);
 
-  // DRVOFF
-  outputControl.init_digital(pins.get_pin(DRVOFF), DEFAULT_DRVOFF,
-                             pins.get_pin_interface(DRVOFF));
-
-  // EN/IN1
-  outputControl.init_pwm(pins.get_pin(IN1), DEFAULT_IN1);
-
-  // PH/IN2
-  outputControl.init_digital(pins.get_pin(IN2), DEFAULT_IN2,
-                             pins.get_pin_interface(IN2));
-
-  // CS
-  outputControl.init_digital(pins.get_pin(CS), DEFAULT_CS,
-                             pins.get_pin_interface(CS));
+  // Set PWM configuration
+  pwm_set_clkdiv(slice_num, 4.0);
+  pwm_set_wrap(slice_num, 12500); // set max value
+  pwm_set_chan_level(slice_num, channel, 0);
+  pwm_set_enabled(slice_num, true);
 }
 
 //! spi/register handling
@@ -134,13 +155,13 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   //* Write & Read Feedback
   // Initialize CS pin as GPIO
 
-  outputControl.write_digital(pins.get_pin(CS), 0, pins.get_pin_interface(CS));
+  pins::digital_pins.write((pinmap::Digital)pins.get_pin(DriverPinMap::CS), 0);
 
   configure_spi();
   int bytes_written =
       spi_write16_read16_blocking(spi_obj, &reg_value, &rx_data, 1);
 
-  outputControl.write_digital(pins.get_pin(CS), 1, pins.get_pin_interface(CS));
+  pins::digital_pins.write((pinmap::Digital)pins.get_pin(DriverPinMap::CS), 1);
 
   // comms::USB_CDC.printf("SPI Write - Sent: 0x%04X, Received: 0x%04X\r\n",
   //                       reg_value, rx_data);
@@ -195,12 +216,12 @@ uint8_t MotorDriver::read8(uint8_t reg) {
   reg_value |= ((reg << SPI_ADDRESS_POS) & SPI_ADDRESS_MASK_READ);
   reg_value |= SPI_RW_BIT_MASK;
 
-  outputControl.write_digital(pins.get_pin(CS), 0, pins.get_pin_interface(CS));
+  pins::digital_pins.write((pinmap::Digital)pins.get_pin(CS), 0);
 
   configure_spi();
   spi_write16_read16_blocking(spi_obj, &reg_value, &rx_data, 1);
 
-  outputControl.write_digital(pins.get_pin(CS), 1, pins.get_pin_interface(CS));
+  pins::digital_pins.write((pinmap::Digital)pins.get_pin(CS), 1);
 
   // comms::USB_CDC.printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\r\n",
   //                       reg_value, rx_data);
@@ -279,6 +300,7 @@ bool MotorDriver::check_registers() {
 
   //* STATUS1 register
   types::u8 status1 = read8(STATUS1_REG);
+
   if (status1 != STATUS1_REG_EXPECTED) {
     comms::USB_CDC.printf("Error: STATUS1: %s\r\n",
                           STATUS::get_status1_description(status1).c_str());
@@ -340,21 +362,8 @@ void MotorDriver::handle_error(MotorDriver *driver) {
 }
 
 bool MotorDriver::check_config() {
-  // check if the driver is active
-  if (!outputControl.get_last_value_digital(pins.get_pin(NSLEEP))) {
-    comms::USB_CDC.printf("Driver is not active. Cannot command motor.\r\n");
-    return false;
-  }
-
-  // check if the driver is off
-  if (outputControl.get_last_value_digital(pins.get_pin(DRVOFF))) {
-    comms::USB_CDC.printf("Driver is off. Cannot command motor.\r\n");
-    return false;
-  }
-
   // check if the driver is in fault
-  if (!inputControl.read_digital(pins.get_pin(NFAULT),
-                                 pins.get_pin_interface(NFAULT))) {
+  if (!pins::digital_pins.read((pinmap::Digital)pins.get_pin(NFAULT))) {
     comms::USB_CDC.printf("Driver has faulted. Cannot command motor.\r\n");
 
     types::u8 faultSummary = read8(FAULT_SUMMARY_REG);
@@ -379,16 +388,17 @@ bool MotorDriver::check_config() {
 
 void MotorDriver::set_sleep(bool sleep) {
   // Set the sleep pinwrite_analog
-  outputControl.write_digital(pins.get_pin(NSLEEP), !sleep,
-                              pins.get_pin_interface(NSLEEP));
+  pins::digital_pins.write((pinmap::Digital)pins.get_pin(NSLEEP), !sleep);
   comms::USB_CDC.printf("Motor sleep set to %d\r\n", !sleep);
 }
 
 int16_t MotorDriver::read_current() {
   // Read the current from the ADC
-  int16_t current = inputControl.read_analog(pins.get_pin(IPROPI),
-                                             pins.get_pin_interface(IPROPI));
-  return current;
+  if (id == 1 || id == 4)
+    return adc2.readADC_SingleEnded((PICO_ADS1X15::ADSX_AINX_e) pins.get_pin(IPROPI));
+  else
+    return adc1.readADC_SingleEnded((PICO_ADS1X15::ADSX_AINX_e) pins.get_pin(IPROPI));
+  return 0;
 }
 
 bool MotorDriver::command(types::i16 duty_cycle) {
@@ -410,9 +420,11 @@ bool MotorDriver::command(types::i16 duty_cycle) {
   duty_cycle = abs(duty_cycle);
 
   // Command motor by setting one channel to PWM and the other low
-  outputControl.write_digital(pins.get_pin(IN2), direction,
-                              pins.get_pin_interface(IN2));
-  outputControl.write_pwm(pins.get_pin(IN1), duty_cycle);
+  pins::digital_pins.write((pinmap::Digital)pins.get_pin(IN2), direction);
+
+  uint slice_num = pwm_gpio_to_slice_num(pins.get_pin(IN1));
+  uint channel = pwm_gpio_to_channel(pins.get_pin(IN1));
+  pwm_set_chan_level(slice_num, channel, duty_cycle);
 
   comms::USB_CDC.printf(
       "Motor command executed: Duty cycle = %d, Direction = %d\r\n", duty_cycle,
