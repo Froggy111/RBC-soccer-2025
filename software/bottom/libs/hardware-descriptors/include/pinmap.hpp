@@ -70,6 +70,8 @@ enum class Digital : types::u8 {
   DRV2_IN2 = 54
 };
 
+const types::u8 digital_pin_count = 55;
+
 inline types::u8 pin_number(Digital pin) {
   types::u8 pin_val = (types::u8)pin;
   if (pin_val <= 22) { // pico
@@ -84,6 +86,31 @@ inline types::u8 pin_number(Digital pin) {
     return pin_val - 47;
   } else {
     return 255; // to prevent causing weird shit
+  }
+}
+
+enum class DigitalPinOwner : types::u8 {
+  PICO,
+  DMUX1A,
+  DMUX1B,
+  DMUX2A,
+  DMUX2B,
+};
+
+inline DigitalPinOwner pin_owner(Digital pin) {
+  types::u8 pin_val = (types::u8)pin;
+  if (pin_val <= 22) { // pico
+    return DigitalPinOwner::PICO;
+  } else if (pin_val <= 30) { // dmux1a
+    return DigitalPinOwner::DMUX1A;
+  } else if (pin_val <= 38) { // dmux1b
+    return DigitalPinOwner::DMUX1B;
+  } else if (pin_val <= 46) { // dmux2a
+    return DigitalPinOwner::DMUX2A;
+  } else if (pin_val <= 54) { // dmux2b
+    return DigitalPinOwner::DMUX2B;
+  } else {
+    return DigitalPinOwner::PICO; // shouldnt happen
   }
 }
 
