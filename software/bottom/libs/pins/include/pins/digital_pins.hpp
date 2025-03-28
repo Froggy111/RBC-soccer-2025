@@ -47,7 +47,7 @@ public:
 
   // should be private but called externally so...
   // reason is pico gpio interrupt type doesnt allow user args
-  void pico_gpio_interrupt_handler(uint gpio, uint event);
+  void pico_gpio_interrupt_handler(types::u32 gpio, types::u32 event);
 
 private:
   MCP23S17 _dmux_1 = MCP23S17((types::u8)pinmap::Digital::SPI0_SCLK,
@@ -73,8 +73,8 @@ private:
 };
 
 extern DigitalPins digital_pins;
-static inline void pico_gpio_interrupt_handler_wrapper(types::u32 gpio,
-                                                       types::u32 event) {
+static inline void pico_gpio_interrupt_handler_wrapper(uint gpio,
+                                                       uint32_t event) {
   digital_pins.pico_gpio_interrupt_handler(gpio, event);
 }
 

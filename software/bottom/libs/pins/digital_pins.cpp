@@ -178,6 +178,7 @@ bool DigitalPins::attach_interrupt(pinmap::Digital pin,
                              _interrupt_args[pin_idx]);
     break;
   }
+  return true;
 }
 
 bool DigitalPins::detach_interrupt(pinmap::Digital pin) {
@@ -210,6 +211,7 @@ bool DigitalPins::detach_interrupt(pinmap::Digital pin) {
     _dmux_2.detach_interrupt(pin_val, false);
     break;
   }
+  return true;
 }
 
 bool DigitalPins::enable_interrupt(pinmap::Digital pin) {
@@ -273,7 +275,7 @@ bool DigitalPins::disable_interrupt(pinmap::Digital pin) {
   return true;
 }
 
-void DigitalPins::pico_gpio_interrupt_handler(uint gpio, uint event) {
+void DigitalPins::pico_gpio_interrupt_handler(u32 gpio, u32 event) {
   if (_interrupts[gpio] == nullptr) {
     return;
   }
