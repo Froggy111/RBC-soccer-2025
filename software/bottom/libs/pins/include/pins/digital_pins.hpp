@@ -1,12 +1,12 @@
 #pragma once
 
 #include "pinmap.hpp"
+#include "pins/MCP23S17.hpp"
 #include "types.hpp"
 #include "pins/types.hpp"
 
 extern "C" {
 #include "hardware/gpio.h"
-#include "hardware/spi.h"
 #include <pico/stdlib.h>
 }
 
@@ -38,6 +38,8 @@ public:
   bool disable_interrupt(pinmap::Digital pin);
 
 private:
+  MCP23S17 dmux_1;
+  MCP23S17 dmux_2;
 };
 
 } // namespace pins
