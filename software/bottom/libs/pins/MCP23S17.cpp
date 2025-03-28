@@ -387,28 +387,24 @@ MCP23S17 with address %u\r\n",
           case DigitalPinInterruptState::LEVEL_HIGH:
             if (pin_state) {
               _this->_interrupt_handlers[pin + 8](
-                  DigitalPinInterruptState::LEVEL_HIGH,
                   _this->_interrupt_handler_args[pin + 8]);
             }
             break;
           case DigitalPinInterruptState::LEVEL_LOW:
             if (!pin_state) {
               _this->_interrupt_handlers[pin + 8](
-                  DigitalPinInterruptState::LEVEL_LOW,
                   _this->_interrupt_handler_args[pin + 8]);
             }
             break;
           case DigitalPinInterruptState::EDGE_RISE:
             if (pin_state) {
               _this->_interrupt_handlers[pin + 8](
-                  DigitalPinInterruptState::EDGE_RISE,
                   _this->_interrupt_handler_args[pin + 8]);
             }
             break;
           case DigitalPinInterruptState::EDGE_FALL:
             if (!pin_state) {
               _this->_interrupt_handlers[pin + 8](
-                  DigitalPinInterruptState::EDGE_FALL,
                   _this->_interrupt_handler_args[pin + 8]);
             }
             break;

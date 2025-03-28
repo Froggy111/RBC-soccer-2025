@@ -2,6 +2,7 @@
 
 #include "types.hpp"
 #include "pinmap.hpp"
+#include <functional>
 
 extern "C" {
 #include <pico/stdlib.h>
@@ -19,6 +20,6 @@ enum class DigitalPinInterruptState : types::u8 {
   LEVEL_LOW = GPIO_IRQ_LEVEL_LOW
 };
 
-using DigitalPinInterrupt = void (*)(DigitalPinInterruptState, void *);
+using DigitalPinInterrupt = std::function<void(void *)>;
 
 } // namespace pins

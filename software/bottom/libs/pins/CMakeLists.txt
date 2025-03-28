@@ -44,8 +44,6 @@ target_link_globals(analog_pins)
 
 add_library(pins)
 target_sources(pins
-  PRIVATE
-    pins.cpp
   PUBLIC
     include/pins.hpp
 )
