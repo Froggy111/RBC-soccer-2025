@@ -266,7 +266,7 @@ void CDC::set_device_identifiers(DeviceType type, types::u16 vid,
 }
 
 bool CDC::write(const USBDevice &device,
-                const comms::SendIdentifiers identifier, const types::u8 *data,
+                types::u8 identifier, const types::u8 *data,
                 const types::u16 data_len) {
     if (device.fileDescriptor < 0) {
         return false;
@@ -301,7 +301,7 @@ bool CDC::write(const USBDevice &device,
 }
 
 void CDC::register_callback(
-    const USBDevice &device, comms::RecvIdentifiers identifier,
+    const USBDevice &device, types::u8 identifier,
     std::function<void(const types::u8 *, types::u16)> callback) {
     std::lock_guard<std::mutex> lock(_callbacks_mutex);
     _device_callbacks[device.deviceNode][identifier] = callback;
@@ -389,9 +389,7 @@ void CDC::process_data(const USBDevice &device, const types::u8 *data,
             // Check if we've read all the data
             if (state.data_buffer - data_buffer == state.expected_length) {
                 // Complete packet received
-                types::u8 identifier = data_buffer[0];
-                comms::RecvIdentifiers recv_id =
-                    static_cast<comms::RecvIdentifiers>(identifier);
+                types::u8 recv_id = data_buffer[0];
 
                 // Find and call the appropriate callback
                 std::lock_guard<std::mutex> lock(_callbacks_mutex);

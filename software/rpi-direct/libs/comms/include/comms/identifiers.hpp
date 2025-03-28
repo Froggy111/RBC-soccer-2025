@@ -25,13 +25,22 @@ enum class RecvTopPicoIdentifiers : types::u8 {
   SPI_FAIL = 3,
   LED_LISTENER_FAIL = 4,
   ICM29048 = 5,
+};
+
+enum class SendBottomPicoIdentifiers : types::u8 {
+  MOTOR_DRIVER_CMD = 0,
+  KICKER_CMD       = 1,
   DEBUG_TEST_BLINK = 255,
 };
 
-enum class SendIdentifiers : types::u8 {
-  MOTOR_DRIVER_CMD = 0,
-  KICKER_CMD = 1,
+enum class SendMiddlePicoIdentifiers : types::u8 {
+  LEDs = 0,
   DEBUG_TEST_BLINK = 255,
+};
+
+enum class SendTopPicoIdentifiers : types::u8 {
+    LEDs = 0,
+    DEBUG_TEST_BLINK = 255
 };
 
 static const types::u16 identifier_arr_len = 256;

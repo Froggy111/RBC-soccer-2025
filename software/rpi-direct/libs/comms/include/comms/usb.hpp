@@ -121,8 +121,8 @@ public:
      * @param data_len Length of data
      * @returns true if successfully sent, false if not
      */
-    bool write(const USBDevice& device, const comms::SendIdentifiers identifier,
-               const types::u8 *data, const types::u16 data_len);
+    bool write(const USBDevice& device, const types::u8 identifier,
+            const types::u8 *data, const types::u16 data_len);
 
     /**
      * @brief Register a callback function for receiving data from a specific device
@@ -130,7 +130,7 @@ public:
      * @param identifier Command identifier to listen for
      * @param callback Function to call when data with this identifier is received
      */
-     void register_callback(const USBDevice& device, comms::RecvIdentifiers identifier,
+     void register_callback(const USBDevice& device, types::u8 identifier,
         std::function<void(const types::u8*, types::u16)> callback);
 
 private:
@@ -179,7 +179,7 @@ private:
     
     // Callbacks for received data
     std::map<std::string, // device path as identifier
-             std::map<comms::RecvIdentifiers,
+             std::map<types::u8,
                      std::function<void(const types::u8*, types::u16)>>> _device_callbacks;
     std::mutex _callbacks_mutex;
     
