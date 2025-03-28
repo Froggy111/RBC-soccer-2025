@@ -19,7 +19,6 @@ enum class DigitalPinInterruptState : types::u8 {
   LEVEL_LOW = GPIO_IRQ_LEVEL_LOW
 };
 
-using DigitalPinInterrupt = void (*)(pinmap::Digital, DigitalPinInterruptState,
-                                     void *);
+using DigitalPinInterrupt = void (*)(DigitalPinInterruptState, void *);
 
 } // namespace pins

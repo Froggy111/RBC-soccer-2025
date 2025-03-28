@@ -7,12 +7,15 @@
 extern "C" {
 #include <hardware/spi.h>
 #include <pico/stdlib.h>
+#include <FreeRTOS.h>
+#include <task.h>
 }
 
 namespace pins {
 
 class MCP23S17 {
 public:
+  // WARN: MUST BE CALLED AFTER SCHEDULER START
   void init(types::u8 SCLK, types::u8 MISO, types::u8 MOSI, types::u8 SCS,
             types::u8 RESET, types::u8 address, bool int_from_isr,
             spi_inst_t *spi_obj);
@@ -23,11 +26,20 @@ public:
   void write(types::u8 pin, bool on_A, bool value);
   bool read(types::u8 pin, bool on_A);
 
-  void attach_interrupt(types::u8 pin, bool on_A, DigitalPinInterrupt,
-                        DigitalPinInterruptState);
+  bool attach_interrupt(types::u8 pin, bool on_A,
+                        DigitalPinInterrupt interrupt_fn,
+                        DigitalPinInterruptState interrupt_state,
+                        void *interrupt_fn_params);
   // attach this to external, just notifies interrupt_handler_task
   void interrupt_handler(void *params);
-  void interrupt_handler_task(void *params);
+
+  // these should be private, but are public for static funcs to use
+  types::u8 read8(types::u8 reg_address);
+  void write8(types::u8 reg_address, types::u8 data, types::u8 mask = 0xFF);
+  DigitalPinInterrupt _interrupt_funcs[16] = {nullptr};
+  DigitalPinInterruptState _interrupt_funcs_state[16] = {
+      DigitalPinInterruptState::EDGE_FALL};
+  void *_interrupt_funcs_params[16] = {nullptr};
 
 private:
   types::u8 _pin_state[16];
@@ -41,8 +53,7 @@ private:
   types::u8 _RESET = 255;
   types::u8 _address = 255;
   bool _int_from_isr = false;
-
-  DigitalPinInterrupt _interrupt_funcs[16] = {nullptr};
+  TaskHandle_t interrupt_handler_task_handle = nullptr;
 
   /**
    * @brief Init the fSPI interface. Calls configure_spi and sets any registers it needs to.
@@ -54,10 +65,8 @@ private:
 
   void configure_spi();
 
-  types::u8 read8(types::u8 device_address, types::u8 reg_address);
-
-  void write8(types::u8 device_address, types::u8 reg_address, types::u8 data,
-              types::u8 mask = 0xFF);
+  // params is this
+  static void interrupt_handler_task(void *params);
 };
 
 } // namespace pins
