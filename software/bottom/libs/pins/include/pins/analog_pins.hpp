@@ -6,7 +6,7 @@
 #include "pins/digital_pins.hpp"
 #include <pico/stdlib.h>
 
-namespace Pins {
+namespace pins {
 
 enum class AnalogPinInterruptState : types::u8 { LEVEL_HIGH, LEVEL_LOW };
 using AnalogPinInterrupt = void (*)(pinmap::AnalogPins, AnalogPinInterruptState,
@@ -47,4 +47,4 @@ public:
   bool disable_interrupt(pinmap::AnalogPins pin);
 };
 
-} // namespace Pins
+} // namespace pins

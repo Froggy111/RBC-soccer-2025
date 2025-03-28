@@ -38,7 +38,9 @@ public:
   bool disable_interrupt(pinmap::Digital pin);
 
 private:
-  MCP23S17 _dmux_1 = MCP23S17();
+  MCP23S17 _dmux_1 =
+      MCP23S17((types::u8)pinmap::Pico::SPI0_SCLK,
+               (types::u8)pinmap::Pico::SPI0_MISO, pinmap::Pico::SPI0_MOSI);
   MCP23S17 _dmux_2 = MCP23S17();
 
   static void pico_gpio_interrupt_handler(void);
