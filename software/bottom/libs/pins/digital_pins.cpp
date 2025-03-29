@@ -50,17 +50,21 @@ bool DigitalPins::set_mode(pinmap::Digital pin, DigitalPinMode pin_mode) {
 
   u8 pin_val = pin_number(pin);
 
+  debug::log("DigitalPins: setting mode of pin %u\r\n", (u8)pin);
   switch (pin_owner(pin)) {
   case pinmap::DigitalPinOwner::PICO:
     gpio_init(pin_val);
     switch (pin_mode) {
     case DigitalPinMode::INPUT:
       gpio_set_dir(pin_val, GPIO_IN);
+      break;
     case DigitalPinMode::OUTPUT:
       gpio_set_dir(pin_val, GPIO_OUT);
+      break;
     case DigitalPinMode::INPUT_PULLUP:
       gpio_set_dir(pin_val, GPIO_IN);
       gpio_pull_up(pin_val);
+      break;
     }
     break;
   case pinmap::DigitalPinOwner::DMUX1A:

@@ -63,8 +63,6 @@ namespace driver {
 // ! init
 // use -1 as driver_id for debug pins
 bool MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
-  pins::digital_pins.write(19, 1);
-  return false;
   comms::USB_CDC.printf("---> Initializing DRV8244\r\n");
   _id = id;
 
