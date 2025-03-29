@@ -18,6 +18,9 @@ void motor_driver_task(void *args) {
   comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
   if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.printf("SPI Initialization Failed!\n");
+    while (true) {
+      vTaskDelay(pdMS_TO_TICKS(1000));
+    }
   }
 
   pins::digital_pins.init();

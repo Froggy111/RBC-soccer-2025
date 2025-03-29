@@ -129,14 +129,6 @@ void MotorDriver::init_pins() {
   pins::digital_pins.write((pinmap::Digital)pins.get_pin(DRVOFF),
                            DEFAULT_DRVOFF);
 
-  pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(IN2),
-                              pins::DigitalPinMode::OUTPUT);
-  pins::digital_pins.write((pinmap::Digital)pins.get_pin(IN2), DEFAULT_IN2);
-
-  pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(CS),
-                              pins::DigitalPinMode::OUTPUT);
-  pins::digital_pins.write((pinmap::Digital)pins.get_pin(CS), DEFAULT_CS);
-
   // Init IN1
   uint8_t pin = pins.get_pin(IN1);
   gpio_set_function(pin, GPIO_FUNC_PWM);
@@ -148,6 +140,14 @@ void MotorDriver::init_pins() {
   pwm_set_wrap(slice_num, 12500); // set max value
   pwm_set_chan_level(slice_num, channel, 0);
   pwm_set_enabled(slice_num, true);
+  
+  pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(IN2),
+                              pins::DigitalPinMode::OUTPUT);
+  pins::digital_pins.write((pinmap::Digital)pins.get_pin(IN2), DEFAULT_IN2);
+
+  pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(CS),
+                              pins::DigitalPinMode::OUTPUT);
+  pins::digital_pins.write((pinmap::Digital)pins.get_pin(CS), DEFAULT_CS);
 }
 
 //! spi/register handling
