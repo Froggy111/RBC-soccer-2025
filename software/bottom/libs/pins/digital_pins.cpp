@@ -92,6 +92,8 @@ bool DigitalPins::read(pinmap::Digital pin) {
     return false;
   }
 
+  debug::log("DigitalPins: reading pin %u\r\n", (u8)pin);
+
   u8 pin_val = pin_number(pin);
 
   switch (pin_owner(pin)) {
@@ -118,6 +120,8 @@ bool DigitalPins::write(pinmap::Digital pin, bool val) {
     debug::fatal("DigitalPins: tried writing pin when not set to output\r\n");
     return false;
   }
+
+  debug::log("DigitalPins: writing pin %u with value %u\r\n", (u8)pin, val);
 
   u8 pin_val = pin_number(pin);
 
