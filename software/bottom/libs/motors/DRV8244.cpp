@@ -387,8 +387,9 @@ bool MotorDriver::check_config() {
       debug::error("Error: FAULT_SUMMARY: %s\r\n",
                             FAULT::get_fault_description(faultSummary).c_str());
       return false;
+    } else {
+      debug::error("Driver is in fault state, but there is no fault...continuing\r\n");
     }
-    return false;
   }
 
   // check registers
