@@ -112,6 +112,7 @@ bool MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
   }
 
   comms::USB_CDC.printf("---> DRV8244 initialized\r\n");
+  return true;
 }
 
 void MotorDriver::init_pins() {
