@@ -63,7 +63,7 @@ namespace driver {
 // ! init
 // use -1 as driver_id for debug pins
 void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
-  comms::USB_CDC.printf("---> Initializing DRV824\r\n");
+  comms::USB_CDC.printf("---> Initializing DRV8244\r\n");
   _id = id;
 
   if (id == -1) {
@@ -80,7 +80,7 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
   comms::USB_CDC.printf("-> Initializing pins\r\n");
   init_pins();
 
-  comms::USB_CDC.printf("-> Initializing AMUX\r\n");
+  comms::USB_CDC.printf("-> Initializing ADC\r\n");
   if (!adc_init[0] &&
       !adc1.beginADSX((PICO_ADS1115::ADSXAddressI2C_e)ADC1_ADDR, i2c1,
                       ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C1_SDA,
@@ -115,14 +115,23 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
 void MotorDriver::init_pins() {
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(NFAULT),
                               pins::DigitalPinMode::INPUT_PULLUP);
+
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(NSLEEP),
                               pins::DigitalPinMode::OUTPUT);
+  pins::digital_pins.write((pinmap::Digital)pins.get_pin(NSLEEP),
+
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(DRVOFF),
-                              pins::DigitalPinMode::INPUT);
+                              pins::DigitalPinMode::OUTPUT);
+  pins::digital_pins.write((pinmap::Digital)pins.get_pin(DRVOFF), DEFAULT_DRVOFF);
+
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(IN2),
-                              pins::DigitalPinMode::INPUT);
+                              pins::DigitalPinMode::OUTPUT);
+  pins::digital_pins.write((pinmap::Digital)pins.get_pin(IN2), DEFAULT_IN2);
+  
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(CS),
                               pins::DigitalPinMode::OUTPUT);
+  pins::digital_pins.write((pinmap::Digital)pins.get_pin(CS), DEFAULT_CS);
+  
 
   // Init IN1
   uint8_t pin = pins.get_pin(IN1);

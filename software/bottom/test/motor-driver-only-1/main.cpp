@@ -23,15 +23,15 @@ void motor_driver_task(void *args) {
   pins::digital_pins.init();
 
   // init as debug
-  motor_driver.init(4, spi0);
+  motor_driver.init(1, spi0);
 
   while (true) {
     for (int i = 0; i <= 625; i++) {
       if (!motor_driver.command(-i * 10))
         break;
 
-      comms::USB_CDC.printf("Motor Driver Current: %d\n",
-                            motor_driver.read_current());
+      // comms::USB_CDC.printf("Motor Driver Current: %d\n",
+      //                       motor_driver.read_current());
       vTaskDelay(pdMS_TO_TICKS(10));
     }
     vTaskDelay(pdMS_TO_TICKS(10));
@@ -39,8 +39,8 @@ void motor_driver_task(void *args) {
       if (!motor_driver.command(-i * 10))
         break;
 
-      comms::USB_CDC.printf("Motor Driver Current: %d\n",
-                            motor_driver.read_current());
+      // comms::USB_CDC.printf("Motor Driver Current: %d\n",
+      //                       motor_driver.read_current());
       vTaskDelay(pdMS_TO_TICKS(10));
     }
     vTaskDelay(pdMS_TO_TICKS(10));
