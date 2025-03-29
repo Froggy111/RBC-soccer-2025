@@ -15,13 +15,4 @@ namespace comms {
 
 extern usb::CDC USB_CDC;
 
-// initialises communication interfaces
-bool comms_init(void);
-
-// Provides access to connected devices
-std::vector<usb::USBDevice> get_connected_devices();
-
-// Gets a device by type
-usb::USBDevice get_device_by_type(usb::DeviceType type);
-
 } // namespace comms
