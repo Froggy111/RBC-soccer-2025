@@ -109,7 +109,7 @@ public:
    * @param id 
    * @param SPI_SPEED 
    */
-  void init(int id, spi_inst_t *spi_obj_touse);
+  bool init(int id, spi_inst_t *spi_obj_touse);
 
   /**
    * TRUE = Sleeping, FALSE = Not Sleeping
