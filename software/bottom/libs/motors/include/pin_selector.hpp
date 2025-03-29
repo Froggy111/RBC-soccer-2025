@@ -27,9 +27,9 @@ typedef enum DriverPinMap {
 
 constexpr types::u8 driver1_pins[] = {
     static_cast<types::u8>(pinmap::Digital::DRV1_SCS),     // CS
-    static_cast<types::u8>(pinmap::Digital::SPI0_MOSI),    // MOSI
-    static_cast<types::u8>(pinmap::Digital::SPI0_MISO),    // MISO
-    static_cast<types::u8>(pinmap::Digital::SPI0_SCLK),    // SCK
+    static_cast<types::u8>(pinmap::Pico::SPI0_MOSI),    // MOSI
+    static_cast<types::u8>(pinmap::Pico::SPI0_MISO),    // MISO
+    static_cast<types::u8>(pinmap::Pico::SPI0_SCLK),    // SCK
     static_cast<types::u8>(pinmap::Digital::DRV1_NSLEEP), // NSLEEP
     static_cast<types::u8>(pinmap::Digital::DRV1_NFAULT), // NFAULT
     static_cast<types::u8>(pinmap::ADC2::DRV1_IPROPI),  // IPROPI
@@ -40,9 +40,9 @@ constexpr types::u8 driver1_pins[] = {
 
 constexpr types::u8 driver2_pins[] = {
     static_cast<types::u8>(pinmap::Digital::DRV2_SCS),     // CS
-    static_cast<types::u8>(pinmap::Digital::SPI0_MOSI),    // MOSI
-    static_cast<types::u8>(pinmap::Digital::SPI0_MISO),    // MISO
-    static_cast<types::u8>(pinmap::Digital::SPI0_SCLK),    // SCK
+    static_cast<types::u8>(pinmap::Pico::SPI0_MOSI),    // MOSI
+    static_cast<types::u8>(pinmap::Pico::SPI0_MISO),    // MISO
+    static_cast<types::u8>(pinmap::Pico::SPI0_SCLK),    // SCK
     static_cast<types::u8>(pinmap::Digital::DRV2_NSLEEP), // NSLEEP
     static_cast<types::u8>(pinmap::Digital::DRV2_NFAULT), // NFAULT
     static_cast<types::u8>(pinmap::ADC1::DRV2_IPROPI),  // IPROPI
@@ -53,9 +53,9 @@ constexpr types::u8 driver2_pins[] = {
 
 constexpr types::u8 driver3_pins[] = {
     static_cast<types::u8>(pinmap::Digital::DRV3_SCS),    // CS
-    static_cast<types::u8>(pinmap::Digital::SPI0_MOSI),    // MOSI
-    static_cast<types::u8>(pinmap::Digital::SPI0_MISO),    // MISO
-    static_cast<types::u8>(pinmap::Digital::SPI0_SCLK),    // SCK
+    static_cast<types::u8>(pinmap::Pico::SPI0_MOSI),    // MOSI
+    static_cast<types::u8>(pinmap::Pico::SPI0_MISO),    // MISO
+    static_cast<types::u8>(pinmap::Pico::SPI0_SCLK),    // SCK
     static_cast<types::u8>(pinmap::Digital::DRV3_NSLEEP), // NSLEEP
     static_cast<types::u8>(pinmap::Digital::DRV3_NFAULT), // NFAULT
     static_cast<types::u8>(pinmap::ADC1::DRV3_IPROPI),  // IPROPI
@@ -66,9 +66,9 @@ constexpr types::u8 driver3_pins[] = {
 
 constexpr types::u8 driver4_pins[] = {
     static_cast<types::u8>(pinmap::Digital::DRV4_SCS),    // CS
-    static_cast<types::u8>(pinmap::Digital::SPI0_MOSI),    // MOSI
-    static_cast<types::u8>(pinmap::Digital::SPI0_MISO),    // MISO
-    static_cast<types::u8>(pinmap::Digital::SPI0_SCLK),    // SCK
+    static_cast<types::u8>(pinmap::Pico::SPI0_MOSI),    // MOSI
+    static_cast<types::u8>(pinmap::Pico::SPI0_MISO),    // MISO
+    static_cast<types::u8>(pinmap::Pico::SPI0_SCLK),    // SCK
     static_cast<types::u8>(pinmap::Digital::DRV4_NSLEEP), // NSLEEP
     static_cast<types::u8>(pinmap::Digital::DRV4_NFAULT), // NFAULT
     static_cast<types::u8>(pinmap::ADC2::DRV4_IPROPI),  // IPROPI
