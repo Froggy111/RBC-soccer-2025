@@ -2,6 +2,7 @@
 
 #include "position.hpp"
 #include <opencv2/opencv.hpp>
+#include "config.hpp"
 
 namespace camera {
 class CamProcessor {
@@ -62,5 +63,29 @@ class CamProcessor {
     find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
                              int radius = 30, int step = 5,
                              int heading_step = 10);
+                             
+    /**
+     * @brief Find the minima using gradient descent regression
+     * Efficiently refines position estimate by moving in the direction 
+     * that most reduces the loss function
+     * 
+     * @param camera_image The camera image to process
+     * @param initial_guess Initial position estimate
+     * @param max_iterations Maximum number of iterations
+     * @param initial_step_x Initial step size for x coordinate
+     * @param initial_step_y Initial step size for y coordinate  
+     * @param initial_step_heading Initial step size for heading
+     * @param step_decay Factor to reduce step size when no improvement
+     * @param convergence_threshold Threshold to determine convergence
+     * @return std::pair<Pos, float> returns the position and the loss
+     */
+    static std::pair<Pos, float> 
+    find_minima_regression(const cv::Mat &camera_image, Pos &initial_guess,
+                          int max_iterations = REGRESSION_MAX_ITERATIONS,
+                          float initial_step_x = REGRESSION_INITIAL_STEP_X,
+                          float initial_step_y = REGRESSION_INITIAL_STEP_Y,
+                          float initial_step_heading = REGRESSION_INITIAL_STEP_HEADING,
+                          float step_decay = REGRESSION_STEP_DECAY,
+                          float convergence_threshold = REGRESSION_CONVERGENCE_THRESHOLD);
 };
 } // namespace camera

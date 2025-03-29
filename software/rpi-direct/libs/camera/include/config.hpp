@@ -22,4 +22,12 @@ const int GRID_SEARCH_HEADING_STEP = 2;
 const int PARTICLE_SEARCH_NUM = 25;
 const int PARTICLE_SEARCH_GEN = 12;
 const int PARTICLE_SEARCH_VAR = 3;
+
+// gradient descent params
+const int REGRESSION_MAX_ITERATIONS = 50;
+const float REGRESSION_INITIAL_STEP_X = 5.0f;
+const float REGRESSION_INITIAL_STEP_Y = 5.0f;
+const float REGRESSION_INITIAL_STEP_HEADING = 0.05f;  // ~3 degrees
+const float REGRESSION_STEP_DECAY = 0.7f;
+const float REGRESSION_CONVERGENCE_THRESHOLD = 0.001f;
 } // namespace camera

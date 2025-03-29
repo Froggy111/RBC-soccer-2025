@@ -162,6 +162,94 @@ CamProcessor::find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
     return std::make_pair(best_guess, best_loss);
 }
 
+std::pair<Pos, float> CamProcessor::find_minima_regression(
+    const cv::Mat &camera_image, Pos &initial_guess,
+    int max_iterations, float initial_step_x, float initial_step_y,
+    float initial_step_heading, float step_decay, float convergence_threshold) {
+    
+    Pos current_pos = initial_guess;
+    float current_loss = calculate_loss(camera_image, current_pos);
+    
+    float step_x = initial_step_x;
+    float step_y = initial_step_y;
+    float step_heading = initial_step_heading;
+    
+    // Keep track of iterations and improvement
+    int iterations = 0;
+    bool improved = true;
+    
+    while (iterations < max_iterations && (step_x > convergence_threshold || 
+           step_y > convergence_threshold || 
+           step_heading > convergence_threshold) && 
+           improved) {
+        
+        improved = false;
+        iterations++;
+        
+        // Try different directions and pick the one with the lowest loss
+        struct Movement {
+            float dx, dy, dh;
+            float loss;
+            Pos pos;
+        };
+        
+        // Define possible movements
+        const int num_directions = 6;
+        Movement movements[num_directions] = {
+            {step_x, 0, 0, 0, current_pos},      // +x
+            {-step_x, 0, 0, 0, current_pos},     // -x
+            {0, step_y, 0, 0, current_pos},      // +y
+            {0, -step_y, 0, 0, current_pos},     // -y
+            {0, 0, step_heading, 0, current_pos}, // +heading
+            {0, 0, -step_heading, 0, current_pos} // -heading
+        };
+        
+        // Try each movement and calculate loss
+        for (int i = 0; i < num_directions; i++) {
+            Pos test_pos = current_pos;
+            test_pos.x += movements[i].dx;
+            test_pos.y += movements[i].dy;
+            test_pos.heading += movements[i].dh;
+            
+            // Wrap heading to [0, 2π]
+            while (test_pos.heading < 0) test_pos.heading += 2 * M_PI;
+            while (test_pos.heading >= 2 * M_PI) test_pos.heading -= 2 * M_PI;
+            
+            // Keep position within field bounds
+            test_pos.x = std::max(std::min(test_pos.x, FIELD_X_SIZE/2), -FIELD_X_SIZE/2);
+            test_pos.y = std::max(std::min(test_pos.y, FIELD_Y_SIZE/2), -FIELD_Y_SIZE/2);
+            
+            movements[i].loss = calculate_loss(camera_image, test_pos);
+            movements[i].pos = test_pos;
+        }
+        
+        // Find the movement with the lowest loss
+        int best_idx = -1;
+        float best_loss = current_loss;
+        
+        for (int i = 0; i < num_directions; i++) {
+            if (movements[i].loss < best_loss) {
+                best_loss = movements[i].loss;
+                best_idx = i;
+            }
+        }
+        
+        // If we found an improvement, update the position
+        if (best_idx >= 0) {
+            current_pos = movements[best_idx].pos;
+            current_loss = best_loss;
+            improved = true;
+        } else {
+            // No improvement found, reduce step sizes
+            step_x *= step_decay;
+            step_y *= step_decay;
+            step_heading *= step_decay;
+        }
+    }
+    
+    return std::make_pair(current_pos, current_loss);
+}
+
 int CamProcessor::_frame_count = 0;
 Pos CamProcessor::_current_pos = {0, 0, 0}; 
 

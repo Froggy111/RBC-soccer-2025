@@ -1,7 +1,6 @@
 #include "camera.hpp"
 #include "processor.hpp"
 #include <cstdio>
-#include <iostream>
 #include <opencv2/opencv.hpp>
 
 camera::Camera cam;
@@ -19,7 +18,6 @@ int main() {
         fprintf(stderr, "Failed to start camera capture\n");
         return 1;
     }
-
 
     // Stop capturing
     cam.stopCapture();
