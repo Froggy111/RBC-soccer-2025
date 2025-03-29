@@ -9,5 +9,5 @@ target_sources(main
   main.cpp
 )
 
-target_link_libraries(main DRV8244 ALSPT19 MCP23S17 PMW3360 comms hardware_spi hardware_i2c hardware_gpio)
+target_link_libraries(main DRV8244 ALSPT19 MCP23S17 comms hardware_spi hardware_i2c hardware_gpio)
 pico_add_extra_outputs(main)

@@ -1,3 +1,4 @@
+#include "comms/identifiers.hpp"
 #include "comms/usb.hpp"
 extern "C" {
 #include <pico/stdlib.h>
@@ -13,28 +14,19 @@ extern "C" {
 
 #define LED_PIN 25
 
-int urgent_blink() {
-  while (true) {
-    gpio_put(LED_PIN, 1);
-    sleep_ms(100);
-    gpio_put(LED_PIN, 0);
-    sleep_ms(100);
-  }
-}
-
-int main() {
+TaskHandle_t main_task_handle = nullptr;
+void main_task(void *args) {
   // * Init LED
   gpio_init(LED_PIN);
   gpio_set_dir(LED_PIN, GPIO_OUT);
   gpio_put(LED_PIN, 1);
-
-  // * Init USB Comms
-  comms::USB_CDC.init();
-
+  
   // * Init SPIs
   if (!spi_init(spi0, 1000000)) {
-    urgent_blink();
+    comms::USB_CDC.write(comms::SendIdentifiers::SPI_INIT_FAIL, NULL, 0);
+    vTaskDelete(main_task_handle);
   }
+  
 
   xTaskCreate(line_sensor_task, "line_sensor_task", 1024, NULL, 10, NULL);
   xTaskCreate(mouse_sensor_task, "mouse_sensor_task", 1024, NULL, 10, NULL);
@@ -52,8 +44,18 @@ int main() {
       kicker_task_buffer, sizeof(kicker_task_data));
 
   if (!motor_attach_successful || !kicker_attach_successful) {
-    urgent_blink();
+    comms::USB_CDC.write(comms::SendIdentifiers::COMMS_ERROR, NULL, 0);
+    vTaskDelete(main_task_handle);
   }
+
+  vTaskDelete(main_task_handle);
+}
+
+int main() {
+  // * Init USB Comms
+  comms::USB_CDC.init();
+
+  xTaskCreate(main_task, "main_task", 1024, NULL, 20, &main_task_handle);
 
   vTaskStartScheduler();
 }
