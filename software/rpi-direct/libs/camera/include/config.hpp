@@ -10,8 +10,8 @@ const int COLOR_G_THRES = 160;
 const int COLOR_B_THRES = 160;
 
 // image sizes
-const int IMG_WIDTH = 480;
-const int IMG_HEIGHT = 640;
+const int IMG_WIDTH = 640;
+const int IMG_HEIGHT = 480;
 
 // initial search
 const int GRID_SEARCH_RADIUS = 30;

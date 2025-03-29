@@ -1,3 +1,4 @@
+#include "config.hpp"
 #include "position.hpp"
 #include "processor.hpp"
 #include <fstream>
@@ -49,7 +50,7 @@ int main() {
     double total_time = 0.0;
 
     // Process the first frame
-    Pos center(72, -104); // ^ change if needed
+    Pos center(135, 100, 0); // ^ change if needed
     cap.read(frame);
     std::pair<Pos, float> initial =
         processor.find_minima_smart_search(frame, center, 30, 2, 2);
@@ -65,7 +66,9 @@ int main() {
         auto start_time = std::chrono::high_resolution_clock::now();
 
         // use regression
-        auto points = processor.find_minima_regress(frame, current_pos, 10, 10, 4);
+        auto points = processor.find_minima_particle_search(
+            frame, current_pos, camera::PARTICLE_SEARCH_NUM,
+            camera::PARTICLE_SEARCH_GEN, camera::PARTICLE_SEARCH_VAR);
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -76,8 +79,9 @@ int main() {
 
         // Write data to file in CSV format (including timing)
         output_file << frame_count << "," << points.first.x << ","
-                    << points.first.y << "," << points.first.heading * 180 / M_PI << ","
-                    << points.second << "," << duration << std::endl;
+                    << points.first.y << ","
+                    << points.first.heading * 180 / M_PI << "," << points.second
+                    << "," << duration << std::endl;
 
         // Print timing information for this frame
         std::cout << "Frame " << frame_count << " took " << duration
