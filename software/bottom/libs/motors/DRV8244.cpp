@@ -140,7 +140,7 @@ void MotorDriver::init_pins() {
   pwm_set_wrap(slice_num, 12500); // set max value
   pwm_set_chan_level(slice_num, channel, 0);
   pwm_set_enabled(slice_num, true);
-  
+
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(IN2),
                               pins::DigitalPinMode::OUTPUT);
   pins::digital_pins.write((pinmap::Digital)pins.get_pin(IN2), DEFAULT_IN2);
@@ -175,10 +175,12 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   comms::USB_CDC.printf("HMMMMM: %d",
                         (pinmap::Digital)pins.get_pin(DriverPinMap::CS));
 
-  configure_spi();
   pins::digital_pins.write((pinmap::Digital)pins.get_pin(DriverPinMap::CS), 0);
+  // gpio_put(19, 0);
+  configure_spi();
   int bytes_written =
       spi_write16_read16_blocking(spi_obj, &reg_value, &rx_data, 1);
+  // gpio_put(19, 1);
   pins::digital_pins.write((pinmap::Digital)pins.get_pin(DriverPinMap::CS), 1);
 
   comms::USB_CDC.printf("SPI Write - Sent: 0x%04X, Received: 0x%04X\r\n",

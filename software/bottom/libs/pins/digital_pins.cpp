@@ -52,6 +52,7 @@ bool DigitalPins::set_mode(pinmap::Digital pin, DigitalPinMode pin_mode) {
 
   switch (pin_owner(pin)) {
   case pinmap::DigitalPinOwner::PICO:
+    gpio_init(pin_val);
     switch (pin_mode) {
     case DigitalPinMode::INPUT:
       gpio_set_dir(pin_val, GPIO_IN);
