@@ -64,6 +64,9 @@ namespace driver {
 // ! init
 // use -1 as driver_id for debug pins
 bool MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
+  pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(NFAULT),
+                              pins::DigitalPinMode::INPUT_PULLUP);
+  return false;
   debug::debug("---> Initializing DRV8244\r\n");
   _id = id;
 
