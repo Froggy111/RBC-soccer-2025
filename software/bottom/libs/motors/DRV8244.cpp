@@ -113,12 +113,6 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
 }
 
 void MotorDriver::init_pins() {
-  comms::USB_CDC.printf(
-      "Pins: %d, %d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", pins.get_pin(CS),
-      pins.get_pin(MOSI), pins.get_pin(MISO), pins.get_pin(SCK),
-      pins.get_pin(NSLEEP), pins.get_pin(NFAULT), pins.get_pin(DRVOFF),
-      pins.get_pin(IN1), pins.get_pin(IN2), pins.get_pin(IPROPI));
-
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(NFAULT),
                               pins::DigitalPinMode::INPUT_PULLUP);
 
@@ -174,6 +168,8 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
 
   //* Write & Read Feedback
   // Initialize CS pin as GPIO
+
+  comms::USB_CDC.printf("HMMMMM: %d", (pinmap::Digital)pins.get_pin(DriverPinMap::CS));
 
   pins::digital_pins.write((pinmap::Digital)pins.get_pin(DriverPinMap::CS), 0);
 
