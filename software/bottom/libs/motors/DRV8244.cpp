@@ -86,6 +86,7 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
                       ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C1_SDA,
                       (uint8_t)pinmap::Pico::I2C1_SCL, 1000)) {
     comms::USB_CDC.printf("ADC1 not found!\r\n");
+    return false;
   } else {
     adc_init[0] = true;
     adc1.setGain(PICO_ADS1115::ADSXGain_TWO);
@@ -97,6 +98,7 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
                       ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C1_SDA,
                       (uint8_t)pinmap::Pico::I2C1_SCL, 1000)) {
     comms::USB_CDC.printf("ADC2 not found!\r\n");
+    return false;
   } else {
     adc_init[1] = true;
     adc2.setGain(PICO_ADS1115::ADSXGain_TWO);
@@ -106,7 +108,7 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
   comms::USB_CDC.printf("-> Configuring registers\r\n");
   if (!init_registers()) {
     comms::USB_CDC.printf("Error: Could not configure registers\r\n");
-    return;
+    return false;
   }
 
   comms::USB_CDC.printf("---> DRV8244 initialized\r\n");

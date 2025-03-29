@@ -23,7 +23,14 @@ void motor_driver_task(void *args) {
   pins::digital_pins.init();
 
   // init as debug
-  motor_driver.init(4, spi0);
+  if (motor_driver.init(1, spi0)) {
+    comms::USB_CDC.printf("Motor Driver Initialized!\n");
+  } else {
+    comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
+    while (true) {
+      vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+  }
 
   while (true) {
     for (int i = 0; i <= 625; i++) {
