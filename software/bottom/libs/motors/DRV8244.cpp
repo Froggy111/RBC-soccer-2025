@@ -1,5 +1,4 @@
 #include "pinmap.hpp"
-#include "pins.hpp"
 #include "registers.hpp"
 #include <cstdint>
 extern "C" {
@@ -14,6 +13,11 @@ extern "C" {
 #include "registers.hpp"
 #include "comms.hpp"
 #include "pins/digital_pins.hpp"
+
+#define ADC1_ADDR 0b1001000
+#define ADC2_ADDR 0b1001001
+#define ADC_CLK_SPEED 300 // 0.3 MHz, both fast and high speed modes
+#define ADC_DATA_RATE 28
 
 #define DEFAULT_NSLEEP 1 // not sleeping by default
 #define DEFAULT_DRVOFF 0 // driver on by default
@@ -60,7 +64,7 @@ namespace driver {
 // use -1 as driver_id for debug pins
 void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
   comms::USB_CDC.printf("---> Initializing DRV824\r\n");
-  duty_cycle_cache = 0;
+  _id = id;
 
   if (id == -1) {
     pins.set_debug_mode(true);
@@ -394,7 +398,7 @@ void MotorDriver::set_sleep(bool sleep) {
 
 int16_t MotorDriver::read_current() {
   // Read the current from the ADC
-  if (id == 1 || id == 4)
+  if (_id == 1 || _id == 4)
     return adc2.readADC_SingleEnded(
         (PICO_ADS1X15::ADSX_AINX_e)pins.get_pin(IPROPI));
   else

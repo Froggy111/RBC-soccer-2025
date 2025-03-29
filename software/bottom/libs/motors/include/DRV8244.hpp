@@ -95,8 +95,7 @@ private:
   bool check_config();
 
   Pins pins;
-
-  types::i16 duty_cycle_cache;
+  int _id;
   spi_inst_t *spi_obj;
 
   bool adc_init[2];
