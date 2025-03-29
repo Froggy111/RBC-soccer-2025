@@ -56,11 +56,11 @@ def main():
         rotated_y_fp = (rel_x * sin_theta_fp + rel_y * cos_theta_fp) >> FP_SHIFT
 
         # Convert back to integer coordinate space
-        final_x = int(rotated_x_fp + 640 / 2)
-        final_y = int(rotated_y_fp + 480 / 2)
+        final_x = int(rotated_x_fp + 480 / 2)
+        final_y = int(rotated_y_fp + 640 / 2)
 
         # Check if the point is within image boundaries
-        if final_x < 0 or final_x >= 640 or final_y < 0 or final_y >= 480:
+        if final_x < 0 or final_x >= 480 or final_y < 0 or final_y >= 640:
             continue
 
         transformed_x.append(final_x)
@@ -70,12 +70,12 @@ def main():
 
     # Create visualization
     plt.figure(figsize=(10, 8))
-    plt.scatter(transformed_x, transformed_y, s=2, c="blue", alpha=0.7)
+    plt.scatter(transformed_y, transformed_x, s=2, c="blue", alpha=0.7)
 
     # Configure plot with equal aspect ratio
     plt.xlim(0, 640)
     plt.ylim(0, 480)
-    plt.gca().set_aspect('equal', adjustable='box')  # Set equal scale for both axes
+    plt.gca().set_aspect("equal", adjustable="box")  # Set equal scale for both axes
     plt.grid(True, alpha=0.3)
     plt.title(
         f"Transformed Field Coordinates\nGuess: ({args.guess_x}, {args.guess_y}, {args.guess_heading:.2f} degrees)"
@@ -88,7 +88,6 @@ def main():
 
     plt.tight_layout()  # Adjust layout to make room for equal scaling
     plt.show()
-
 
 
 def read_field_hpp():

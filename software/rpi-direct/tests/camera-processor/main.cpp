@@ -50,7 +50,7 @@ int main() {
     double total_time = 0.0;
 
     // Process the first frame
-    Pos center(135, 100, 0); // ^ change if needed
+    Pos center(0, 0, 0); // ^ change if needed
     cap.read(frame);
     std::pair<Pos, float> initial =
         processor.find_minima_smart_search(frame, center, 30, 2, 2);
