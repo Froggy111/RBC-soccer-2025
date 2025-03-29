@@ -181,8 +181,8 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   // gpio_put(19, 1);
   pins::digital_pins.write((pinmap::Digital)pins.get_pin(DriverPinMap::CS), 1);
 
-  debug::debug("SPI Write - Sent: 0x%04X, Received: 0x%04X\r\n",
-                        reg_value, rx_data);
+  debug::debug("SPI Write - Sent: 0x%04X, Received: 0x%04X\r\n", reg_value,
+               rx_data);
 
   //* Check for no errors in received bytes
   // First 2 MSBs bytes should be '1'
@@ -205,7 +205,7 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
           "SPI Write - No fault found in fault register, moving on...\r\n");
     } else {
       debug::error("SPI Write - %s\n",
-                            FAULT::get_fault_description(fault).c_str());
+                   FAULT::get_fault_description(fault).c_str());
       return false;
     }
   }
@@ -218,8 +218,7 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
     }
   } else {
     if ((rx_data & 0x00FF) != expected) {
-      debug::error(
-          "SPI Write - Error: Data bytes do not match expected\r\n");
+      debug::error("SPI Write - Error: Data bytes do not match expected\r\n");
       return false;
     }
   }
@@ -239,8 +238,8 @@ uint8_t MotorDriver::read8(uint8_t reg) {
   spi_write16_read16_blocking(spi_obj, &reg_value, &rx_data, 1);
   pins::digital_pins.write((pinmap::Digital)pins.get_pin(CS), 1);
 
-  debug::debug("SPI Read - Sent: 0x%04X, Received: 0x%04X\r\n",
-                        reg_value, rx_data);
+  debug::debug("SPI Read - Sent: 0x%04X, Received: 0x%04X\r\n", reg_value,
+               rx_data);
 
   //* Check for no errors in received bytes
   // First 2 MSBs bytes should be '1'
@@ -263,7 +262,7 @@ uint8_t MotorDriver::read8(uint8_t reg) {
           "SPI Write - No fault found in fault register, moving on...\r\n");
     } else {
       debug::error("SPI Write - %s\n",
-                            FAULT::get_fault_description(fault).c_str());
+                   FAULT::get_fault_description(fault).c_str());
       return false;
     }
   }
@@ -310,7 +309,7 @@ bool MotorDriver::check_registers() {
   types::u8 faultSummary = read8(FAULT_SUMMARY_REG);
   if (faultSummary != 0) {
     debug::debug("Error: FAULT_SUMMARY: %s\r\n",
-                          FAULT::get_fault_description(faultSummary).c_str());
+                 FAULT::get_fault_description(faultSummary).c_str());
     return false;
   }
 
@@ -319,7 +318,7 @@ bool MotorDriver::check_registers() {
 
   if (status1 != STATUS1_REG_EXPECTED) {
     debug::debug("Error: STATUS1: %s\r\n",
-                          STATUS::get_status1_description(status1).c_str());
+                 STATUS::get_status1_description(status1).c_str());
     return false;
   }
 
@@ -327,7 +326,7 @@ bool MotorDriver::check_registers() {
   types::u8 status2 = read8(STATUS2_REG);
   if (status2 != STATUS2_REG_EXPECTED) {
     debug::debug("Error: STATUS2: %s\r\n",
-                          STATUS::get_status2_description(status2).c_str());
+                 STATUS::get_status2_description(status2).c_str());
     return false;
   }
 
@@ -385,10 +384,15 @@ bool MotorDriver::check_config() {
     types::u8 faultSummary = read8(FAULT_SUMMARY_REG);
     if (faultSummary != 0) {
       debug::error("Error: FAULT_SUMMARY: %s\r\n",
-                            FAULT::get_fault_description(faultSummary).c_str());
+                   FAULT::get_fault_description(faultSummary).c_str());
       return false;
     } else {
-      debug::error("Driver is in fault state, but there is no fault...continuing\r\n");
+      debug::error("Driver is in fault state, but there is no fault... "
+                   "clearing fault and continuing\r\n");
+      if (!write8(COMMAND_REG, COMMAND_REG_RESET, COMMAND_REG_EXPECTED)) {
+        debug::debug("Error: Could not write to COMMAND register\r\n");
+        return false;
+      }
     }
   }
 
@@ -424,13 +428,11 @@ bool MotorDriver::command(types::i16 duty_cycle) {
   // TODO: Implement Accel Safeguards
   // Verify if the driver can accept commands
   if (!check_config()) {
-    debug::error(
-        "Motor command aborted due to configuration error.\r\n");
+    debug::error("Motor command aborted due to configuration error.\r\n");
     return false;
   }
   if (duty_cycle < -12500 || duty_cycle > 12500) {
-    debug::error(
-        "Invalid duty cycle. Must be between -12500 and 12500.\r\n");
+    debug::error("Invalid duty cycle. Must be between -12500 and 12500.\r\n");
     return false;
   }
 
@@ -445,9 +447,8 @@ bool MotorDriver::command(types::i16 duty_cycle) {
   uint channel = pwm_gpio_to_channel(pins.get_pin(IN1));
   pwm_set_chan_level(slice_num, channel, duty_cycle);
 
-  debug::debug(
-      "Motor command executed: Duty cycle = %d, Direction = %d\r\n", duty_cycle,
-      direction);
+  debug::debug("Motor command executed: Duty cycle = %d, Direction = %d\r\n",
+               duty_cycle, direction);
   return true;
 }
 
