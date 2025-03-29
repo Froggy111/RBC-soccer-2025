@@ -116,7 +116,7 @@ void MotorDriver::init_pins() {
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(NFAULT),
                               pins::DigitalPinMode::INPUT_PULLUP);
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(NSLEEP),
-                              pins::DigitalPinMode::INPUI);
+                              pins::DigitalPinMode::INPUT);
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(DRVOFF),
                               pins::DigitalPinMode::OUTPUT);
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(IN2),
