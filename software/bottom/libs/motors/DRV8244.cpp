@@ -118,7 +118,7 @@ void MotorDriver::init_pins() {
 
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(NSLEEP),
                               pins::DigitalPinMode::OUTPUT);
-  pins::digital_pins.write((pinmap::Digital)pins.get_pin(NSLEEP),
+  pins::digital_pins.write((pinmap::Digital)pins.get_pin(NSLEEP), DEFAULT_NSLEEP);
 
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(DRVOFF),
                               pins::DigitalPinMode::OUTPUT);
