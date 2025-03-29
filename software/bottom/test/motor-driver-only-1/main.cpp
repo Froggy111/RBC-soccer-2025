@@ -1,9 +1,10 @@
 #include "DRV8244.hpp"
 #include "comms/usb.hpp"
-#include <hardware/i2c.h>
+#include "pins.hpp"
 
 extern "C" {
 #include <pico/stdlib.h>
+#include <hardware/i2c.h>
 #include <hardware/spi.h>
 #include <hardware/i2c.h>
 }
@@ -19,6 +20,8 @@ void motor_driver_task(void *args) {
     comms::USB_CDC.printf("SPI Initialization Failed!\n");
   }
 
+  pins::digital_pins.init();
+
   // init as debug
   motor_driver.init(4, spi0);
 
@@ -27,7 +30,8 @@ void motor_driver_task(void *args) {
       if (!motor_driver.command(-i * 10))
         break;
 
-      comms::USB_CDC.printf("Motor Driver Current: %d\n", motor_driver.read_current());
+      comms::USB_CDC.printf("Motor Driver Current: %d\n",
+                            motor_driver.read_current());
       vTaskDelay(pdMS_TO_TICKS(10));
     }
     vTaskDelay(pdMS_TO_TICKS(10));
@@ -35,7 +39,8 @@ void motor_driver_task(void *args) {
       if (!motor_driver.command(-i * 10))
         break;
 
-      comms::USB_CDC.printf("Motor Driver Current: %d\n", motor_driver.read_current());
+      comms::USB_CDC.printf("Motor Driver Current: %d\n",
+                            motor_driver.read_current());
       vTaskDelay(pdMS_TO_TICKS(10));
     }
     vTaskDelay(pdMS_TO_TICKS(10));
