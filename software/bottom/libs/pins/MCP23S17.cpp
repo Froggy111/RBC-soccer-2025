@@ -126,6 +126,12 @@ void MCP23S17::write8(u8 reg_address, u8 data, u8 mask) {
 
   // read register and check if it was written
   u8 res = read8(reg_address);
+  for (u8 i = 0; i < 3; i++) {
+    for (u8 j = 7; j >= 0; j--) {
+      comms::USB_CDC.printf("%u", (tx_data[i] >> j) & 1);
+    }
+    debug::log(" ");
+  }
   if (res != tx_data[2]) {
     // print tx_data in binary
     for (u8 i = 0; i < 3; i++) {
