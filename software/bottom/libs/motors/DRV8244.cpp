@@ -167,8 +167,8 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
 
   pins::digital_pins.write((pinmap::Digital)pins.get_pin(DriverPinMap::CS), 1);
 
-  // comms::USB_CDC.printf("SPI Write - Sent: 0x%04X, Received: 0x%04X\r\n",
-  //                       reg_value, rx_data);
+  comms::USB_CDC.printf("SPI Write - Sent: 0x%04X, Received: 0x%04X\r\n",
+                        reg_value, rx_data);
 
   //* Check for no errors in received bytes
   // First 2 MSBs bytes should be '1'
@@ -227,8 +227,8 @@ uint8_t MotorDriver::read8(uint8_t reg) {
 
   pins::digital_pins.write((pinmap::Digital)pins.get_pin(CS), 1);
 
-  // comms::USB_CDC.printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\r\n",
-  //                       reg_value, rx_data);
+  comms::USB_CDC.printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\r\n",
+                        reg_value, rx_data);
 
   //* Check for no errors in received bytes
   // First 2 MSBs bytes should be '1'
