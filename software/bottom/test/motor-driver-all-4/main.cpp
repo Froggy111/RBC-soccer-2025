@@ -1,5 +1,6 @@
 #include "DRV8244.hpp"
 #include "comms/usb.hpp"
+#include "pins/digital_pins.hpp"
 
 extern "C" {
 #include <pico/stdlib.h>
@@ -13,10 +14,12 @@ const int LED_PIN = 25;
 
 void motor_driver_task(void *args) {
   comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
-  
+
   if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.printf("SPI Initialization Failed!\n");
   }
+
+  pins::digital_pins.init();
 
   // init as debug
   driver1.init(1, spi0);
@@ -26,12 +29,15 @@ void motor_driver_task(void *args) {
 
   while (true) {
     for (int i = 0; i <= 650; i++) {
-      if (!driver1.command(-i * 10)) break;
-      if (!driver2.command(i * 10)) break;
-      if (!driver3.command(i * 10)) break;
+      if (!driver1.command(-i * 10))
+        break;
+      if (!driver2.command(i * 10))
+        break;
+      if (!driver3.command(i * 10))
+        break;
       if (!driver4.command(i * 10))
         break;
-      
+
       // comms::USB_CDC.printf("Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
       //        driver3.read_current(), driver4.read_current());
 
@@ -40,10 +46,14 @@ void motor_driver_task(void *args) {
 
     vTaskDelay(pdMS_TO_TICKS(10));
     for (int i = 650; i >= 0; i--) {
-      if (!driver1.command(-i * 10)) break;
-      if (!driver2.command(i * 10)) break;
-      if (!driver3.command(i * 10)) break;
-      if (!driver4.command(i * 10)) break;
+      if (!driver1.command(-i * 10))
+        break;
+      if (!driver2.command(i * 10))
+        break;
+      if (!driver3.command(i * 10))
+        break;
+      if (!driver4.command(i * 10))
+        break;
 
       // comms::USB_CDC.printf("Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
       //        driver3.read_current(), driver4.read_current());
