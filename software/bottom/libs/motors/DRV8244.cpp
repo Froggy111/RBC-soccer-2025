@@ -430,29 +430,29 @@ int16_t MotorDriver::read_current() {
 bool MotorDriver::command(types::i16 duty_cycle) {
   // TODO: Implement Accel Safeguards
   // Verify if the driver can accept commands
-  if (!check_config()) {
-    debug::error("Motor command aborted due to configuration error.\r\n");
-    return false;
-  }
-  if (duty_cycle < -12500 || duty_cycle > 12500) {
-    debug::error("Invalid duty cycle. Must be between -12500 and 12500.\r\n");
-    return false;
-  }
+  // if (!check_config()) {
+  //   debug::error("Motor command aborted due to configuration error.\r\n");
+  //   return false;
+  // }
+  // if (duty_cycle < -12500 || duty_cycle > 12500) {
+  //   debug::error("Invalid duty cycle. Must be between -12500 and 12500.\r\n");
+  //   return false;
+  // }
 
-  // get direction and speed
-  bool direction = duty_cycle < 0;
-  duty_cycle = abs(duty_cycle);
+  // // get direction and speed
+  // bool direction = duty_cycle < 0;
+  // duty_cycle = abs(duty_cycle);
 
-  // Command motor by setting one channel to PWM and the other low
-  pins::digital_pins.write((pinmap::Digital)pins.get_pin(IN2), direction);
+  // // Command motor by setting one channel to PWM and the other low
+  // pins::digital_pins.write((pinmap::Digital)pins.get_pin(IN2), direction);
 
-  uint slice_num = pwm_gpio_to_slice_num(pins.get_pin(IN1));
-  uint channel = pwm_gpio_to_channel(pins.get_pin(IN1));
-  pwm_set_chan_level(slice_num, channel, duty_cycle);
+  // uint slice_num = pwm_gpio_to_slice_num(pins.get_pin(IN1));
+  // uint channel = pwm_gpio_to_channel(pins.get_pin(IN1));
+  // pwm_set_chan_level(slice_num, channel, duty_cycle);
 
-  debug::debug("Motor command executed: Duty cycle = %d, Direction = %d\r\n",
-               duty_cycle, direction);
-  return true;
+  // debug::debug("Motor command executed: Duty cycle = %d, Direction = %d\r\n",
+  //              duty_cycle, direction);
+  // return true;
 }
 
 bool MotorDriver::set_ITRIP(ITRIP::ITRIP current_limit) {
