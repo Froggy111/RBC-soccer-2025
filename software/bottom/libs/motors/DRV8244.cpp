@@ -172,9 +172,6 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   //* Write & Read Feedback
   // Initialize CS pin as GPIO
 
-  comms::USB_CDC.printf("HMMMMM: %d",
-                        (pinmap::Digital)pins.get_pin(DriverPinMap::CS));
-
   pins::digital_pins.write((pinmap::Digital)pins.get_pin(DriverPinMap::CS), 0);
   // gpio_put(19, 0);
   configure_spi();
