@@ -21,7 +21,7 @@ const types::u8 DMUX_2_ADDRESS = 0b001;
 
 class DigitalPins {
 public:
-  DigitalPins();
+  DigitalPins() = default;
   /**
    * @brief initialise DMUX, GPIOs, etc.
    * @warning MUST be called before any other class functions (checks will be made)
