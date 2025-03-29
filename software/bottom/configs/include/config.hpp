@@ -2,4 +2,4 @@
 #define POLL_RATE 1
 #define KICK_MINIMUM_INTERVAL 5000
 #define TUSB_VID 0x2E8A
-#define TUSB_PID 0xFFF0
+#define TUSB_PID 0x000A
