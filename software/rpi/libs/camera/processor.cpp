@@ -251,9 +251,10 @@ std::pair<Pos, float> CamProcessor::find_minima_regression(
 }
 
 int CamProcessor::_frame_count = 0;
-Pos CamProcessor::_current_pos = {0, 0, 0}; 
+Pos CamProcessor::_current_pos = {0, 0, 0};
 
 void CamProcessor::process_frame(const cv::Mat &frame) {
+    debug::info("Frame %d", _frame_count);
     if (_frame_count == 0) {
         auto res = find_minima_smart_search(frame, _current_pos, GRID_SEARCH_RADIUS, GRID_SEARCH_STEP, GRID_SEARCH_HEADING_STEP);
         _current_pos = res.first;
