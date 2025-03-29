@@ -113,31 +113,32 @@ void MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
 }
 
 void MotorDriver::init_pins() {
-  debug::log("Pins: %d, %d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
-          pins.get_pin(CS), pins.get_pin(MOSI), pins.get_pin(MISO),
-          pins.get_pin(SCK), pins.get_pin(NSLEEP), pins.get_pin(NFAULT),
-          pins.get_pin(DRVOFF), pins.get_pin(IN1), pins.get_pin(IN2),
-          pins.get_pin(IPROPI));
+  comms::USB_CDC.printf(
+      "Pins: %d, %d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", pins.get_pin(CS),
+      pins.get_pin(MOSI), pins.get_pin(MISO), pins.get_pin(SCK),
+      pins.get_pin(NSLEEP), pins.get_pin(NFAULT), pins.get_pin(DRVOFF),
+      pins.get_pin(IN1), pins.get_pin(IN2), pins.get_pin(IPROPI));
 
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(NFAULT),
                               pins::DigitalPinMode::INPUT_PULLUP);
 
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(NSLEEP),
                               pins::DigitalPinMode::OUTPUT);
-  pins::digital_pins.write((pinmap::Digital)pins.get_pin(NSLEEP), DEFAULT_NSLEEP);
+  pins::digital_pins.write((pinmap::Digital)pins.get_pin(NSLEEP),
+                           DEFAULT_NSLEEP);
 
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(DRVOFF),
                               pins::DigitalPinMode::OUTPUT);
-  pins::digital_pins.write((pinmap::Digital)pins.get_pin(DRVOFF), DEFAULT_DRVOFF);
+  pins::digital_pins.write((pinmap::Digital)pins.get_pin(DRVOFF),
+                           DEFAULT_DRVOFF);
 
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(IN2),
                               pins::DigitalPinMode::OUTPUT);
   pins::digital_pins.write((pinmap::Digital)pins.get_pin(IN2), DEFAULT_IN2);
-  
+
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(CS),
                               pins::DigitalPinMode::OUTPUT);
   pins::digital_pins.write((pinmap::Digital)pins.get_pin(CS), DEFAULT_CS);
-  
 
   // Init IN1
   uint8_t pin = pins.get_pin(IN1);
