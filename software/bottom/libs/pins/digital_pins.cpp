@@ -86,7 +86,7 @@ bool DigitalPins::read(pinmap::Digital pin) {
     debug::fatal("DigitalPins: tried reading pin when unintialized\r\n");
     return false;
   }
-  if (_pin_modes[(u8)pin] != DigitalPinMode::INPUT ||
+  if (_pin_modes[(u8)pin] != DigitalPinMode::INPUT &&
       _pin_modes[(u8)pin] != DigitalPinMode::INPUT_PULLUP) {
     debug::fatal("DigitalPins: tried reading pin when not set to input\r\n");
     return false;
@@ -106,6 +106,7 @@ bool DigitalPins::read(pinmap::Digital pin) {
   case pinmap::DigitalPinOwner::DMUX2B:
     return _dmux_2.read(pin_val, false);
   }
+  return false;
 }
 
 bool DigitalPins::write(pinmap::Digital pin, bool val) {
