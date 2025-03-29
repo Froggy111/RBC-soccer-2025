@@ -4,5 +4,5 @@ target_sources(kicker
   main.cpp
 )
 
-target_link_libraries(kicker hardware_gpio comms)
+target_link_libraries(kicker hardware_gpio comms digital_pins)
 pico_add_extra_outputs(kicker)
