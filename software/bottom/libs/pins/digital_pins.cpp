@@ -22,20 +22,20 @@ bool DigitalPins::init() {
     debug::warn("DigitalPins: tried to double initialize\r\n");
     return true;
   }
-  debug::log("DigitalPins: initialising DigitalPins\r\n");
+  debug::debug("DigitalPins: initialising DigitalPins\r\n");
   // initialise dmux
-  debug::log("DigitalPins: intialising dmux1\r\n");
+  debug::debug("DigitalPins: intialising dmux1\r\n");
   _dmux_1.init();
-  debug::log("DigitalPins: intialising dmux2\r\n");
+  debug::debug("DigitalPins: intialising dmux2\r\n");
   _dmux_2.init();
   // add interrupt handler
-  debug::log("DigitalPins: adding interrupt handler\r\n");
+  debug::debug("DigitalPins: adding interrupt handler\r\n");
   gpio_set_irq_callback(pico_gpio_interrupt_handler_wrapper);
   // attach dmux interrupts
-  debug::log("DigitalPins: attaching dmux2 interrupt handler\r\n");
+  debug::debug("DigitalPins: attaching dmux2 interrupt handler\r\n");
   attach_interrupt(Digital::DMUX2_INT, DigitalPinInterruptState::LEVEL_HIGH,
                    make_handler(_dmux_2.interrupt_handler), NULL);
-  debug::log("DigitalPins: attaching dmux1 interrupt handler\r\n");
+  debug::debug("DigitalPins: attaching dmux1 interrupt handler\r\n");
   attach_interrupt(Digital::DMUX2_INT, DigitalPinInterruptState::LEVEL_HIGH,
                    make_handler(_dmux_1.interrupt_handler), NULL);
   _initialized = true;
@@ -50,7 +50,7 @@ bool DigitalPins::set_mode(pinmap::Digital pin, DigitalPinMode pin_mode) {
 
   u8 pin_val = pin_number(pin);
 
-  debug::log("DigitalPins: setting mode of pin %u\r\n", (u8)pin);
+  debug::debug("DigitalPins: setting mode of pin %u\r\n", (u8)pin);
   switch (pin_owner(pin)) {
   case pinmap::DigitalPinOwner::PICO:
     gpio_init(pin_val);
@@ -117,7 +117,7 @@ bool DigitalPins::read(pinmap::Digital pin) {
     read_val = _dmux_2.read(pin_val, false);
     break;
   }
-  debug::log("DigitalPins: read pin %u with value %u\r\n", (u8)pin, read_val);
+  debug::debug("DigitalPins: read pin %u with value %u\r\n", (u8)pin, read_val);
   return read_val;
 }
 
@@ -131,7 +131,7 @@ bool DigitalPins::write(pinmap::Digital pin, bool val) {
     return false;
   }
 
-  debug::log("DigitalPins: writing pin %u with value %u\r\n", (u8)pin, val);
+  debug::debug("DigitalPins: writing pin %u with value %u\r\n", (u8)pin, val);
 
   u8 pin_val = pin_number(pin);
 
