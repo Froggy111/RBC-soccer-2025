@@ -4,7 +4,9 @@ import math
 from PIL import Image
 
 
-def generate_field_coordinates(image_path, output_path, output_image_path, fuzzy_radius=2, fuzzy_density=0.5):
+def generate_field_coordinates(
+    image_path, output_path, output_image_path, fuzzy_radius=2, fuzzy_density=0.5
+):
     # Load the image
     img = Image.open(image_path)
 
@@ -41,7 +43,7 @@ def generate_field_coordinates(image_path, output_path, output_image_path, fuzzy
                 count += 1
 
     print(f"Generated {len(base_coordinates)} base coordinates")
-    
+
     # Generate fuzzy coordinates around base coordinates with concentration near originals
     all_coordinates = base_coordinates.copy()
     for x, y in base_coordinates:
@@ -52,25 +54,27 @@ def generate_field_coordinates(image_path, output_path, output_image_path, fuzzy
             # Generate random distance with higher probability for smaller distances
             # Using square root of random value makes points concentrate near center
             distance = fuzzy_radius * math.sqrt(random.random())
-            
+
             # Convert polar coordinates to cartesian
             dx = int(round(distance * math.cos(angle)))
             dy = int(round(distance * math.sin(angle)))
-            
+
             # Skip if it's the exact same point
             if dx == 0 and dy == 0:
                 continue
-                
+
             # Add the fuzzy point
             all_coordinates.append((x + dx, y + dy))
-    
+
     print(f"Generated {len(all_coordinates)} coordinates after adding fuzzy points")
-    
+
     # Limit to exactly 1000 particles (or all if fewer than 1000)
     max_particles = 1000
     particle_count = min(max_particles, len(all_coordinates))
     selected_coordinates = random.sample(all_coordinates, particle_count)
-    print(f"Randomly selected {len(selected_coordinates)} coordinates (limited to {max_particles})")
+    print(
+        f"Randomly selected {len(selected_coordinates)} coordinates (limited to {max_particles})"
+    )
 
     # Calculate image dimensions directly from scaling factors
     image_width = int(round(original_width * x_scale))
@@ -118,6 +122,7 @@ def generate_field_coordinates(image_path, output_path, output_image_path, fuzzy
         f.write("};\n\n")
         f.write("}")
 
+
 if __name__ == "__main__":
     # Get the script directory
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -137,5 +142,7 @@ if __name__ == "__main__":
     # Generate the coordinates with fuzziness
     # Parameters: fuzzy_radius controls how far from original points fuzzy points can go
     # fuzzy_density controls how many fuzzy points are generated per original point
-    generate_field_coordinates(image_path, output_path, output_image_path, fuzzy_radius=10, fuzzy_density=0.4)
+    generate_field_coordinates(
+        image_path, output_path, output_image_path, fuzzy_radius=5, fuzzy_density=0.4
+    )
     print(f"Field coordinates written to {output_path}")

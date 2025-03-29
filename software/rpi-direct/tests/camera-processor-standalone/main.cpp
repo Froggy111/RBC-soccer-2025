@@ -24,8 +24,7 @@ int main() {
     camera::CamProcessor processor;
     cv::Mat frame;
 
-    cap.read(frame);
-    Pos center(0, 0, 0); 
+    cap >> frame;
     processor.process_frame(frame);
 
     return 0;

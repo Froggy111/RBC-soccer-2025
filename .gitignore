@@ -36,3 +36,4 @@ screenlog.*
 heatmap_video.mp4
 points_data.csv
 visualization.mp4
+*.log
