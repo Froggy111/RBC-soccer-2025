@@ -122,7 +122,7 @@ void MotorDriver::init_pins() {
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(IN2),
                               pins::DigitalPinMode::OUTPUT);
   pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(CS),
-                              pins::DigitalPinMode::OUTPUT);
+                              pins::DigitalPinMode::INPUT);
 
   // Init IN1
   uint8_t pin = pins.get_pin(IN1);
