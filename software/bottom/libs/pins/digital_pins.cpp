@@ -92,23 +92,28 @@ bool DigitalPins::read(pinmap::Digital pin) {
     return false;
   }
 
-  debug::log("DigitalPins: reading pin %u\r\n", (u8)pin);
-
   u8 pin_val = pin_number(pin);
+  bool read_val = false;
 
   switch (pin_owner(pin)) {
   case pinmap::DigitalPinOwner::PICO:
-    return gpio_get(pin_val);
+    read_val = gpio_get(pin_val);
+    break;
   case pinmap::DigitalPinOwner::DMUX1A:
-    return _dmux_1.read(pin_val, true);
+    read_val = _dmux_1.read(pin_val, true);
+    break;
   case pinmap::DigitalPinOwner::DMUX1B:
-    return _dmux_1.read(pin_val, false);
+    read_val = _dmux_1.read(pin_val, false);
+    break;
   case pinmap::DigitalPinOwner::DMUX2A:
-    return _dmux_2.read(pin_val, true);
+    read_val = _dmux_2.read(pin_val, true);
+    break;
   case pinmap::DigitalPinOwner::DMUX2B:
-    return _dmux_2.read(pin_val, false);
+    read_val = _dmux_2.read(pin_val, false);
+    break;
   }
-  return false;
+  debug::log("DigitalPins: read pin %u with value %u\r\n", (u8)pin, read_val);
+  return read_val;
 }
 
 bool DigitalPins::write(pinmap::Digital pin, bool val) {

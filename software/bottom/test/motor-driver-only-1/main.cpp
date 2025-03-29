@@ -23,7 +23,7 @@ void motor_driver_task(void *args) {
   pins::digital_pins.init();
 
   // init as debug
-  motor_driver.init(1, spi0);
+  motor_driver.init(4, spi0);
 
   while (true) {
     for (int i = 0; i <= 625; i++) {
