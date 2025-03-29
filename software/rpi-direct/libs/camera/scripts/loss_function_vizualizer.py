@@ -56,11 +56,11 @@ def main():
         rotated_y_fp = (rel_x * sin_theta_fp + rel_y * cos_theta_fp) >> FP_SHIFT
 
         # Convert back to integer coordinate space
-        final_x = int(rotated_x_fp + 480 / 2)
-        final_y = int(rotated_y_fp + 640 / 2)
+        final_x = int(rotated_x_fp + 640 / 2)
+        final_y = int(rotated_y_fp + 480 / 2)
 
         # Check if the point is within image boundaries
-        if final_x < 0 or final_x >= 480 or final_y < 0 or final_y >= 640:
+        if final_x < 0 or final_x >= 640 or final_y < 0 or final_y >= 480:
             continue
 
         transformed_x.append(final_x)
@@ -70,7 +70,7 @@ def main():
 
     # Create visualization
     plt.figure(figsize=(10, 8))
-    plt.scatter(transformed_y, transformed_x, s=2, c="blue", alpha=0.7)
+    plt.scatter(transformed_x, transformed_y, s=2, c="blue", alpha=0.7)
 
     # Configure plot with equal aspect ratio
     plt.xlim(0, 640)

@@ -19,6 +19,9 @@ int main() {
         return 1;
     }
 
+    while (true) {
+    }
+
     // Stop capturing
     cam.stopCapture();
 }

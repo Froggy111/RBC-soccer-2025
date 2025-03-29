@@ -76,7 +76,7 @@ bool Camera::initialize(camera::Resolutions resolution) {
     config_->at(0).size.width  = width_;
     config_->at(0).size.height = height_;
     config_->at(0).pixelFormat =
-        libcamera::formats::SRGGB8; // Format compatible with OpenCV
+        libcamera::formats::RGB888; // Format compatible with OpenCV
     config_->at(0).bufferCount = 4; // Multiple buffers for performance
 
     // Apply configuration
@@ -266,22 +266,16 @@ cv::Mat Camera::convertToMat(libcamera::FrameBuffer *buffer) {
     const libcamera::FrameBuffer::Plane &plane = buffer->planes()[0];
 
     // Map the buffer memory
-    void *data =
-        mmap(nullptr, plane.length, PROT_READ, MAP_SHARED, plane.fd.get(), 0);
+    void *data = mmap(nullptr, plane.length, PROT_READ, MAP_SHARED, plane.fd.get(), 0);
+
     if (data == MAP_FAILED) {
         std::cerr << "Failed to mmap buffer" << std::endl;
         return cv::Mat();
     }
 
-    // Create a Mat with the buffer data (RGB888 format uses CV_8UC3)
     cv::Mat image(height_, width_, CV_8UC3, data);
-
-    // Create a copy of the data since we need to unmap the buffer
     cv::Mat result = image.clone();
-
-    // Unmap the buffer
     munmap(data, plane.length);
-
     return result;
 }
 } // namespace camera
