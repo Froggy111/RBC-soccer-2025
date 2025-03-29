@@ -71,17 +71,17 @@ MCP23S17::MCP23S17(u8 SCLK, u8 MISO, u8 MOSI, u8 SCS, u8 RESET, u8 address,
 }
 
 void MCP23S17::init() {
-  debug::log("-> Initializing MCP23S17 with address %u\r\n", _address);
+  debug::debug("-> Initializing MCP23S17 with address %u\r\n", _address);
 
   // init gpio pins
-  debug::log("Initializing pins\r\n");
+  debug::debug("Initializing pins\r\n");
   init_pins();
 
   // reset using the reset pin
   reset();
 
   // init spi
-  debug::log("Initializing SPI\r\n");
+  debug::debug("Initializing SPI\r\n");
   init_spi();
 
   // set interrupt condition to INTPOL
@@ -92,7 +92,7 @@ void MCP23S17::init() {
   write8(IOCON, 0b01000000, 0b01000000);
 
   // create interrupt handling task
-  debug::log("Creating interrupt handling task\r\n");
+  debug::debug("Creating interrupt handling task\r\n");
   xTaskCreate(interrupt_handler_task, "MCP23S17 interrupt handling task",
               INTERRUPT_TASK_STACK_SIZE, this, INTERRUPT_TASK_PRIORITY,
               &interrupt_handler_task_handle);
@@ -130,15 +130,15 @@ void MCP23S17::write8(u8 reg_address, u8 data, u8 mask) {
   //   for (u8 j = 7; j >= 0; j--) {
   //     comms::USB_CDC.printf("%u", (tx_data[i] >> j) & 1);
   //   }
-  //   debug::log(" ");
+  //   debug::debug(" ");
   // }
   if (res != tx_data[2]) {
     // print tx_data in binary
     for (u8 i = 0; i < 3; i++) {
       for (u8 j = 7; j >= 0; j--) {
-        debug::log("%u", (tx_data[i] >> j) & 1);
+        debug::debug("%u", (tx_data[i] >> j) & 1);
       }
-      debug::log(" ");
+      debug::debug(" ");
     }
     debug::error("MCP23S17 write8 to register failed. Expected %u, got %u\r\n",
                  tx_data[2], res);
@@ -219,7 +219,7 @@ void MCP23S17::write(u8 pin, bool on_A, bool value) {
   // write to the pin
   write8(on_A ? GPIOA : GPIOB, value << pin, 0b1 << pin);
 
-  debug::log("MCP23S17 address %u wrote to pin %u on bus %u with value %u\r\n",
+  debug::debug("MCP23S17 address %u wrote to pin %u on bus %u with value %u\r\n",
              _address, pin, on_A, value);
 
   // check that OUTPUT_LATCH has the written bit

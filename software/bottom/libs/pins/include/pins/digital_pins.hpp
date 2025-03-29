@@ -54,13 +54,13 @@ private:
                               (types::u8)pinmap::Digital::SPI0_MISO,
                               (types::u8)pinmap::Digital::SPI0_MOSI,
                               (types::u8)pinmap::Digital::DMUX_SCS,
-                              (types::u8)pinmap::Digital::DMUX_RESET,
+                              (types::u8)pinmap::Pico::DMUX_RESET,
                               DMUX_1_ADDRESS, false, spi0);
   MCP23S17 _dmux_2 = MCP23S17((types::u8)pinmap::Digital::SPI0_SCLK,
                               (types::u8)pinmap::Digital::SPI0_MISO,
                               (types::u8)pinmap::Digital::SPI0_MOSI,
                               (types::u8)pinmap::Digital::DMUX_SCS,
-                              (types::u8)pinmap::Digital::DMUX_RESET,
+                              (types::u8)pinmap::Pico::DMUX_RESET,
                               DMUX_2_ADDRESS, true, spi0);
   DigitalPinInterrupt _interrupts[pinmap::digital_pin_count] = {nullptr};
   DigitalPinInterruptState _interrupt_states[pinmap::digital_pin_count] = {
