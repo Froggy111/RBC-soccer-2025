@@ -1,10 +1,12 @@
 #include "camera.hpp"
+#include "motion.hpp"
 #include "processor.hpp"
 #include <cstdio>
 #include <opencv2/opencv.hpp>
 
 camera::Camera cam;
 camera::CamProcessor processor;
+MotionController motion_controller;
 
 int main() {
     // Initialize with desired resolution
@@ -19,13 +21,10 @@ int main() {
         return 1;
     }
 
-    while (true) {
-        // Pos current_pos = processor.current_pos;
-        // std::printf("Current Position: x: %d, y: %d, heading: %.2f\n",
-        //             current_pos.x, current_pos.y, current_pos.heading);
+    motion_controller.startControlThread();
 
-        // // sleep
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     // Stop capturing

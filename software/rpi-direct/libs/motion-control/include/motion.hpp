@@ -5,7 +5,6 @@
 #include <tuple>
 #include <thread>
 #include <atomic>
-#include "camera.hpp"
 
 typedef std::tuple<float, float, float, float> tuple_4;
 typedef std::tuple<float, float> tuple_2;

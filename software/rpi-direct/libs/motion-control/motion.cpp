@@ -73,7 +73,9 @@ void MotionController::controlThreadWorker() {
             comms::USB_CDC.write(
                 usb::DeviceType::BOTTOM_PLATE,
                 (types::u8)comms::SendBottomPicoIdentifiers::MOTOR_DRIVER_CMD,
-                reinterpret_cast<uint8_t *>(&motor_data), sizeof(motor_data));
+                reinterpret_cast<uint8_t *>(&motor_data),
+                sizeof(motor_data)
+            );
         }
         
         // Prevent CPU thrashing with a small sleep
