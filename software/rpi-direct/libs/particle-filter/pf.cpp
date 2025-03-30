@@ -61,14 +61,14 @@ void ParticleFilter::predict(double std_dev_pos, double std_dev_camera, double s
                 double error_y = meas_y - p.y;
                 double error_dist = std::sqrt(error_x*error_x + error_y*error_y);
                 double error_theta = normalize_angle(meas_theta - p.theta);
-                error_theta = std::sqrt(error_theta*error_theta)*350;
+                error_theta = std::sqrt(error_theta*error_theta)*1800;
                 //std::cout << error_x * error_x << " " << error_y * error_y << " " << error_theta*error_theta*423000 << '\n';
 
                 // double pos_weight = exp(-error_dist * error_dist / (2 * std_dev_camera * std_dev_camera));
                 // double angle_weight = exp((-error_theta * error_theta)/ (2 * std_dev_theta * std_dev_theta));
         
                 // p.weight = position_weight*pos_weight + angle_weight*orientation_weight;
-                double distance_sq = 0.8*(error_dist) + 0.2*(error_theta);
+                double distance_sq = 0.5*(error_dist) + 0.5*(error_theta);
                 p.weight = exp(-0.5 * distance_sq / (std_dev_camera * std_dev_camera));
 
                 weight_sum += p.weight;
@@ -258,4 +258,3 @@ Particle ParticleFilter::estimate_position(){
 
     return {x_est, y_est, theta_est, 1.0};
 }
-
