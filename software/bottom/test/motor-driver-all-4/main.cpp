@@ -62,14 +62,10 @@ void motor_driver_task(void *args) {
 
   while (true) {
     for (int i = 0; i <= 650; i++) {
-      if (!driver1.command(-i * 10))
-        continue;
-      if (!driver2.command(i * 10))
-        continue;
-      if (!driver3.command(i * 10))
-        continue;
-      if (!driver4.command(i * 10))
-        continue;
+      driver1.command(-i * 10);
+      driver2.command(i * 10);
+      driver3.command(i * 10);
+      driver4.command(i * 10);
 
       // comms::USB_CDC.printf("Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
       //        driver3.read_current(), driver4.read_current());
@@ -79,14 +75,10 @@ void motor_driver_task(void *args) {
 
     vTaskDelay(pdMS_TO_TICKS(10));
     for (int i = 650; i >= 0; i--) {
-      if (!driver1.command(-i * 10))
-        continue;
-      if (!driver2.command(i * 10))
-        continue;
-      if (!driver3.command(i * 10))
-        continue;
-      if (!driver4.command(i * 10))
-        continue;
+      driver1.command(-i * 10);
+      driver2.command(i * 10);
+      driver3.command(i * 10);
+      driver4.command(i * 10);
 
       // comms::USB_CDC.printf("Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
       //        driver3.read_current(), driver4.read_current());

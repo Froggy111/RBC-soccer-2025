@@ -26,7 +26,7 @@ void motor_driver_task(void *args) {
   pins::digital_pins.init();
 
   // init as debug
-  if (motor_driver.init(1, spi0)) {
+  if (motor_driver.init(2, spi0)) {
     comms::USB_CDC.printf("Motor Driver Initialized!\n");
   } else {
     comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
