@@ -143,6 +143,6 @@ if __name__ == "__main__":
     # Parameters: fuzzy_radius controls how far from original points fuzzy points can go
     # fuzzy_density controls how many fuzzy points are generated per original point
     generate_field_coordinates(
-        image_path, output_path, output_image_path, fuzzy_radius=5, fuzzy_density=0.4
+        image_path, output_path, output_image_path, fuzzy_radius=2, fuzzy_density=0.4
     )
     print(f"Field coordinates written to {output_path}")

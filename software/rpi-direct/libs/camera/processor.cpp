@@ -64,11 +64,13 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
         if (!(pixel[0] > COLOR_R_THRES && pixel[1] > COLOR_G_THRES &&
               pixel[2] > COLOR_B_THRES)) {
             non_white++;
-            // debug::log("White pixel at (%d, %d): (%d, %d, %d)", IMG_HEIGHT - final_y,
-            //     final_x, pixel[0], pixel[1], pixel[2]);
+            // debug::log("White pixel at (%d, %d): (%d, %d, %d)",
+            //            IMG_HEIGHT - final_y, final_x, pixel[0], pixel[1],
+            //            pixel[2]);
         } else {
-            // debug::log("Non-white pixel at (%d, %d): (%d, %d, %d)", IMG_HEIGHT - final_y,
-            //     final_x, pixel[0], pixel[1], pixel[2]);
+            // debug::log("Non-white pixel at (%d, %d): (%d, %d, %d)",
+            //            IMG_HEIGHT - final_y, final_x, pixel[0], pixel[1],
+            //            pixel[2]);
         }
         count++;
     }
