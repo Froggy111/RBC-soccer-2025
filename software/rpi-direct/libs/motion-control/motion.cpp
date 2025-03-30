@@ -1,12 +1,22 @@
 #include <cmath>
 #include <algorithm>
+#include <cstdint>
 #include <cstdlib>
 #include <queue>
 #include <tuple>
 #include "include/motion.hpp"
+#include "comms.hpp"
+#include "comms/identifiers.hpp"
+#include "comms/usb.hpp"
+#include "debug.hpp"
 
 #define PI 3.14159265358979323846
 #define SLIDING_WINDOW_SIZE 10
+
+struct MotorRecvData {
+    uint8_t id;
+    uint16_t duty_cycle;
+};
 
 float MotionController::angle_to_motor_speed(float angle){
     return (std::tan(angle) - 1)/(1 + std::tan(angle));
@@ -20,7 +30,60 @@ void MotionController::init(float kp, float ki, float kd){
     rotation_Kp = kp;
     rotation_Ki = ki;
     rotation_Kd = kd;
+}
+
+// Start a thread for continuous motion control
+void MotionController::startControlThread() {
+    if (controlThreadRunning.load()) {
+        return;  // Thread already running
+    }
     
+    controlThreadRunning.store(true);
+    controlThread = std::thread(&MotionController::controlThreadWorker, this);
+}
+
+// Stop the control thread
+void MotionController::stopControlThread() {
+    if (!controlThreadRunning.load()) {
+        return;  // Thread not running
+    }
+    
+    controlThreadRunning.store(false);
+    
+    if (controlThread.joinable()) {
+        controlThread.join();
+    }
+}
+
+// Worker function executed by the control thread
+void MotionController::controlThreadWorker() {
+    while (controlThreadRunning.load()) {
+        debug::debug("Frame Count: %d", _processor.current_pos);
+
+        Pos pos = _processor.current_pos;
+        auto res = translate(std::make_tuple(0, 0.1f));
+
+        // send motor values to the motors
+        for (int i = 1; i <= 4; i++) {
+            MotorRecvData motor_data = {
+                .id         = (uint8_t) i,
+                .duty_cycle = (uint16_t) (std::get<0>(res) * 12500)
+            };
+
+            comms::USB_CDC.write(
+                usb::DeviceType::BOTTOM_PLATE,
+                (types::u8)comms::SendBottomPicoIdentifiers::MOTOR_DRIVER_CMD,
+                reinterpret_cast<uint8_t *>(&motor_data), sizeof(motor_data));
+        }
+        
+        // Prevent CPU thrashing with a small sleep
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+}
+
+// Destructor - make sure to add this to your class implementation
+MotionController::~MotionController() {
+    stopControlThread();
 }
 
 float MotionController::normalize_angle(float angle){
