@@ -26,17 +26,17 @@ public:
   void set_pin_mode(types::u8 pin, bool on_A, DigitalPinMode pinmode);
   void write(types::u8 pin, bool on_A, bool value);
   bool read(types::u8 pin, bool on_A);
-
-  bool attach_interrupt(types::u8 pin, bool on_A,
-                        DigitalPinInterrupt interrupt_handler,
-                        DigitalPinInterruptState interrupt_state, void *args);
-  // WARN: this just detaches the interrupt. currently no checks being made if an interrupt is enabled after detaching and before attaching
-  // WARN: if the interrupt condition is triggered it will error as nullptr is checked
-  void detach_interrupt(types::u8 pin, bool on_A);
-  void enable_interrupt(types::u8 pin, bool on_A);
-  void disable_interrupt(types::u8 pin, bool on_A);
-  // attach this to external, just notifies interrupt_handler_task
-  void interrupt_handler(void *args);
+  //
+  // bool attach_interrupt(types::u8 pin, bool on_A,
+  //                       DigitalPinInterrupt interrupt_handler,
+  //                       DigitalPinInterruptState interrupt_state, void *args);
+  // // WARN: this just detaches the interrupt. currently no checks being made if an interrupt is enabled after detaching and before attaching
+  // // WARN: if the interrupt condition is triggered it will error as nullptr is checked
+  // void detach_interrupt(types::u8 pin, bool on_A);
+  // void enable_interrupt(types::u8 pin, bool on_A);
+  // void disable_interrupt(types::u8 pin, bool on_A);
+  // // attach this to external, just notifies interrupt_handler_task
+  // void interrupt_handler(void *args);
 
 private:
   types::u8 _pin_state[16];
@@ -71,7 +71,7 @@ private:
   void *_interrupt_handler_args[16] = {nullptr};
 
   // params is this
-  static void interrupt_handler_task(void *params);
+  // static void interrupt_handler_task(void *params);
 };
 
 } // namespace pins

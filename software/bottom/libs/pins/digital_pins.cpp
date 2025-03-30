@@ -32,17 +32,17 @@ bool DigitalPins::init() {
   _dmux_2.init();
   // add interrupt handler
   debug::debug("DigitalPins: adding interrupt handler\r\n");
-  gpio_set_irq_callback(pico_gpio_interrupt_handler_wrapper);
-  // attach dmux interrupts
-  debug::debug("DigitalPins: attaching dmux2 interrupt handler\r\n");
-  attach_interrupt(Digital::DMUX2_INT, DigitalPinInterruptState::LEVEL_HIGH,
-                   make_handler(_dmux_2.interrupt_handler), NULL);
-  debug::debug("DigitalPins: attaching dmux1 interrupt handler\r\n");
-  attach_interrupt(Digital::DMUX1_INT, DigitalPinInterruptState::LEVEL_HIGH,
-                   make_handler(_dmux_1.interrupt_handler), NULL);
-  set_mode(Digital::DMUX1_INT, DigitalPinMode::INPUT);
-  attach_interrupt(Digital::DMUX1_INT, DigitalPinInterruptState::LEVEL_HIGH,
-                   make_handler(_dmux_1.interrupt_handler), NULL);
+  // gpio_set_irq_callback(pico_gpio_interrupt_handler_wrapper);
+  // // attach dmux interrupts
+  // debug::debug("DigitalPins: attaching dmux2 interrupt handler\r\n");
+  // attach_interrupt(Digital::DMUX2_INT, DigitalPinInterruptState::LEVEL_HIGH,
+  //                  make_handler(_dmux_2.interrupt_handler), NULL);
+  // debug::debug("DigitalPins: attaching dmux1 interrupt handler\r\n");
+  // attach_interrupt(Digital::DMUX1_INT, DigitalPinInterruptState::LEVEL_HIGH,
+  //                  make_handler(_dmux_1.interrupt_handler), NULL);
+  // set_mode(Digital::DMUX1_INT, DigitalPinMode::INPUT);
+  // attach_interrupt(Digital::DMUX1_INT, DigitalPinInterruptState::LEVEL_HIGH,
+  //                  make_handler(_dmux_1.interrupt_handler), NULL);
   return true;
 }
 
@@ -135,12 +135,12 @@ bool DigitalPins::write(pinmap::Digital pin, bool val) {
     return false;
   }
 
-
   u8 pin_val = pin_number(pin);
 
   switch (pin_owner(pin)) {
   case pinmap::DigitalPinOwner::PICO:
-    debug::warn("DigitalPins: writing pin %u with value %u\r\n", (u8)pin_val, val);
+    debug::warn("DigitalPins: writing pin %u with value %u\r\n", (u8)pin_val,
+                val);
     gpio_put(pin_val, val);
     break;
   case pinmap::DigitalPinOwner::DMUX1A:
@@ -159,151 +159,150 @@ bool DigitalPins::write(pinmap::Digital pin, bool val) {
 
   return true;
 }
-
-bool DigitalPins::attach_interrupt(pinmap::Digital pin,
-                                   DigitalPinInterruptState interrupt_state,
-                                   const DigitalPinInterrupt interrupt_handler,
-                                   void *args) {
-
-  u8 pin_idx = (u8)pin;
-  u8 pin_val = pin_number(pin);
-  _interrupts[pin_idx] = interrupt_handler;
-  _interrupt_states[pin_idx] = interrupt_state;
-  _interrupt_args[pin_idx] = args;
-
-  switch (pin_owner(pin)) {
-  case pinmap::DigitalPinOwner::PICO:
-    gpio_set_dir(pin_idx, GPIO_IN);
-    gpio_set_irq_enabled(pin_val, (u32)_interrupt_states[pin_idx], true);
-    break;
-  case pinmap::DigitalPinOwner::DMUX1A:
-    _dmux_1.attach_interrupt(pin_val, true, _interrupts[pin_idx],
-                             _interrupt_states[pin_idx],
-                             _interrupt_args[pin_idx]);
-    break;
-  case pinmap::DigitalPinOwner::DMUX1B:
-    _dmux_1.attach_interrupt(pin_val, false, _interrupts[pin_idx],
-                             _interrupt_states[pin_idx],
-                             _interrupt_args[pin_idx]);
-    break;
-  case pinmap::DigitalPinOwner::DMUX2A:
-    _dmux_2.attach_interrupt(pin_val, true, _interrupts[pin_idx],
-                             _interrupt_states[pin_idx],
-                             _interrupt_args[pin_idx]);
-    break;
-  case pinmap::DigitalPinOwner::DMUX2B:
-    _dmux_2.attach_interrupt(pin_val, false, _interrupts[pin_idx],
-                             _interrupt_states[pin_idx],
-                             _interrupt_args[pin_idx]);
-    break;
-  }
-  return true;
-}
-
-bool DigitalPins::detach_interrupt(pinmap::Digital pin) {
-  if (!_initialized) {
-    debug::fatal(
-        "DigitalPins: tried detaching interrupt when unintialized\r\n");
-    return false;
-  }
-
-  u8 pin_idx = (u8)pin;
-  u8 pin_val = pin_number(pin);
-  _interrupts[pin_idx] = nullptr;
-  _interrupt_states[pin_idx] = DigitalPinInterruptState::EDGE_FALL;
-  _interrupt_args[pin_idx] = nullptr;
-
-  switch (pin_owner(pin)) {
-  case pinmap::DigitalPinOwner::PICO:
-    gpio_set_irq_enabled(pin_val, (u32)_interrupt_states[pin_idx], false);
-    break;
-  case pinmap::DigitalPinOwner::DMUX1A:
-    _dmux_1.detach_interrupt(pin_val, true);
-    break;
-  case pinmap::DigitalPinOwner::DMUX1B:
-    _dmux_1.detach_interrupt(pin_val, false);
-    break;
-  case pinmap::DigitalPinOwner::DMUX2A:
-    _dmux_2.detach_interrupt(pin_val, true);
-    break;
-  case pinmap::DigitalPinOwner::DMUX2B:
-    _dmux_2.detach_interrupt(pin_val, false);
-    break;
-  }
-  return true;
-}
-
-bool DigitalPins::enable_interrupt(pinmap::Digital pin) {
-  if (!_initialized) {
-    debug::fatal("DigitalPins: tried enabling interrupt when unintialized\r\n");
-    return false;
-  }
-
-  u8 pin_idx = (u8)pin;
-  u8 pin_val = pin_number(pin);
-
-  switch (pin_owner(pin)) {
-  case pinmap::DigitalPinOwner::PICO:
-    gpio_set_irq_enabled(pin_val, (u32)_interrupt_states[pin_idx], true);
-    break;
-  case pinmap::DigitalPinOwner::DMUX1A:
-    _dmux_1.enable_interrupt(pin_val, true);
-    break;
-  case pinmap::DigitalPinOwner::DMUX1B:
-    _dmux_1.enable_interrupt(pin_val, false);
-    break;
-  case pinmap::DigitalPinOwner::DMUX2A:
-    _dmux_2.enable_interrupt(pin_val, true);
-    break;
-  case pinmap::DigitalPinOwner::DMUX2B:
-    _dmux_2.enable_interrupt(pin_val, false);
-    break;
-  }
-
-  return true;
-}
-
-bool DigitalPins::disable_interrupt(pinmap::Digital pin) {
-  if (!_initialized) {
-    debug::fatal(
-        "DigitalPins: tried disabling interrupt when unintialized\r\n");
-    return false;
-  }
-
-  u8 pin_idx = (u8)pin;
-  u8 pin_val = pin_number(pin);
-
-  switch (pin_owner(pin)) {
-  case pinmap::DigitalPinOwner::PICO:
-    gpio_set_irq_enabled(pin_val, (u32)_interrupt_states[pin_idx], false);
-    break;
-  case pinmap::DigitalPinOwner::DMUX1A:
-    _dmux_1.disable_interrupt(pin_val, true);
-    break;
-  case pinmap::DigitalPinOwner::DMUX1B:
-    _dmux_1.disable_interrupt(pin_val, false);
-    break;
-  case pinmap::DigitalPinOwner::DMUX2A:
-    _dmux_2.disable_interrupt(pin_val, true);
-    break;
-  case pinmap::DigitalPinOwner::DMUX2B:
-    _dmux_2.disable_interrupt(pin_val, false);
-    break;
-  }
-
-  return true;
-}
-
-void DigitalPins::pico_gpio_interrupt_handler(u32 gpio, u32 event) {
-  if (_interrupts[gpio] == nullptr) {
-    return;
-  }
-
-  // call if event matches
-  if (event & (u32)_interrupt_states[gpio]) {
-    _interrupts[gpio](_interrupt_args[gpio]);
-  }
-  return;
-}
+// bool DigitalPins::attach_interrupt(pinmap::Digital pin,
+//                                    DigitalPinInterruptState interrupt_state,
+//                                    const DigitalPinInterrupt interrupt_handler,
+//                                    void *args) {
+//
+//   u8 pin_idx = (u8)pin;
+//   u8 pin_val = pin_number(pin);
+//   _interrupts[pin_idx] = interrupt_handler;
+//   _interrupt_states[pin_idx] = interrupt_state;
+//   _interrupt_args[pin_idx] = args;
+//
+//   switch (pin_owner(pin)) {
+//   case pinmap::DigitalPinOwner::PICO:
+//     gpio_set_dir(pin_idx, GPIO_IN);
+//     gpio_set_irq_enabled(pin_val, (u32)_interrupt_states[pin_idx], true);
+//     break;
+//   case pinmap::DigitalPinOwner::DMUX1A:
+//     _dmux_1.attach_interrupt(pin_val, true, _interrupts[pin_idx],
+//                              _interrupt_states[pin_idx],
+//                              _interrupt_args[pin_idx]);
+//     break;
+//   case pinmap::DigitalPinOwner::DMUX1B:
+//     _dmux_1.attach_interrupt(pin_val, false, _interrupts[pin_idx],
+//                              _interrupt_states[pin_idx],
+//                              _interrupt_args[pin_idx]);
+//     break;
+//   case pinmap::DigitalPinOwner::DMUX2A:
+//     _dmux_2.attach_interrupt(pin_val, true, _interrupts[pin_idx],
+//                              _interrupt_states[pin_idx],
+//                              _interrupt_args[pin_idx]);
+//     break;
+//   case pinmap::DigitalPinOwner::DMUX2B:
+//     _dmux_2.attach_interrupt(pin_val, false, _interrupts[pin_idx],
+//                              _interrupt_states[pin_idx],
+//                              _interrupt_args[pin_idx]);
+//     break;
+//   }
+//   return true;
+// }
+//
+// bool DigitalPins::detach_interrupt(pinmap::Digital pin) {
+//   if (!_initialized) {
+//     debug::fatal(
+//         "DigitalPins: tried detaching interrupt when unintialized\r\n");
+//     return false;
+//   }
+//
+//   u8 pin_idx = (u8)pin;
+//   u8 pin_val = pin_number(pin);
+//   _interrupts[pin_idx] = nullptr;
+//   _interrupt_states[pin_idx] = DigitalPinInterruptState::EDGE_FALL;
+//   _interrupt_args[pin_idx] = nullptr;
+//
+//   switch (pin_owner(pin)) {
+//   case pinmap::DigitalPinOwner::PICO:
+//     gpio_set_irq_enabled(pin_val, (u32)_interrupt_states[pin_idx], false);
+//     break;
+//   case pinmap::DigitalPinOwner::DMUX1A:
+//     _dmux_1.detach_interrupt(pin_val, true);
+//     break;
+//   case pinmap::DigitalPinOwner::DMUX1B:
+//     _dmux_1.detach_interrupt(pin_val, false);
+//     break;
+//   case pinmap::DigitalPinOwner::DMUX2A:
+//     _dmux_2.detach_interrupt(pin_val, true);
+//     break;
+//   case pinmap::DigitalPinOwner::DMUX2B:
+//     _dmux_2.detach_interrupt(pin_val, false);
+//     break;
+//   }
+//   return true;
+// }
+//
+// bool DigitalPins::enable_interrupt(pinmap::Digital pin) {
+//   if (!_initialized) {
+//     debug::fatal("DigitalPins: tried enabling interrupt when unintialized\r\n");
+//     return false;
+//   }
+//
+//   u8 pin_idx = (u8)pin;
+//   u8 pin_val = pin_number(pin);
+//
+//   switch (pin_owner(pin)) {
+//   case pinmap::DigitalPinOwner::PICO:
+//     gpio_set_irq_enabled(pin_val, (u32)_interrupt_states[pin_idx], true);
+//     break;
+//   case pinmap::DigitalPinOwner::DMUX1A:
+//     _dmux_1.enable_interrupt(pin_val, true);
+//     break;
+//   case pinmap::DigitalPinOwner::DMUX1B:
+//     _dmux_1.enable_interrupt(pin_val, false);
+//     break;
+//   case pinmap::DigitalPinOwner::DMUX2A:
+//     _dmux_2.enable_interrupt(pin_val, true);
+//     break;
+//   case pinmap::DigitalPinOwner::DMUX2B:
+//     _dmux_2.enable_interrupt(pin_val, false);
+//     break;
+//   }
+//
+//   return true;
+// }
+//
+// bool DigitalPins::disable_interrupt(pinmap::Digital pin) {
+//   if (!_initialized) {
+//     debug::fatal(
+//         "DigitalPins: tried disabling interrupt when unintialized\r\n");
+//     return false;
+//   }
+//
+//   u8 pin_idx = (u8)pin;
+//   u8 pin_val = pin_number(pin);
+//
+//   switch (pin_owner(pin)) {
+//   case pinmap::DigitalPinOwner::PICO:
+//     gpio_set_irq_enabled(pin_val, (u32)_interrupt_states[pin_idx], false);
+//     break;
+//   case pinmap::DigitalPinOwner::DMUX1A:
+//     _dmux_1.disable_interrupt(pin_val, true);
+//     break;
+//   case pinmap::DigitalPinOwner::DMUX1B:
+//     _dmux_1.disable_interrupt(pin_val, false);
+//     break;
+//   case pinmap::DigitalPinOwner::DMUX2A:
+//     _dmux_2.disable_interrupt(pin_val, true);
+//     break;
+//   case pinmap::DigitalPinOwner::DMUX2B:
+//     _dmux_2.disable_interrupt(pin_val, false);
+//     break;
+//   }
+//
+//   return true;
+// }
+//
+// void DigitalPins::pico_gpio_interrupt_handler(u32 gpio, u32 event) {
+//   if (_interrupts[gpio] == nullptr) {
+//     return;
+//   }
+//
+//   // call if event matches
+//   if (event & (u32)_interrupt_states[gpio]) {
+//     _interrupts[gpio](_interrupt_args[gpio]);
+//   }
+//   return;
+// }
 
 } // namespace pins

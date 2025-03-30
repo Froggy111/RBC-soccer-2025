@@ -37,17 +37,17 @@ public:
    * @param interrupt_handler: function to be run for this interrupt condition. must call make_handler(function) on any non-static class functions
    * @param args: custom user args to be passed
    */
-  bool attach_interrupt(pinmap::Digital pin,
-                        DigitalPinInterruptState interrupt_state,
-                        const DigitalPinInterrupt interrupt_handler,
-                        void *args);
-  bool detach_interrupt(pinmap::Digital pin);
-  bool enable_interrupt(pinmap::Digital pin);
-  bool disable_interrupt(pinmap::Digital pin);
-
-  // should be private but called externally so...
-  // reason is pico gpio interrupt type doesnt allow user args
-  void pico_gpio_interrupt_handler(types::u32 gpio, types::u32 event);
+  // bool attach_interrupt(pinmap::Digital pin,
+  //                       DigitalPinInterruptState interrupt_state,
+  //                       const DigitalPinInterrupt interrupt_handler,
+  //                       void *args);
+  // bool detach_interrupt(pinmap::Digital pin);
+  // bool enable_interrupt(pinmap::Digital pin);
+  // bool disable_interrupt(pinmap::Digital pin);
+  //
+  // // should be private but called externally so...
+  // // reason is pico gpio interrupt type doesnt allow user args
+  // void pico_gpio_interrupt_handler(types::u32 gpio, types::u32 event);
 
 private:
   MCP23S17 _dmux_1 = MCP23S17((types::u8)pinmap::Digital::SPI0_SCLK,
@@ -56,12 +56,12 @@ private:
                               (types::u8)pinmap::Digital::DMUX_SCS,
                               (types::u8)pinmap::Pico::DMUX_RESET,
                               DMUX_1_ADDRESS, false, spi0);
-  MCP23S17 _dmux_2 = MCP23S17((types::u8)pinmap::Digital::SPI0_SCLK,
-                              (types::u8)pinmap::Digital::SPI0_MISO,
-                              (types::u8)pinmap::Digital::SPI0_MOSI,
-                              (types::u8)pinmap::Digital::DMUX_SCS,
-                              (types::u8)pinmap::Pico::DMUX_RESET,
-                              DMUX_2_ADDRESS, true, spi0);
+  MCP23S17 _dmux_2 =
+      MCP23S17((types::u8)pinmap::Digital::SPI0_SCLK,
+               (types::u8)pinmap::Digital::SPI0_MISO,
+               (types::u8)pinmap::Digital::SPI0_MOSI,
+               (types::u8)pinmap::Digital::DMUX_SCS,
+               (types::u8)pinmap::Pico::DMUX_RESET, DMUX_2_ADDRESS, true, spi0);
   DigitalPinInterrupt _interrupts[pinmap::digital_pin_count] = {nullptr};
   DigitalPinInterruptState _interrupt_states[pinmap::digital_pin_count] = {
       DigitalPinInterruptState::EDGE_FALL};
@@ -73,9 +73,9 @@ private:
 };
 
 extern DigitalPins digital_pins;
-static inline void pico_gpio_interrupt_handler_wrapper(uint gpio,
-                                                       uint32_t event) {
-  digital_pins.pico_gpio_interrupt_handler(gpio, event);
-}
+// static inline void pico_gpio_interrupt_handler_wrapper(uint gpio,
+//                                                        uint32_t event) {
+//   digital_pins.pico_gpio_interrupt_handler(gpio, event);
+// }
 
 } // namespace pins
