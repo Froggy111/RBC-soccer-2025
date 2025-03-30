@@ -20,6 +20,12 @@ int main() {
     }
 
     while (true) {
+        Pos current_pos = processor.current_pos;
+        std::printf("Current Position: x: %d, y: %d, heading: %.2f\n",
+                    current_pos.x, current_pos.y, current_pos.heading);
+
+        // sleep
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     // Stop capturing

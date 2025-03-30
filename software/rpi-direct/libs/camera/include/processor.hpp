@@ -11,11 +11,11 @@ class CamProcessor {
     static int generate_random_number(int mid, int variance, int min, int max);
 
     static int _frame_count;
-    static Pos _current_pos;
 
   public:
     CamProcessor()  = default;
     ~CamProcessor() = default;
+    static Pos current_pos;
 
     static std::tuple<std::pair<Pos, float>, std::pair<Pos, float>,
                       std::pair<Pos, float>, std::pair<Pos, float>>

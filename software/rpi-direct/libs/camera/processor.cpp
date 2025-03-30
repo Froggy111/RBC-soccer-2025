@@ -262,26 +262,20 @@ std::pair<Pos, float> CamProcessor::find_minima_regression(
 }
 
 int CamProcessor::_frame_count = 0;
-Pos CamProcessor::_current_pos = {0, 0, 0};
+Pos CamProcessor::current_pos = {0, 0, 0};
 
 void CamProcessor::process_frame(const cv::Mat &frame) {
     debug::info("Frame %d", _frame_count);
     if (_frame_count == 0) {
         auto res = find_minima_smart_search(
-            frame, _current_pos, GRID_SEARCH_RADIUS, GRID_SEARCH_STEP,
+            frame, current_pos, GRID_SEARCH_RADIUS, GRID_SEARCH_STEP,
             GRID_SEARCH_HEADING_STEP);
-        _current_pos = res.first;
-        debug::log("Found position: (%d, %d, %f) with loss: %f", _current_pos.x,
-                   _current_pos.y, _current_pos.heading * (float)180 / M_PI,
-                   res.second);
+        current_pos = res.first;
     } else {
         auto res = find_minima_particle_search(
-            frame, _current_pos, PARTICLE_SEARCH_NUM, PARTICLE_SEARCH_GEN,
+            frame, current_pos, PARTICLE_SEARCH_NUM, PARTICLE_SEARCH_GEN,
             PARTICLE_SEARCH_VAR);
-        _current_pos = res.first;
-        debug::log("Found position: (%d, %d, %f) with loss: %f", _current_pos.x,
-                   _current_pos.y, _current_pos.heading * (float)180 / M_PI,
-                   res.second);
+        current_pos = res.first;
     }
     _frame_count += 1;
 }
