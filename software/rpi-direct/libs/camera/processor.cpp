@@ -64,13 +64,13 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
         if (!(pixel[0] > COLOR_R_THRES && pixel[1] > COLOR_G_THRES &&
               pixel[2] > COLOR_B_THRES)) {
             non_white++;
-            debug::log("White pixel at (%d, %d): (%d, %d, %d)",
-                       IMG_HEIGHT - final_y, final_x, pixel[0], pixel[1],
-                       pixel[2]);
+            // debug::log("White pixel at (%d, %d): (%d, %d, %d)",
+            //            IMG_HEIGHT - final_y, final_x, pixel[0], pixel[1],
+            //            pixel[2]);
         } else {
-            debug::log("Non-white pixel at (%d, %d): (%d, %d, %d)",
-                       IMG_HEIGHT - final_y, final_x, pixel[0], pixel[1],
-                       pixel[2]);
+            // debug::log("Non-white pixel at (%d, %d): (%d, %d, %d)",
+            //            IMG_HEIGHT - final_y, final_x, pixel[0], pixel[1],
+            //            pixel[2]);
         }
         count++;
     }
@@ -262,7 +262,7 @@ std::pair<Pos, float> CamProcessor::find_minima_regression(
 }
 
 int CamProcessor::_frame_count = 0;
-Pos CamProcessor::current_pos = {0, 0, 0};
+Pos CamProcessor::current_pos  = {0, 0, 0};
 
 void CamProcessor::process_frame(const cv::Mat &frame) {
     debug::info("Frame %d", _frame_count);
@@ -270,13 +270,19 @@ void CamProcessor::process_frame(const cv::Mat &frame) {
         auto res = find_minima_smart_search(
             frame, current_pos, GRID_SEARCH_RADIUS, GRID_SEARCH_STEP,
             GRID_SEARCH_HEADING_STEP);
-        current_pos = res.first;
+        current_pos.x       = res.first.x;
+        current_pos.y       = res.first.y;
+        current_pos.heading = res.first.heading;
     } else {
         auto res = find_minima_particle_search(
             frame, current_pos, PARTICLE_SEARCH_NUM, PARTICLE_SEARCH_GEN,
             PARTICLE_SEARCH_VAR);
-        current_pos = res.first;
+        current_pos.x       = res.first.x;
+        current_pos.y       = res.first.y;
+        current_pos.heading = res.first.heading;
     }
+    std::printf("Current Position: x: %d, y: %d, heading: %.2f\n",
+        current_pos.x, current_pos.y, current_pos.heading * 180 / M_PI);
     _frame_count += 1;
 }
 

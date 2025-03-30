@@ -14,7 +14,7 @@ const int IMG_WIDTH = 480;
 const int IMG_HEIGHT = 640;
 
 // initial search
-const int GRID_SEARCH_RADIUS = 60;
+const int GRID_SEARCH_RADIUS = 20;
 const int GRID_SEARCH_STEP = 2;
 const int GRID_SEARCH_HEADING_STEP = 2;
 
