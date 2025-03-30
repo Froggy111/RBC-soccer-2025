@@ -1,11 +1,10 @@
-add_library(TSSP4038)
-target_sources(TSSP4038
+add_library(IR)
+target_sources(IR
   PRIVATE
-    TSSP4038.cpp
+    IR.cpp
   PUBLIC
-    include/TSSP4038.hpp
+    include/IR.hpp
 )
-
-target_include_directories(TSSP4038 PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(TSSP4038 hardware-descriptors hardware_gpio comms hardware_timer)
-target_link_globals(TSSP4038)
+target_include_directories(IR PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(IR hardware_timer)
+target_link_globals(IR)
