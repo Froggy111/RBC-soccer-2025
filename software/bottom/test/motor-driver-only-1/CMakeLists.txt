@@ -1,7 +1,7 @@
 add_executable(motor_driver_test_only_1 main.cpp)
-target_sources(motor_driver_test_only_1 
+target_sources(motor_driver_test_only_1
   PUBLIC
-    main.cpp
+  main.cpp
 )
 
 target_link_libraries(motor_driver_test_only_1 DRV8244 hardware_spi hardware_i2c)

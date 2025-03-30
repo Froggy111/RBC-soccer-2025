@@ -26,7 +26,7 @@ void motor_driver_task(void *args) {
   pins::digital_pins.init();
 
   // init as debug
-  if (motor_driver.init(2, spi0)) {
+  if (motor_driver.init(4, spi0)) {
     comms::USB_CDC.printf("Motor Driver Initialized!\n");
   } else {
     comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
@@ -37,17 +37,27 @@ void motor_driver_task(void *args) {
 
   while (true) {
     for (int i = 0; i <= 625; i++) {
-      if (!motor_driver.command(-i * 10))
-        break;
+      if (!motor_driver.command(i * 10))
+        continue;
 
       // comms::USB_CDC.printf("Motor Driver Current: %d\n",
       //                       motor_driver.read_current());
       vTaskDelay(pdMS_TO_TICKS(10));
     }
     vTaskDelay(pdMS_TO_TICKS(10));
-    for (int i = 625; i >= 0; i--) {
-      if (!motor_driver.command(-i * 10))
-        break;
+    for (int i = 625; i >= -625; i--) {
+      if (!motor_driver.command(i * 10))
+        continue;
+
+      // comms::USB_CDC.printf("Motor Driver Current: %d\n",
+      //                       motor_driver.read_current());
+      vTaskDelay(pdMS_TO_TICKS(10));
+    }
+    vTaskDelay(pdMS_TO_TICKS(10));
+
+    for (int i = -625; i <= 0; i++) {
+      if (!motor_driver.command(i * 10))
+        continue;
 
       // comms::USB_CDC.printf("Motor Driver Current: %d\n",
       //                       motor_driver.read_current());

@@ -26,7 +26,25 @@ void motor_driver_task(void *args) {
   pins::digital_pins.init();
 
   // init as debug
-  if (driver1.init(1, spi0)) {
+  // if (driver1.init(1, spi0)) {
+  //   comms::USB_CDC.printf("Motor Driver Initialized!\n");
+  // } else {
+  //   comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
+  //   while (true) {
+  //     vTaskDelay(pdMS_TO_TICKS(1000));
+  //   }
+  // }
+
+  // if (driver3.init(3, spi0)) {
+  //   comms::USB_CDC.printf("Motor Driver Initialized!\n");
+  // } else {
+  //   comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
+  //   while (true) {
+  //     vTaskDelay(pdMS_TO_TICKS(1000));
+  //   }
+  // }
+
+  if (driver4.init(2, spi0)) {
     comms::USB_CDC.printf("Motor Driver Initialized!\n");
   } else {
     comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
@@ -35,25 +53,7 @@ void motor_driver_task(void *args) {
     }
   }
 
-  if (driver3.init(3, spi0)) {
-    comms::USB_CDC.printf("Motor Driver Initialized!\n");
-  } else {
-    comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
-    while (true) {
-      vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-  }
-
-  if (driver4.init(4, spi0)) {
-    comms::USB_CDC.printf("Motor Driver Initialized!\n");
-  } else {
-    comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
-    while (true) {
-      vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-  }
-
-    if (driver2.init(2, spi0)) {
+  if (driver2.init(4, spi0)) {
     comms::USB_CDC.printf("Motor Driver Initialized!\n");
   } else {
     comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
@@ -64,9 +64,7 @@ void motor_driver_task(void *args) {
 
   while (true) {
     for (int i = 0; i <= 650; i++) {
-      driver1.command(-i * 10);
       driver4.command(i * 10);
-      driver3.command(i * 10);
       driver2.command(i * 10);
 
       // comms::USB_CDC.printf("Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
@@ -77,8 +75,6 @@ void motor_driver_task(void *args) {
 
     vTaskDelay(pdMS_TO_TICKS(10));
     for (int i = 650; i >= 0; i--) {
-      driver1.command(-i * 10);
-      driver3.command(i * 10);
       driver4.command(i * 10);
       driver2.command(i * 10);
 

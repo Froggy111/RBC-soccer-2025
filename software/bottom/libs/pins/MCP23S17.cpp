@@ -246,7 +246,10 @@ bool MCP23S17::read(u8 pin, bool on_A) {
   }
 
   // read the pin
-  return read8(on_A ? GPIOA : GPIOB) & (1 << pin);
+  uint8_t res = read8(on_A ? GPIOA : GPIOB) & (1 << pin);
+  debug::debug("MCP23S17 address %u read pin %u on bus %u with value %u\r\n",
+               _address, pin, on_A, res);
+  return res;
 }
 
 bool MCP23S17::attach_interrupt(u8 pin, bool on_A,
