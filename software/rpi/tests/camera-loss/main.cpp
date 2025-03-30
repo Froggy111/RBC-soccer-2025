@@ -19,14 +19,7 @@ cv::Mat readFirstFrame(const std::string &video_path) {
     }
 
     cv::Mat frame;
-    for (int i = 0; i < 296; i++) {
-        cap >> frame;
-        if (frame.empty()) {
-            std::cerr << "Error: Could not read frame from video file "
-                      << video_path << std::endl;
-            return cv::Mat();
-        }
-    }
+    cap >> frame;
     return frame;
 }
 

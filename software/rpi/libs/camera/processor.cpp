@@ -1,11 +1,11 @@
 #include "processor.hpp"
 #include "config.hpp"
+#include "debug.hpp"
 #include "field.hpp"
 #include "position.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <utility>
-#include "debug.hpp"
 
 namespace camera {
 
@@ -48,22 +48,29 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
             (rel_x * sin_theta_fp + rel_y * cos_theta_fp) >> FP_SHIFT;
 
         // Convert back to integer coordinate space with offset
-        int32_t final_x = rotated_x_fp + IMG_HEIGHT / 2;
-        int32_t final_y = rotated_y_fp + IMG_WIDTH / 2;
+        int32_t final_x = rotated_x_fp + IMG_WIDTH / 2;
+        int32_t final_y = rotated_y_fp + IMG_HEIGHT / 2;
 
         // Check if the point is within IMAGE boundaries
-        if (final_x < 0 || final_x >= IMG_HEIGHT || final_y < 0 ||
-            final_y >= IMG_WIDTH) {
+        if (final_x < 0 || final_x >= IMG_WIDTH || final_y < 0 ||
+            final_y >= IMG_HEIGHT) {
             continue;
         }
 
         // printf("FINAL X: %d, FINAL Y: %d\n", final_x, final_y);
-        const cv::Vec3b *row = camera_image.ptr<cv::Vec3b>(IMG_WIDTH - final_y);
-        const cv::Vec3b &pixel = row[final_x];
+        const cv::Vec3b *row   = camera_image.ptr<cv::Vec3b>(final_x);
+        const cv::Vec3b &pixel = row[IMG_HEIGHT - final_y];
 
-        if (pixel[0] < COLOR_R_THRES || pixel[1] < COLOR_G_THRES ||
-            pixel[2] < COLOR_B_THRES) {
+        if (!(pixel[0] > COLOR_R_THRES && pixel[1] > COLOR_G_THRES &&
+              pixel[2] > COLOR_B_THRES)) {
             non_white++;
+            // debug::log("White pixel at (%d, %d): (%d, %d, %d)",
+            //            IMG_HEIGHT - final_y, final_x, pixel[0], pixel[1],
+            //            pixel[2]);
+        } else {
+            // debug::log("Non-white pixel at (%d, %d): (%d, %d, %d)",
+            //            IMG_HEIGHT - final_y, final_x, pixel[0], pixel[1],
+            //            pixel[2]);
         }
         count++;
     }
@@ -129,10 +136,10 @@ CamProcessor::find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
     float best_loss = calculate_loss(camera_image, best_guess);
 
     // Search boundaries
-    int x_min = -IMG_HEIGHT / 2;
-    int x_max = IMG_HEIGHT / 2;
-    int y_min = -IMG_WIDTH / 2;
-    int y_max = IMG_WIDTH / 2;
+    int x_min = -IMG_WIDTH / 2;
+    int x_max = IMG_WIDTH / 2;
+    int y_min = -IMG_HEIGHT / 2;
+    int y_max = IMG_HEIGHT / 2;
 
     // Do the dense search first
     for (int x = center.x - radius; x <= center.x + radius; x += step) {
@@ -163,82 +170,86 @@ CamProcessor::find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
 }
 
 std::pair<Pos, float> CamProcessor::find_minima_regression(
-    const cv::Mat &camera_image, Pos &initial_guess,
-    int max_iterations, float initial_step_x, float initial_step_y,
-    float initial_step_heading, float step_decay, float convergence_threshold) {
-    
-    Pos current_pos = initial_guess;
+    const cv::Mat &camera_image, Pos &initial_guess, int max_iterations,
+    float initial_step_x, float initial_step_y, float initial_step_heading,
+    float step_decay, float convergence_threshold) {
+
+    Pos current_pos    = initial_guess;
     float current_loss = calculate_loss(camera_image, current_pos);
-    
-    float step_x = initial_step_x;
-    float step_y = initial_step_y;
+
+    float step_x       = initial_step_x;
+    float step_y       = initial_step_y;
     float step_heading = initial_step_heading;
-    
+
     // Keep track of iterations and improvement
     int iterations = 0;
-    bool improved = true;
-    
-    while (iterations < max_iterations && (step_x > convergence_threshold || 
-           step_y > convergence_threshold || 
-           step_heading > convergence_threshold) && 
+    bool improved  = true;
+
+    while (iterations < max_iterations &&
+           (step_x > convergence_threshold || step_y > convergence_threshold ||
+            step_heading > convergence_threshold) &&
            improved) {
-        
+
         improved = false;
         iterations++;
-        
+
         // Try different directions and pick the one with the lowest loss
         struct Movement {
             float dx, dy, dh;
             float loss;
             Pos pos;
         };
-        
+
         // Define possible movements
-        const int num_directions = 6;
+        const int num_directions           = 6;
         Movement movements[num_directions] = {
-            {step_x, 0, 0, 0, current_pos},      // +x
-            {-step_x, 0, 0, 0, current_pos},     // -x
-            {0, step_y, 0, 0, current_pos},      // +y
-            {0, -step_y, 0, 0, current_pos},     // -y
+            {step_x, 0, 0, 0, current_pos},       // +x
+            {-step_x, 0, 0, 0, current_pos},      // -x
+            {0, step_y, 0, 0, current_pos},       // +y
+            {0, -step_y, 0, 0, current_pos},      // -y
             {0, 0, step_heading, 0, current_pos}, // +heading
             {0, 0, -step_heading, 0, current_pos} // -heading
         };
-        
+
         // Try each movement and calculate loss
         for (int i = 0; i < num_directions; i++) {
             Pos test_pos = current_pos;
             test_pos.x += movements[i].dx;
             test_pos.y += movements[i].dy;
             test_pos.heading += movements[i].dh;
-            
+
             // Wrap heading to [0, 2π]
-            while (test_pos.heading < 0) test_pos.heading += 2 * M_PI;
-            while (test_pos.heading >= 2 * M_PI) test_pos.heading -= 2 * M_PI;
-            
+            while (test_pos.heading < 0)
+                test_pos.heading += 2 * M_PI;
+            while (test_pos.heading >= 2 * M_PI)
+                test_pos.heading -= 2 * M_PI;
+
             // Keep position within field bounds
-            test_pos.x = std::max(std::min(test_pos.x, FIELD_X_SIZE/2), -FIELD_X_SIZE/2);
-            test_pos.y = std::max(std::min(test_pos.y, FIELD_Y_SIZE/2), -FIELD_Y_SIZE/2);
-            
+            test_pos.x = std::max(std::min(test_pos.x, FIELD_X_SIZE / 2),
+                                  -FIELD_X_SIZE / 2);
+            test_pos.y = std::max(std::min(test_pos.y, FIELD_Y_SIZE / 2),
+                                  -FIELD_Y_SIZE / 2);
+
             movements[i].loss = calculate_loss(camera_image, test_pos);
-            movements[i].pos = test_pos;
+            movements[i].pos  = test_pos;
         }
-        
+
         // Find the movement with the lowest loss
-        int best_idx = -1;
+        int best_idx    = -1;
         float best_loss = current_loss;
-        
+
         for (int i = 0; i < num_directions; i++) {
             if (movements[i].loss < best_loss) {
                 best_loss = movements[i].loss;
-                best_idx = i;
+                best_idx  = i;
             }
         }
-        
+
         // If we found an improvement, update the position
         if (best_idx >= 0) {
-            current_pos = movements[best_idx].pos;
+            current_pos  = movements[best_idx].pos;
             current_loss = best_loss;
-            improved = true;
+            improved     = true;
         } else {
             // No improvement found, reduce step sizes
             step_x *= step_decay;
@@ -246,7 +257,7 @@ std::pair<Pos, float> CamProcessor::find_minima_regression(
             step_heading *= step_decay;
         }
     }
-    
+
     return std::make_pair(current_pos, current_loss);
 }
 
@@ -256,17 +267,21 @@ Pos CamProcessor::_current_pos = {0, 0, 0};
 void CamProcessor::process_frame(const cv::Mat &frame) {
     debug::info("Frame %d", _frame_count);
     if (_frame_count == 0) {
-        auto res = find_minima_smart_search(frame, _current_pos, GRID_SEARCH_RADIUS, GRID_SEARCH_STEP, GRID_SEARCH_HEADING_STEP);
+        auto res = find_minima_smart_search(
+            frame, _current_pos, GRID_SEARCH_RADIUS, GRID_SEARCH_STEP,
+            GRID_SEARCH_HEADING_STEP);
         _current_pos = res.first;
-        debug::log("Found position: (%d, %d, %f) with loss: %f",
-                   _current_pos.x, _current_pos.y,
-                   _current_pos.heading * (float)180 / M_PI, res.second);
+        debug::log("Found position: (%d, %d, %f) with loss: %f", _current_pos.x,
+                   _current_pos.y, _current_pos.heading * (float)180 / M_PI,
+                   res.second);
     } else {
-        auto res = find_minima_particle_search(frame, _current_pos, PARTICLE_SEARCH_NUM, PARTICLE_SEARCH_GEN, PARTICLE_SEARCH_VAR);
+        auto res = find_minima_particle_search(
+            frame, _current_pos, PARTICLE_SEARCH_NUM, PARTICLE_SEARCH_GEN,
+            PARTICLE_SEARCH_VAR);
         _current_pos = res.first;
-        debug::log("Found position: (%d, %d, %f) with loss: %f",
-                   _current_pos.x, _current_pos.y,
-                   _current_pos.heading * (float)180 / M_PI, res.second);
+        debug::log("Found position: (%d, %d, %f) with loss: %f", _current_pos.x,
+                   _current_pos.y, _current_pos.heading * (float)180 / M_PI,
+                   res.second);
     }
     _frame_count += 1;
 }

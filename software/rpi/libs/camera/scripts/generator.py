@@ -1,8 +1,12 @@
 import os
+import random
+import math
 from PIL import Image
 
 
-def generate_field_coordinates(image_path, output_path, output_image_path):
+def generate_field_coordinates(
+    image_path, output_path, output_image_path, fuzzy_radius=2, fuzzy_density=0.5
+):
     # Load the image
     img = Image.open(image_path)
 
@@ -24,7 +28,7 @@ def generate_field_coordinates(image_path, output_path, output_image_path):
     y_scale = 320 / 200
 
     # Process coordinates relative to center
-    coordinates = []
+    base_coordinates = []
     count = 0
 
     # Process each pixel in the original image
@@ -35,11 +39,42 @@ def generate_field_coordinates(image_path, output_path, output_image_path):
                 # Convert to field coordinates with center as (0,0)
                 real_x = int(round((x - center_x) * x_scale))
                 real_y = int(round((y - center_y) * y_scale))
-                if count % 2 == 0:
-                    coordinates.append((real_x, real_y))
+                base_coordinates.append((real_x, real_y))
                 count += 1
 
-    print(f"Generated {len(coordinates)} coordinates")
+    print(f"Generated {len(base_coordinates)} base coordinates")
+
+    # Generate fuzzy coordinates around base coordinates with concentration near originals
+    all_coordinates = base_coordinates.copy()
+    for x, y in base_coordinates:
+        # Generate fuzzy points around each base point
+        for _ in range(int(fuzzy_density * fuzzy_radius * 8)):
+            # Generate random angle
+            angle = random.uniform(0, 2 * math.pi)
+            # Generate random distance with higher probability for smaller distances
+            # Using square root of random value makes points concentrate near center
+            distance = fuzzy_radius * math.sqrt(random.random())
+
+            # Convert polar coordinates to cartesian
+            dx = int(round(distance * math.cos(angle)))
+            dy = int(round(distance * math.sin(angle)))
+
+            # Skip if it's the exact same point
+            if dx == 0 and dy == 0:
+                continue
+
+            # Add the fuzzy point
+            all_coordinates.append((x + dx, y + dy))
+
+    print(f"Generated {len(all_coordinates)} coordinates after adding fuzzy points")
+
+    # Limit to exactly 1000 particles (or all if fewer than 1000)
+    max_particles = 1000
+    particle_count = min(max_particles, len(all_coordinates))
+    selected_coordinates = random.sample(all_coordinates, particle_count)
+    print(
+        f"Randomly selected {len(selected_coordinates)} coordinates (limited to {max_particles})"
+    )
 
     # Calculate image dimensions directly from scaling factors
     image_width = int(round(original_width * x_scale))
@@ -52,7 +87,7 @@ def generate_field_coordinates(image_path, output_path, output_image_path):
     pixels = output_img.load()
 
     # Set pixels to red based on coordinates
-    for x, y in coordinates:
+    for x, y in selected_coordinates:
         # Shift coordinates to be within image bounds
         pixel_x = x + int(image_width / 2)
         pixel_y = y + int(image_height / 2)
@@ -68,18 +103,19 @@ def generate_field_coordinates(image_path, output_path, output_image_path):
     # Generate the C++ header file
     with open(output_path, "w") as f:
         f.write("// Auto-generated field coordinates (320px = 200cm scale)\n")
+        f.write("// Generated with fuzzy radius and random selection\n")
         f.write("#pragma once\n")
 
         f.write("namespace camera {\n")
-        f.write(f"const int WHITE_LINES_LENGTH = {len(coordinates)};\n")
+        f.write(f"const int WHITE_LINES_LENGTH = {len(selected_coordinates)};\n")
         f.write(f"const int FIELD_X_SIZE = {image_width};\n")
         f.write(f"const int FIELD_Y_SIZE = {image_height};\n\n")
         f.write("const int GRID_SIZE = 1;\n")
-        f.write(f"constexpr int WHITE_LINES[{len(coordinates)}][2] = {{\n")
+        f.write(f"constexpr int WHITE_LINES[{len(selected_coordinates)}][2] = {{\n")
 
-        for i, (x, y) in enumerate(coordinates):
+        for i, (x, y) in enumerate(selected_coordinates):
             f.write(f"    {{{x}, {y}}}")
-            if i < len(coordinates) - 1:
+            if i < len(selected_coordinates) - 1:
                 f.write(",")
             f.write("\n")
 
@@ -103,6 +139,10 @@ if __name__ == "__main__":
     # Ensure output directory exists
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    # Generate the coordinates
-    generate_field_coordinates(image_path, output_path, output_image_path)
+    # Generate the coordinates with fuzziness
+    # Parameters: fuzzy_radius controls how far from original points fuzzy points can go
+    # fuzzy_density controls how many fuzzy points are generated per original point
+    generate_field_coordinates(
+        image_path, output_path, output_image_path, fuzzy_radius=0, fuzzy_density=0.4
+    )
     print(f"Field coordinates written to {output_path}")
