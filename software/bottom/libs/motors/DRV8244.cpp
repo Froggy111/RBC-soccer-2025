@@ -64,9 +64,6 @@ namespace driver {
 // ! init
 // use -1 as driver_id for debug pins
 bool MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
-  pins::digital_pins.set_mode((pinmap::Digital)pins.get_pin(NFAULT),
-                              pins::DigitalPinMode::INPUT_PULLUP);
-  return false;
   debug::debug("---> Initializing DRV8244\r\n");
   _id = id;
 
@@ -381,23 +378,23 @@ void MotorDriver::handle_error(MotorDriver *driver) {
 
 bool MotorDriver::check_config() {
   // check if the driver is in fault
-  if (!pins::digital_pins.read((pinmap::Digital)pins.get_pin(NFAULT))) {
-    debug::error("Driver has faulted. Cannot command motor.\r\n");
+  // if (!pins::digital_pins.read((pinmap::Digital)pins.get_pin(NFAULT))) {
+  //   debug::error("Driver has faulted. Cannot command motor.\r\n");
 
-    types::u8 faultSummary = read8(FAULT_SUMMARY_REG);
-    if (faultSummary != 0) {
-      debug::error("Error: FAULT_SUMMARY: %s\r\n",
-                   FAULT::get_fault_description(faultSummary).c_str());
-      return false;
-    } else {
-      debug::error("Driver is in fault state, but there is no fault... "
-                   "clearing fault and continuing\r\n");
-      if (!write8(COMMAND_REG, COMMAND_REG_RESET, COMMAND_REG_EXPECTED)) {
-        debug::debug("Error: Could not write to COMMAND register\r\n");
-        return false;
-      }
-    }
-  }
+  //   types::u8 faultSummary = read8(FAULT_SUMMARY_REG);
+  //   if (faultSummary != 0) {
+  //     debug::error("Error: FAULT_SUMMARY: %s\r\n",
+  //                  FAULT::get_fault_description(faultSummary).c_str());
+  //     return false;
+  //   } else {
+  //     debug::error("Driver is in fault state, but there is no fault... "
+  //                  "clearing fault and continuing\r\n");
+  //     if (!write8(COMMAND_REG, COMMAND_REG_RESET, COMMAND_REG_EXPECTED)) {
+  //       debug::debug("Error: Could not write to COMMAND register\r\n");
+  //       return false;
+  //     }
+  //   }
+  // }
 
   // check registers
   if (!check_registers()) {
@@ -428,31 +425,30 @@ int16_t MotorDriver::read_current() {
 }
 
 bool MotorDriver::command(types::i16 duty_cycle) {
-  // TODO: Implement Accel Safeguards
   // Verify if the driver can accept commands
   // if (!check_config()) {
   //   debug::error("Motor command aborted due to configuration error.\r\n");
   //   return false;
   // }
-  // if (duty_cycle < -12500 || duty_cycle > 12500) {
-  //   debug::error("Invalid duty cycle. Must be between -12500 and 12500.\r\n");
-  //   return false;
-  // }
+  if (duty_cycle < -12500 || duty_cycle > 12500) {
+    debug::error("Invalid duty cycle. Must be between -12500 and 12500.\r\n");
+    return false;
+  }
 
-  // // get direction and speed
-  // bool direction = duty_cycle < 0;
-  // duty_cycle = abs(duty_cycle);
+  // get direction and speed
+  bool direction = duty_cycle < 0;
+  duty_cycle = abs(duty_cycle);
 
-  // // Command motor by setting one channel to PWM and the other low
-  // pins::digital_pins.write((pinmap::Digital)pins.get_pin(IN2), direction);
+  // Command motor by setting one channel to PWM and the other low
+  pins::digital_pins.write((pinmap::Digital)pins.get_pin(IN2), direction);
 
-  // uint slice_num = pwm_gpio_to_slice_num(pins.get_pin(IN1));
-  // uint channel = pwm_gpio_to_channel(pins.get_pin(IN1));
-  // pwm_set_chan_level(slice_num, channel, duty_cycle);
+  uint slice_num = pwm_gpio_to_slice_num(pins.get_pin(IN1));
+  uint channel = pwm_gpio_to_channel(pins.get_pin(IN1));
+  pwm_set_chan_level(slice_num, channel, duty_cycle);
 
-  // debug::debug("Motor command executed: Duty cycle = %d, Direction = %d\r\n",
-  //              duty_cycle, direction);
-  // return true;
+  debug::debug("Motor command executed: Duty cycle = %d, Direction = %d\r\n",
+               duty_cycle, direction);
+  return true;
 }
 
 bool MotorDriver::set_ITRIP(ITRIP::ITRIP current_limit) {

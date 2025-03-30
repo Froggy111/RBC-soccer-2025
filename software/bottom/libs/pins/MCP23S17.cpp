@@ -191,15 +191,24 @@ void MCP23S17::set_pin_mode(u8 pin, bool on_A, DigitalPinMode pinmode) {
     write8(on_A ? IODIRA : IODIRB, 1 << pin, 0b1 << pin);
     write8(on_A ? GPPUA : GPPUB, 0 << pin, 0b1 << pin); // dont pullup
     _pin_state[pin + (on_A ? 0 : 8)] = 1;               // input
+    debug::log("CHHHHHHHHHHHHHH: MCP23S17 address %u set pin %u on bus %u to "
+               "INPUT\r\n",
+               _address, pin, on_A);
     break;
   case DigitalPinMode::INPUT_PULLUP:
     write8(on_A ? IODIRA : IODIRB, 1 << pin, 0b1 << pin);
     write8(on_A ? GPPUA : GPPUB, 1 << pin, 0b1 << pin); // pullup
     _pin_state[pin + (on_A ? 0 : 8)] = 1;               // input
+    debug::log("AHHHHHHHHHHHHHH: MCP23S17 address %u set pin %u on bus %u to "
+               "INPUT_PULLUP\r\n",
+               _address, pin, on_A);
     break;
   case DigitalPinMode::OUTPUT:
     write8(on_A ? IODIRA : IODIRB, 0 << pin, 0b1 << pin);
     _pin_state[pin + (on_A ? 0 : 8)] = 0; // output
+    debug::log("BHHHHHHHHHHHHHH: MCP23S17 address %u set pin %u on bus %u to "
+               "OUTPUT\r\n",
+               _address, pin, on_A);
     break;
   }
 }
@@ -219,8 +228,9 @@ void MCP23S17::write(u8 pin, bool on_A, bool value) {
   // write to the pin
   write8(on_A ? GPIOA : GPIOB, value << pin, 0b1 << pin);
 
-  debug::debug("MCP23S17 address %u wrote to pin %u on bus %u with value %u\r\n",
-             _address, pin, on_A, value);
+  debug::debug(
+      "MCP23S17 address %u wrote to pin %u on bus %u with value %u\r\n",
+      _address, pin, on_A, value);
 
   // check that OUTPUT_LATCH has the written bit
   u8 res = read8(on_A ? OLATA : OLATB);
