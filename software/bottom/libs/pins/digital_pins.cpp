@@ -22,6 +22,8 @@ bool DigitalPins::init() {
     debug::warn("DigitalPins: tried to double initialize\r\n");
     return true;
   }
+  _initialized = true;
+
   debug::debug("DigitalPins: initialising DigitalPins\r\n");
   // initialise dmux
   debug::debug("DigitalPins: intialising dmux1\r\n");
@@ -36,9 +38,11 @@ bool DigitalPins::init() {
   attach_interrupt(Digital::DMUX2_INT, DigitalPinInterruptState::LEVEL_HIGH,
                    make_handler(_dmux_2.interrupt_handler), NULL);
   debug::debug("DigitalPins: attaching dmux1 interrupt handler\r\n");
-  attach_interrupt(Digital::DMUX2_INT, DigitalPinInterruptState::LEVEL_HIGH,
+  attach_interrupt(Digital::DMUX1_INT, DigitalPinInterruptState::LEVEL_HIGH,
                    make_handler(_dmux_1.interrupt_handler), NULL);
-  _initialized = true;
+  set_mode(Digital::DMUX1_INT, DigitalPinMode::INPUT);
+  attach_interrupt(Digital::DMUX1_INT, DigitalPinInterruptState::LEVEL_HIGH,
+                   make_handler(_dmux_1.interrupt_handler), NULL);
   return true;
 }
 
@@ -131,12 +135,12 @@ bool DigitalPins::write(pinmap::Digital pin, bool val) {
     return false;
   }
 
-  debug::debug("DigitalPins: writing pin %u with value %u\r\n", (u8)pin, val);
 
   u8 pin_val = pin_number(pin);
 
   switch (pin_owner(pin)) {
   case pinmap::DigitalPinOwner::PICO:
+    debug::warn("DigitalPins: writing pin %u with value %u\r\n", (u8)pin_val, val);
     gpio_put(pin_val, val);
     break;
   case pinmap::DigitalPinOwner::DMUX1A:

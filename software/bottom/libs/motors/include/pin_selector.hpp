@@ -21,67 +21,67 @@ typedef enum PinInterface {
 
 // driver pinmap for DRV8244
 typedef enum DriverPinMap {
-  CS,
-  MOSI,
-  MISO,
-  SCK,
-  NSLEEP,
-  NFAULT,
-  IPROPI,
-  IN2,
-  IN1,
-  DRVOFF
+  CS = 0,
+  MOSI = 1,
+  MISO = 2,
+  SCK = 3,
+  NSLEEP = 4,
+  NFAULT = 5,
+  IPROPI = 6,
+  IN2 = 7,
+  IN1 = 8,
+  DRVOFF = 9
 } DriverPinMap;
 
 constexpr types::u8 driver1_pins[] = {
     static_cast<types::u8>(pinmap::Digital::DRV1_SCS),    // CS
-    static_cast<types::u8>(pinmap::Digital::SPI0_MOSI),   // MOSI
-    static_cast<types::u8>(pinmap::Digital::SPI0_MISO),   // MISO
-    static_cast<types::u8>(pinmap::Digital::SPI0_SCLK),   // SCK
+    static_cast<types::u8>(pinmap::Pico::SPI0_MOSI),   // MOSI
+    static_cast<types::u8>(pinmap::Pico::SPI0_MISO),   // MISO
+    static_cast<types::u8>(pinmap::Pico::SPI0_SCLK),   // SCK
     static_cast<types::u8>(pinmap::Digital::DRV1_NSLEEP), // NSLEEP
     static_cast<types::u8>(pinmap::Digital::DRV1_NFAULT), // NFAULT
     static_cast<types::u8>(pinmap::ADC2::DRV1_IPROPI),    // IPROPI
     static_cast<types::u8>(pinmap::Digital::DRV1_IN2),    // IN2
-    static_cast<types::u8>(pinmap::Digital::DRV1_IN1),    // IN1
+    static_cast<types::u8>(pinmap::Pico::DRV1_IN1),    // IN1
     static_cast<types::u8>(pinmap::Digital::DRV1_OFF)     // DRVOFF
 };
 
 constexpr types::u8 driver2_pins[] = {
     static_cast<types::u8>(pinmap::Digital::DRV2_SCS),    // CS
-    static_cast<types::u8>(pinmap::Digital::SPI0_MOSI),   // MOSI
-    static_cast<types::u8>(pinmap::Digital::SPI0_MISO),   // MISO
-    static_cast<types::u8>(pinmap::Digital::SPI0_SCLK),   // SCK
+    static_cast<types::u8>(pinmap::Pico::SPI0_MOSI),   // MOSI
+    static_cast<types::u8>(pinmap::Pico::SPI0_MISO),   // MISO
+    static_cast<types::u8>(pinmap::Pico::SPI0_SCLK),   // SCK
     static_cast<types::u8>(pinmap::Digital::DRV2_NSLEEP), // NSLEEP
     static_cast<types::u8>(pinmap::Digital::DRV2_NFAULT), // NFAULT
     static_cast<types::u8>(pinmap::ADC1::DRV2_IPROPI),    // IPROPI
     static_cast<types::u8>(pinmap::Digital::DRV2_IN2),    // IN2
-    static_cast<types::u8>(pinmap::Digital::DRV2_IN1),    // IN1
+    static_cast<types::u8>(pinmap::Pico::DRV2_IN1),    // IN1
     static_cast<types::u8>(pinmap::Digital::DRV2_OFF)     // DRVOFF
 };
 
 constexpr types::u8 driver3_pins[] = {
     static_cast<types::u8>(pinmap::Digital::DRV3_SCS),    // CS
-    static_cast<types::u8>(pinmap::Digital::SPI0_MOSI),   // MOSI
-    static_cast<types::u8>(pinmap::Digital::SPI0_MISO),   // MISO
-    static_cast<types::u8>(pinmap::Digital::SPI0_SCLK),   // SCK
+    static_cast<types::u8>(pinmap::Pico::SPI0_MOSI),   // MOSI
+    static_cast<types::u8>(pinmap::Pico::SPI0_MISO),   // MISO
+    static_cast<types::u8>(pinmap::Pico::SPI0_SCLK),   // SCK
     static_cast<types::u8>(pinmap::Digital::DRV3_NSLEEP), // NSLEEP
     static_cast<types::u8>(pinmap::Digital::DRV3_NFAULT), // NFAULT
     static_cast<types::u8>(pinmap::ADC1::DRV3_IPROPI),    // IPROPI
     static_cast<types::u8>(pinmap::Digital::DRV3_IN2),    // IN2
-    static_cast<types::u8>(pinmap::Digital::DRV3_IN1),    // IN1
+    static_cast<types::u8>(pinmap::Pico::DRV3_IN1),    // IN1
     static_cast<types::u8>(pinmap::Digital::DRV3_OFF)     // DRVOFF
 };
 
 constexpr types::u8 driver4_pins[] = {
     static_cast<types::u8>(pinmap::Digital::DRV4_SCS),    // CS
-    static_cast<types::u8>(pinmap::Digital::SPI0_MOSI),   // MOSI
-    static_cast<types::u8>(pinmap::Digital::SPI0_MISO),   // MISO
-    static_cast<types::u8>(pinmap::Digital::SPI0_SCLK),   // SCK
+    static_cast<types::u8>(pinmap::Pico::SPI0_MOSI),   // MOSI
+    static_cast<types::u8>(pinmap::Pico::SPI0_MISO),   // MISO
+    static_cast<types::u8>(pinmap::Pico::SPI0_SCLK),   // SCK
     static_cast<types::u8>(pinmap::Digital::DRV4_NSLEEP), // NSLEEP
     static_cast<types::u8>(pinmap::Digital::DRV4_NFAULT), // NFAULT
     static_cast<types::u8>(pinmap::ADC2::DRV4_IPROPI),    // IPROPI
     static_cast<types::u8>(pinmap::Digital::DRV4_IN2),    // IN2
-    static_cast<types::u8>(pinmap::Digital::DRV4_IN1),    // IN1
+    static_cast<types::u8>(pinmap::Pico::DRV4_IN1),    // IN1
     static_cast<types::u8>(pinmap::Digital::DRV4_OFF)     // DRVOFF
 };
 

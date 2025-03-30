@@ -8,6 +8,7 @@ extern "C" {
 #include <hardware/spi.h>
 }
 #include "comms.hpp"
+#include "debug.hpp"
 
 driver::MotorDriver driver1, driver2, driver3, driver4;
 
@@ -34,15 +35,6 @@ void motor_driver_task(void *args) {
     }
   }
 
-  if (driver2.init(2, spi0)) {
-    comms::USB_CDC.printf("Motor Driver Initialized!\n");
-  } else {
-    comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
-    while (true) {
-      vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-  }
-
   if (driver3.init(3, spi0)) {
     comms::USB_CDC.printf("Motor Driver Initialized!\n");
   } else {
@@ -61,14 +53,20 @@ void motor_driver_task(void *args) {
     }
   }
 
+    if (driver2.init(2, spi0)) {
+    comms::USB_CDC.printf("Motor Driver Initialized!\n");
+  } else {
+    comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
+    while (true) {
+      vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+  }
+
   while (true) {
     for (int i = 0; i <= 650; i++) {
       driver1.command(-i * 10);
-      vTaskDelay(pdMS_TO_TICKS(1));
       driver4.command(i * 10);
-      vTaskDelay(pdMS_TO_TICKS(1));
       driver3.command(i * 10);
-      vTaskDelay(pdMS_TO_TICKS(1));
       driver2.command(i * 10);
 
       // comms::USB_CDC.printf("Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
@@ -80,15 +78,13 @@ void motor_driver_task(void *args) {
     vTaskDelay(pdMS_TO_TICKS(10));
     for (int i = 650; i >= 0; i--) {
       driver1.command(-i * 10);
-      vTaskDelay(pdMS_TO_TICKS(1));
       driver3.command(i * 10);
-      vTaskDelay(pdMS_TO_TICKS(1));
       driver4.command(i * 10);
-      vTaskDelay(pdMS_TO_TICKS(1));
       driver2.command(i * 10);
 
       // comms::USB_CDC.printf("Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
       //        driver3.read_current(), driver4.read_current());
+
       vTaskDelay(pdMS_TO_TICKS(10));
     }
     vTaskDelay(pdMS_TO_TICKS(10));
