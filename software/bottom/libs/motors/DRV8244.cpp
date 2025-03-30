@@ -64,7 +64,7 @@ namespace driver {
 // ! init
 // use -1 as driver_id for debug pins
 bool MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
-  debug::debug("---> Initializing DRV8244\r\n");
+  debug::debug("---> Initializing DRV8244 with id %d\r\n", id);
   _id = id;
 
   if (id == -1) {
@@ -81,30 +81,30 @@ bool MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
   debug::debug("-> Initializing pins\r\n");
   init_pins();
 
-  debug::debug("-> Initializing ADC\r\n");
-  if (!adc_init[0] &&
-      !adc1.beginADSX((PICO_ADS1115::ADSXAddressI2C_e)ADC1_ADDR, i2c1,
-                      ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C1_SDA,
-                      (uint8_t)pinmap::Pico::I2C1_SCL, 1000)) {
-    debug::error("ADC1 not found!\r\n");
-    return false;
-  } else {
-    adc_init[0] = true;
-    adc1.setGain(PICO_ADS1115::ADSXGain_TWO);
-    adc1.setDataRate(ADC_DATA_RATE);
-  }
-
-  if (!adc_init[1] &&
-      !adc2.beginADSX((PICO_ADS1115::ADSXAddressI2C_e)ADC2_ADDR, i2c1,
-                      ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C1_SDA,
-                      (uint8_t)pinmap::Pico::I2C1_SCL, 1000)) {
-    debug::error("ADC2 not found!\r\n");
-    return false;
-  } else {
-    adc_init[1] = true;
-    adc2.setGain(PICO_ADS1115::ADSXGain_TWO);
-    adc2.setDataRate(ADC_DATA_RATE);
-  }
+  // debug::debug("-> Initializing ADC\r\n");
+  // if (!adc_init[0] &&
+  //     !adc1.beginADSX((PICO_ADS1115::ADSXAddressI2C_e)ADC1_ADDR, i2c1,
+  //                     ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C1_SDA,
+  //                     (uint8_t)pinmap::Pico::I2C1_SCL, 1000)) {
+  //   debug::error("ADC1 not found!\r\n");
+  //   return false;
+  // } else {
+  //   adc_init[0] = true;
+  //   adc1.setGain(PICO_ADS1115::ADSXGain_TWO);
+  //   adc1.setDataRate(ADC_DATA_RATE);
+  // }
+  //
+  // if (!adc_init[1] &&
+  //     !adc2.beginADSX((PICO_ADS1115::ADSXAddressI2C_e)ADC2_ADDR, i2c1,
+  //                     ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C1_SDA,
+  //                     (uint8_t)pinmap::Pico::I2C1_SCL, 1000)) {
+  //   debug::error("ADC2 not found!\r\n");
+  //   return false;
+  // } else {
+  //   adc_init[1] = true;
+  //   adc2.setGain(PICO_ADS1115::ADSXGain_TWO);
+  //   adc2.setDataRate(ADC_DATA_RATE);
+  // }
 
   debug::debug("-> Configuring registers\r\n");
   if (!init_registers()) {
@@ -173,11 +173,14 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   //* Write & Read Feedback
   // Initialize CS pin as GPIO
 
-  pins::digital_pins.write((pinmap::Digital)pins.get_pin(CS), 0);
   configure_spi();
+  // pins::digital_pins.write((pinmap::Digital)pins.get_pin(CS), 0);
+  gpio_put(pins.get_pin(CS), 0);
+  // busy_wait_us(1);
   int bytes_written =
       spi_write16_read16_blocking(spi_obj, &reg_value, &rx_data, 1);
-  pins::digital_pins.write((pinmap::Digital)pins.get_pin(CS), 1);
+  gpio_put(pins.get_pin(CS), 1);
+  // pins::digital_pins.write((pinmap::Digital)pins.get_pin(CS), 1);
 
   debug::debug("SPI Write - Sent: 0x%04X, Received: 0x%04X\r\n", reg_value,
                rx_data);
@@ -232,9 +235,12 @@ uint8_t MotorDriver::read8(uint8_t reg) {
   reg_value |= SPI_RW_BIT_MASK;
 
   configure_spi();
-  pins::digital_pins.write((pinmap::Digital)pins.get_pin(CS), 0);
+  // pins::digital_pins.write((pinmap::Digital)pins.get_pin(CS), 0);
+  gpio_put(pins.get_pin(CS), 0);
+  // busy_wait_us(1);
   spi_write16_read16_blocking(spi_obj, &reg_value, &rx_data, 1);
-  pins::digital_pins.write((pinmap::Digital)pins.get_pin(CS), 1);
+  gpio_put(pins.get_pin(CS), 1);
+  // pins::digital_pins.write((pinmap::Digital)pins.get_pin(CS), 1);
 
   debug::warn("SPI Read - Sent: 0x%04X, Received: 0x%04X\r\n", reg_value,
               rx_data);
@@ -413,16 +419,16 @@ void MotorDriver::set_sleep(bool sleep) {
   debug::debug("Motor sleep set to %d\r\n", !sleep);
 }
 
-int16_t MotorDriver::read_current() {
-  // Read the current from the ADC
-  if (_id == 1 || _id == 4)
-    return adc2.readADC_SingleEnded(
-        (PICO_ADS1X15::ADSX_AINX_e)pins.get_pin(IPROPI));
-  else
-    return adc1.readADC_SingleEnded(
-        (PICO_ADS1X15::ADSX_AINX_e)pins.get_pin(IPROPI));
-  return 0;
-}
+// int16_t MotorDriver::read_current() {
+//   // Read the current from the ADC
+//   if (_id == 1 || _id == 4)
+//     return adc2.readADC_SingleEnded(
+//         (PICO_ADS1X15::ADSX_AINX_e)pins.get_pin(IPROPI));
+//   else
+//     return adc1.readADC_SingleEnded(
+//         (PICO_ADS1X15::ADSX_AINX_e)pins.get_pin(IPROPI));
+//   return 0;
+// }
 
 bool MotorDriver::command(types::i16 duty_cycle) {
   // Verify if the driver can accept commands

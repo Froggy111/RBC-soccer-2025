@@ -44,7 +44,7 @@ void motor_driver_task(void *args) {
   //   }
   // }
 
-  if (driver4.init(2, spi0)) {
+  if (driver4.init(4, spi0)) {
     comms::USB_CDC.printf("Motor Driver Initialized!\n");
   } else {
     comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
@@ -53,7 +53,7 @@ void motor_driver_task(void *args) {
     }
   }
 
-  if (driver2.init(4, spi0)) {
+  if (driver2.init(2, spi0)) {
     comms::USB_CDC.printf("Motor Driver Initialized!\n");
   } else {
     comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");

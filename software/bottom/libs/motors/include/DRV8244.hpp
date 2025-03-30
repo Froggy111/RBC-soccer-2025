@@ -98,9 +98,9 @@ private:
   int _id;
   spi_inst_t *spi_obj;
 
-  bool adc_init[2];
-  PICO_ADS1115 adc1;
-  PICO_ADS1115 adc2;
+  // bool adc_init[2];
+  // PICO_ADS1115 adc1;
+  // PICO_ADS1115 adc2;
 
 public:
   /**
@@ -136,13 +136,13 @@ public:
    * @param driver 
    */
   static void handle_error(MotorDriver *driver);
-
-  /**
-   * @brief Returns the current running through the motor
-   * 
-   * @return int16_t 
-   */
-  int16_t read_current();
+  //
+  // /**
+  //  * @brief Returns the current running through the motor
+  //  *
+  //  * @return int16_t
+  //  */
+  // int16_t read_current();
 
   /**
    * @brief Set the ITRIP register to the current_limit at which the motor should regulate
@@ -159,4 +159,4 @@ public:
   bool set_OCP(OCP::OCP current_limit);
 };
 
-}
+} // namespace driver

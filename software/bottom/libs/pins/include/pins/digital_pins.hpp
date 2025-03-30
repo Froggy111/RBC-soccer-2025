@@ -62,11 +62,11 @@ private:
                (types::u8)pinmap::Digital::SPI0_MOSI,
                (types::u8)pinmap::Digital::DMUX_SCS,
                (types::u8)pinmap::Pico::DMUX_RESET, DMUX_2_ADDRESS, true, spi0);
-  DigitalPinInterrupt _interrupts[pinmap::digital_pin_count] = {nullptr};
-  DigitalPinInterruptState _interrupt_states[pinmap::digital_pin_count] = {
-      DigitalPinInterruptState::EDGE_FALL};
-  void *_interrupt_args[pinmap::digital_pin_count] = {nullptr};
-
+  // DigitalPinInterrupt _interrupts[pinmap::digital_pin_count] = {nullptr};
+  // DigitalPinInterruptState _interrupt_states[pinmap::digital_pin_count] = {
+  //     DigitalPinInterruptState::EDGE_FALL};
+  // void *_interrupt_args[pinmap::digital_pin_count] = {nullptr};
+  //
   DigitalPinMode _pin_modes[pinmap::digital_pin_count] = {
       DigitalPinMode::INPUT};
   bool _initialized = false;

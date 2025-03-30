@@ -65,10 +65,10 @@ private:
   types::u8 read8(types::u8 reg_address);
   void write8(types::u8 reg_address, types::u8 data, types::u8 mask = 0xFF);
 
-  DigitalPinInterrupt _interrupt_handlers[16] = {nullptr};
-  DigitalPinInterruptState _interrupt_states[16] = {
-      DigitalPinInterruptState::EDGE_FALL};
-  void *_interrupt_handler_args[16] = {nullptr};
+  // DigitalPinInterrupt _interrupt_handlers[16] = {nullptr};
+  // DigitalPinInterruptState _interrupt_states[16] = {
+  //     DigitalPinInterruptState::EDGE_FALL};
+  // void *_interrupt_handler_args[16] = {nullptr};
 
   // params is this
   // static void interrupt_handler_task(void *params);

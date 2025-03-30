@@ -92,7 +92,7 @@ void MCP23S17::init() {
   // write8(IOCON, 0b01000000, 0b01000000);
 
   // create interrupt handling task
-  debug::debug("Creating interrupt handling task\r\n");
+  // debug::debug("Creating interrupt handling task\r\n");
   // xTaskCreate(interrupt_handler_task, "MCP23S17 interrupt handling task",
   //             INTERRUPT_TASK_STACK_SIZE, this, INTERRUPT_TASK_PRIORITY,
   //             &interrupt_handler_task_handle);

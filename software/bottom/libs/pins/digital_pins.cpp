@@ -31,7 +31,7 @@ bool DigitalPins::init() {
   debug::debug("DigitalPins: intialising dmux2\r\n");
   _dmux_2.init();
   // add interrupt handler
-  debug::debug("DigitalPins: adding interrupt handler\r\n");
+  // debug::debug("DigitalPins: adding interrupt handler\r\n");
   // gpio_set_irq_callback(pico_gpio_interrupt_handler_wrapper);
   // // attach dmux interrupts
   // debug::debug("DigitalPins: attaching dmux2 interrupt handler\r\n");
