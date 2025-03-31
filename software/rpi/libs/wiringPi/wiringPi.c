@@ -74,7 +74,6 @@
 #include <sys/utsname.h>
 #include <linux/gpio.h>
 #include <dirent.h>
-
 #include "softPwm.h"
 #include "softTone.h"
 
