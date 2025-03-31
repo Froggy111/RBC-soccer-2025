@@ -10,11 +10,14 @@ enum class SendIdentifiers : types::u8 {
   SPI_FAIL = 3,
   LED_LISTENER_FAIL = 4,
   ICM29048 = 5,
-  DEBUG_TEST_BLINK = 255,
+  PING = 254,
+  BOARD_ID = 255,
 };
 
 enum class RecvIdentifiers : types::u8 {
   LEDs = 0,
+  PING = 253,
+  BOARD_ID = 254,
   DEBUG_TEST_BLINK = 255,
 };
 

@@ -7,10 +7,14 @@ enum class SendIdentifiers : types::u8 {
   COMMS_WARN = 0,  // warnings should be sent here
   COMMS_ERROR = 1, // hard errors sent here
   COMMS_DEBUG = 2, // everything should fall under here by default
+  PING = 254,
+  BOARD_ID = 255,
 };
 
 enum class RecvIdentifiers : types::u8 {
   LEDs = 0,
+  PING = 253,
+  BOARD_ID = 254,
   DEBUG_TEST_BLINK = 255,
 };
 
