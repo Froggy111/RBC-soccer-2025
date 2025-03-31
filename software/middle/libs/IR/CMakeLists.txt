@@ -6,5 +6,5 @@ target_sources(IR
     include/IR.hpp
 )
 target_include_directories(IR PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(IR hardware_timer)
+target_link_libraries(IR hardware_timer hardware_gpio)
 target_link_globals(IR)
