@@ -3,6 +3,7 @@
 #include "processor.hpp"
 #include <cstdio>
 #include <opencv2/opencv.hpp>
+#include "wiringPi.h"
 
 camera::Camera cam;
 camera::CamProcessor processor;

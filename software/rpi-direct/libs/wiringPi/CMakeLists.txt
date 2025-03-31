@@ -1,0 +1,88 @@
+add_library(wiringPi)
+
+target_sources(wiringPi
+    PUBLIC
+        include/ads1115.h
+        include/bmp180.h
+        include/drcNet.h
+        include/drcSerial.h
+        include/ds18b20.h
+        include/htu21d.h
+        include/max31855.h
+        include/max5322.h
+        include/mcp23008.h
+        include/mcp23016.h
+        include/mcp23016reg.h
+        include/mcp23017.h
+        include/mcp23s08.h
+        include/mcp23s17.h
+        include/mcp23x0817.h
+        include/mcp23x08.h
+        include/mcp3002.h
+        include/mcp3004.h
+        include/mcp3422.h
+        include/mcp4802.h
+        include/pcf8574.h
+        include/pcf8591.h
+        include/pseudoPins.h
+        include/rht03.h
+        include/sn3218.h
+        include/softPwm.h
+        include/softServo.h
+        include/softTone.h
+        include/sr595.h
+        include/wiringPi.h
+        include/wiringPiI2C.h
+        include/wiringPiLegacy.h
+        include/wiringPiSPI.h
+        include/wiringSerial.h
+        include/wiringShift.h
+        include/wpiExtensions.h
+    PRIVATE
+        ads1115.c
+        bmp180.c
+        drcNet.c
+        drcSerial.c
+        ds18b20.c
+        htu21d.c
+        max31855.c
+        max5322.c
+        mcp23008.c
+        mcp23016.c
+        mcp23017.c
+        mcp23s08.c
+        mcp23s17.c
+        mcp3002.c
+        mcp3004.c
+        mcp3422.c
+        mcp4802.c
+        pcf8574.c
+        pcf8591.c
+        piHiPri.c
+        piThread.c
+        pseudoPins.c
+        rht03.c
+        sn3218.c
+        softPwm.c
+        softServo.c
+        softTone.c
+        sr595.c
+        wiringPi.c
+        wiringPiI2C.c
+        wiringPiLegacy.c
+        wiringPiSPI.c
+        wiringSerial.c
+        wiringShift.c
+        wpiExtensions.c
+)
+
+target_include_directories(wiringPi
+    PUBLIC
+    $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+)
+
+
+target_compile_features(wiringPi PUBLIC cxx_std_17)

@@ -8,4 +8,4 @@ target_link_libraries(main
 )
 
 
-target_link_libraries(main bbw_camera motion-control)
+target_link_libraries(main bbw_camera motion-control wiringPi)
