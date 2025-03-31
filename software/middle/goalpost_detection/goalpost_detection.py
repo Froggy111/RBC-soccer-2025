@@ -14,17 +14,17 @@ print(
 cap = cv2.VideoCapture(video_path)
 
 BLUE_LOWER = np.array([70, 150, 50])
-BLUE_UPPER = np.array([140, 255, 255])
+BLUE_UPPER = np.array([190, 255, 255])
 YELLOW_LOWER = np.array([20, 100, 100])
 YELLOW_UPPER = np.array([30, 255, 255])
 FIELD_LOWER = np.array([35, 50, 50])
 FIELD_UPPER = np.array([85, 255, 255])
 
-MIN_CONTOUR_AREA = 500  # Decreased to detect smaller goalposts
+MIN_CONTOUR_AREA = 300  # Decreased to detect smaller goalposts
 MIN_GOAL_HEIGHT = 10
 EDGE_SEARCH_HEIGHT = 69
 EPSILON_FACTOR = 0.03  # Increased for more generous approximation
-PARALLELOGRAM_TOLERANCE = 0.3  # Increased tolerance for parallelism
+PARALLELOGRAM_TOLERANCE = 1  # Increased tolerance for parallelism
 
 
 def find_true_bottom_edge(frame, bbox, goal_lower, goal_upper):
@@ -40,7 +40,7 @@ def find_true_bottom_edge(frame, bbox, goal_lower, goal_upper):
 
     vertical_proj = np.sum(goal_mask, axis=1)
 
-    threshold = 0.2 * np.max(vertical_proj) if len(vertical_proj) > 0 else 0
+    threshold = 0.4 * np.max(vertical_proj) if len(vertical_proj) > 0 else 0
     goal_rows = np.where(vertical_proj > threshold)[0]
 
     if len(goal_rows) == 0:
@@ -93,7 +93,7 @@ def detect_parallelogram(contour, epsilon_factor=0.05):  # Increased epsilon
     # Check if it's a quadrilateral (4 points)
     if len(approx) != 4 and len(approx) != 5:
         if DEBUG:
-            #print(f"Skipping shape with {len(approx)} points")
+            # print(f"Skipping shape with {len(approx)} points")
             pass
         return None
 
@@ -270,7 +270,7 @@ while cap.isOpened():
                     )
 
     cv2.imshow("Goal Detection", output)
-    
+
     if cv2.waitKey(25) & 0xFF == ord("q"):
         break
 
