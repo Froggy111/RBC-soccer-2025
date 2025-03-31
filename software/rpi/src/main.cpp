@@ -1,33 +1,62 @@
 #include "camera.hpp"
+#include "motion.hpp"
 #include "processor.hpp"
 #include <cstdio>
 #include <opencv2/opencv.hpp>
+#include "mode_controller.hpp"
+#include "wiringPi.h"
+#include "debug.hpp"
 
 camera::Camera cam;
 camera::CamProcessor processor;
+MotionController motion_controller;
 
-int main() {
+bool start() {
     // Initialize with desired resolution
     if (!cam.initialize(camera::RES_480P)) {
-        fprintf(stderr, "Failed to initialize camera\n");
-        return 1;
+        debug::error("Failed to initialize camera\n");
+        return false;
+    } else {
+        debug::info("Camera Capture Initialized");
     }
 
     // Start capturing with our frame processor
     if (!cam.startCapture(processor.process_frame)) {
-        fprintf(stderr, "Failed to start camera capture\n");
-        return 1;
+        debug::error("Failed to start camera capture\n");
+        return false;
+    } else {
+        debug::info("Camera capture started successfully\n");
     }
 
-    while (true) {
-        // Pos current_pos = processor.current_pos;
-        // std::printf("Current Position: x: %d, y: %d, heading: %.2f\n",
-        //             current_pos.x, current_pos.y, current_pos.heading);
+    motion_controller.startControlThread();
 
-        // // sleep
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
+    return true;
+}
 
-    // Stop capturing
+void stop() {
+    debug::info("Stopping motion controller...\n");
+    motion_controller.stopControlThread();
+    
+    debug::info("Stopping camera capture...\n");
     cam.stopCapture();
+
+    debug::info("Stopping motion control thread...\n");
+    motion_controller.stopControlThread();
+}
+
+int main() {
+    // * wiring PI setup
+    wiringPiSetupGpio();
+
+    // * Mode controller setup
+    mode_controller::init_mode_controller();
+
+    // Main loop with emergency stop check
+    while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    stop();
+    debug::info("EMERGENCY STOP DONE.\n");
+    return 0;
 }

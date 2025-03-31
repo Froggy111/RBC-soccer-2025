@@ -1,17 +1,29 @@
 #pragma once
-#include <tuple>
-#include <queue>
+#include "processor.hpp"
 #include <deque>
+#include <tuple>
+#include <thread>
+#include <atomic>
 
 typedef std::tuple<float, float, float, float> tuple_4;
 typedef std::tuple<float, float> tuple_2;
 
 #define PI 3.14159265358979323846
-#define SLIDING_WINDOW_SIZE 10
+#define VELOCITY_WINDOW_SIZE 10
+#define ROTATION_ERRORS_WINDOW_SIZE 100
 //using namespace std;
 
-class MotionController{
-    public:
+class MotionController {
+  public:
+    // Constructor (if not already defined)
+    MotionController() = default;
+
+    // Destructor to ensure thread cleanup
+    ~MotionController();
+
+    // Thread control methods
+    void startControlThread();
+    void stopControlThread();
 
     //TODO: Implement a queue system: For each position, move the bot to that position.
     //      When within a certain distance from point, go to next one
@@ -25,10 +37,15 @@ class MotionController{
     float expected_velocity = 0.0;
     float expected_direction = 0.0;
 
-    void init(float kp, float ki, float kd);
+    
+
+    void init(float rotation_kp, float rotation_ki, float rotation_kd, float velocity_kp, float velocity_ki, float velocity_kd);
 
     //normalize -> map a given angle to a range [-PI, PI] in radians
     float normalize_angle(float angle);
+
+    //rotation_matrix -> given a vector in its x and y components, resolve it to axes rotated by <angle>
+    std::tuple<float, float> rotation_matrix(std::tuple<float, float> vec, float angle);
 
     //map_angle -> map a angle to [-1, 1]
     float map_angle(float angle);
@@ -39,7 +56,7 @@ class MotionController{
 
     //pid_output -> Given the current heading, target heading, target direction and speed
     //              return the motor speeds to reach the target direction
-    std::tuple<float, float, float, float> pid_output(float current_heading, float target_heading, float target_direction, float speed);
+    std::tuple<float, float, float, float> velocity_pid(float current_heading, float target_heading, float target_direction, float speed);
     
 
     //position_pid -> Give the current position, target position, speed, do PID on it (using the pid_output function)
@@ -76,41 +93,54 @@ class MotionController{
     //                maintaining the bot's heading
     std::tuple<float, float, float, float> move_heading(float current_direction, float bearing, float speed);
 
-
-    private:
-    //Constants we prolly need to tune
-
-    //Probably useless for now
-    //Velocity PID Valuews
-    float velocity_Kp = 2.0;
-    float velocity_Ki = 1.0;
-    float velocity_Kd = 0.0;
+  private:
+    // Thread control
+    std::thread controlThread;
+    std::atomic<bool> controlThreadRunning{false};
+    camera::CamProcessor _processor;
     
+    // Thread worker function
+    void controlThreadWorker();
+    
+    //Velocity PID Values, used for controlling velocity
+    float velocity_Kp = 2.0; //TODO: NEED TO TUNE
+    float velocity_Ki = 1.0; //TODO: NEED TO TUNE
+    float velocity_Kd = 0.0; //TODO: NEED TO TUNE
+
+    //Rotation PID Values, used for heading adjustment
+    float rotation_Kp = 0.16; //TODO: NEED TO TUNE
+    float rotation_Ki = 0.08; //TODO: NEED TO TUNE
+    float rotation_Kd = 0.0; //TODO: NEED TO TUNE
+
+    //Sliding Window of errors in the x and y components of velocity
     std::deque<float> velocity_x_errors = std::deque<float>(50, 0.0);
     std::deque<float> velocity_y_errors = std::deque<float>(50, 0.0);
 
-    std::deque<float> x_velocities = std::deque<float>(SLIDING_WINDOW_SIZE, 0.0);
-    std::deque<float> y_velocities = std::deque<float>(SLIDING_WINDOW_SIZE, 0.0);
+    //Sliding Window of errors in rotation
+    std::deque<float> rotation_errors = std::deque<float>(ROTATION_ERRORS_WINDOW_SIZE, 0.0);
 
+    //Sliding Window of masured velocities
+    std::deque<float> x_velocities = std::deque<float>(VELOCITY_WINDOW_SIZE, 0.0);
+    std::deque<float> y_velocities = std::deque<float>(VELOCITY_WINDOW_SIZE, 0.0);
+
+    //Integrals (sum) for errors in x and y components of velocity
     float velocity_x_integral = 0.0;
     float velocity_y_integral = 0.0;
 
+    //Sum of velocites (in x and y components)
     float sum_x_velocities = 0.0;
     float sum_y_velocities = 0.0;
 
+    //Average of veocities (in x and y components)
     float average_x_velocities = 0.0;
     float average_y_velocities = 0.0;
 
-    //Rotation PID Values, used for heading adjustment
-    float rotation_Kp = 1.0; //TODO: NEED TO TUNE
-    float rotation_Ki = 0.0; //TODO: NEED TO TUNE
-    float rotation_Kd = 0.0; //TODO: NEED TO TUNE
-
+    //Rotation integral and last error in rotation
     float rotation_integral = 0;
     float last_rotation_error = 0;
 
+
     //Factor to multiply position values by, so that at max speed, the change between last
     //and first is approx. 1
-
     float position_factor = 1.0; //TODO: NEED TO TUNE
 };
