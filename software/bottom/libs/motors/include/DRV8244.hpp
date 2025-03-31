@@ -160,6 +160,14 @@ public:
    * @return false 
    */
   bool set_OCP(OCP::OCP ocp);
+
+  /**
+   * @brief Clear the fault from the motor
+   * 
+   * @return true 
+   * @return false 
+   */
+  bool clear_fault();
 };
 
 }

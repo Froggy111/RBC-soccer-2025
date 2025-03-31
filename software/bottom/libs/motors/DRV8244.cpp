@@ -157,9 +157,9 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   if ((rx_data & 0x3F00) != 0x0000) {
     comms::USB_CDC.printf(
         "SPI Write - Error: Fault summary bytes indicating error, %d\r\n",
-        rx_data & 0x3F00);
+        rx_data);
     // get fault register
-    types::u8 fault = read8(0x01);
+    types::u8 fault = read8(FAULT_SUMMARY_REG);
 
     if (fault == 0) {
       comms::USB_CDC.printf(
@@ -217,7 +217,7 @@ uint8_t MotorDriver::read8(uint8_t reg) {
   if ((rx_data & 0x3F00) != 0x0000) {
     comms::USB_CDC.printf(
         "SPI Write - Error: Fault summary bytes indicating error, %d\r\n",
-        rx_data & 0x3F00);
+        rx_data);
     // get fault register
     types::u8 fault = read8(FAULT_SUMMARY_REG);
 
@@ -265,6 +265,7 @@ bool MotorDriver::init_registers() {
     comms::USB_CDC.printf("Error: Could not write to CONFIG4 register\r\n");
     return false;
   }
+
   return true;
 }
 
@@ -430,5 +431,9 @@ bool MotorDriver::set_OCP(OCP::OCP current_limit) {
   uint8_t config4_reg = read8(CONFIG4_REG);
   config4_reg |= ((uint8_t)current_limit) << 3;
   return write8(CONFIG4_REG, config4_reg);
+}
+
+bool MotorDriver::clear_fault() {
+  return write8(COMMAND_REG, COMMAND_REG_RESET, COMMAND_REG_EXPECTED);
 }
 } // namespace driver
