@@ -1,108 +1,88 @@
 #include "pins/MCP23S17.hpp"
-#include "debug.hpp"
 #include "pinmap.hpp"
 #include "types.hpp"
+#include <pico/types.h>
 #include "comms.hpp"
 
 extern "C" {
 #include <hardware/spi.h>
 #include <hardware/gpio.h>
 #include <pico/stdlib.h>
-#include <hardware/timer.h>
-#include <pico/types.h>
 #include <pico/time.h>
 }
 
-using namespace types;
-
-namespace pins {
+// addresses of the MCP23S17
+#define ADDRESS_1 0b000
+#define ADDRESS_2 0b001
 
 // default values for pins
-const u8 DEFAULT_CS = 1; // CS high by default
+#define DEFAULT_CS 1 // CS high by default
 
 // register addresses (we default to BANK = 0)
-const u8 IODIRA = 0x00;
-const u8 IODIRB = 0x01;
-const u8 IPOLA = 0x02; // NOT USING
-const u8 IPOLB = 0x03; // NOT USING
-const u8 GPINTENA = 0x04;
-const u8 GPINTENB = 0x05;
-const u8 DEFVALA = 0x06;
-const u8 DEFVALB = 0x07;
-const u8 INTCONA = 0x08;
-const u8 INTCONB = 0x09;
-const u8 IOCON = 0x0A;
-const u8 GPPUA = 0x0C;
-const u8 GPPUB = 0x0D;
-const u8 INTFA = 0x0E;
-const u8 INTFB = 0x0F;
-const u8 INTCAPA = 0x10;
-const u8 INTCAPB = 0x11;
-const u8 GPIOA = 0x12;
-const u8 GPIOB = 0x13;
-const u8 OLATA = 0x14;
-const u8 OLATB = 0x15;
+#define IODIRA 0x00
+#define IODIRB 0x01
+#define IPOLA 0x02 // NOT USING
+#define IPOLB 0x03 // NOT USING
+#define GPINTENA 0x04
+#define GPINTENB 0x05
+#define DEFVALA 0x06
+#define DEFVALB 0x07
+#define INTCONA 0x08
+#define INTCONB 0x09
+#define IOCON 0x0A
+#define GPPUA 0x0C
+#define GPPUB 0x0D
+#define INTFA 0x0E
+#define INTFB 0x0F
+#define INTCAPA 0x10
+#define INTCAPB 0x11
+#define GPIOA 0x12
+#define GPIOB 0x13
+#define OLATA 0x14
+#define OLATB 0x15
 
 // register defaults
-const u8 IOCON_DEFAULT = 0b00001000;
+#define IOCON_DEFAULT 0b00001000
 
 // spi masks
-const u8 SPI_CMD_DEFAULT = 0b01000000;
+#define SPI_CMD_DEFAULT 0b01000000
 
-const u16 INTERRUPT_TASK_STACK_SIZE = 256;
-const u8 INTERRUPT_TASK_PRIORITY = 12;
+bool MCP23S17::initialized[2] = {false, false};
 
-MCP23S17::MCP23S17(u8 SCLK, u8 MISO, u8 MOSI, u8 SCS, u8 RESET, u8 address,
-                   bool int_from_isr, spi_inst_t *spi_obj) {
-  _spi_obj = spi_obj;
-  memset(_pin_state, 0, sizeof(_pin_state));
-  // prevent multiple init
-  if (_initialised) {
+void MCP23S17::init(types::u8 device_id, spi_inst_t *spi_obj_touse) {
+  if (device_id != 1 && device_id != 2) {
+    comms::USB_CDC.printf("Error: Invalid device ID\r\n");
     return;
   }
 
-  _SCLK = SCLK;
-  _MISO = MISO;
-  _MOSI = MOSI;
-  _SCS = SCS;
-  _RESET = RESET;
-  _address = address;
-  _int_from_isr = int_from_isr;
-}
+  id = device_id;
+  spi_obj = spi_obj_touse;
+  memset(pin_state, 0, sizeof(pin_state));
+  if (initialized[device_id - 1]) {
+    return;
+  }
+  initialized[device_id - 1] = true;
 
-void MCP23S17::init() {
-  debug::debug("-> Initializing MCP23S17 with address %u\r\n", _address);
+  comms::USB_CDC.printf("-> Initializing MCP23S17\r\n");
 
   // init gpio pins
-  debug::debug("Initializing pins\r\n");
+  comms::USB_CDC.printf("Initializing pins\r\n");
   init_pins();
 
   // reset using the reset pin
   reset();
 
   // init spi
-  debug::debug("Initializing SPI\r\n");
+  comms::USB_CDC.printf("Initializing SPI\r\n");
   init_spi();
-
-  // // set interrupt condition to INTPOL
-  // write8(IOCON, 0b00000010, 0b00000010);
-  // // set active drive for interrupt
-  // write8(IOCON, 0b00000000, 0b00000100);
-  // // set interrupts to all go to INTA
-  // write8(IOCON, 0b01000000, 0b01000000);
-
-  // create interrupt handling task
-  // debug::debug("Creating interrupt handling task\r\n");
-  // xTaskCreate(interrupt_handler_task, "MCP23S17 interrupt handling task",
-  //             INTERRUPT_TASK_STACK_SIZE, this, INTERRUPT_TASK_PRIORITY,
-  //             &interrupt_handler_task_handle);
-  return;
 }
 
 void MCP23S17::init_pins() {
   // Initialize RESET
-  gpio_init(_RESET);
-  gpio_set_dir(_RESET, GPIO_OUT);
+  gpio_init((uint)pinmap::Pico::DMUX_RESET);
+  gpio_set_dir((uint)pinmap::Pico::DMUX_RESET, GPIO_OUT);
+
+  // TODO: initialize INTA
 }
 
 void MCP23S17::init_spi() {
@@ -114,46 +94,44 @@ void MCP23S17::init_spi() {
   write8(0, IOCON, IOCON_DEFAULT);
 }
 
-void MCP23S17::write8(u8 reg_address, u8 data, u8 mask) {
+void MCP23S17::write8(uint8_t device_address, uint8_t reg_address, uint8_t data,
+                      uint8_t mask) {
   configure_spi();
-  u8 current = read8(reg_address);
-  u8 tx_data[3] = {(u8)(SPI_CMD_DEFAULT | (_address << 1)), reg_address,
-                   (u8)((current & ~mask) | (data & mask))};
+  uint8_t current = read8(device_address, reg_address);
+  uint8_t tx_data[3] = {(uint8_t)(SPI_CMD_DEFAULT | (device_address << 1)),
+                        reg_address,
+                        (uint8_t)((current & ~mask) | (data & mask))};
 
   gpio_put((uint)pinmap::Pico::DMUX_SCS, 0);
-  spi_write_blocking(_spi_obj, tx_data, 3);
+  spi_write_blocking(spi_obj, tx_data, 3);
   gpio_put((uint)pinmap::Pico::DMUX_SCS, 1);
 
   // read register and check if it was written
-  u8 res = read8(reg_address);
-  // for (u8 i = 0; i < 3; i++) {
-  //   for (u8 j = 7; j >= 0; j--) {
-  //     comms::USB_CDC.printf("%u", (tx_data[i] >> j) & 1);
-  //   }
-  //   debug::debug(" ");
-  // }
+  uint8_t res = read8(device_address, reg_address);
   if (res != tx_data[2]) {
     // print tx_data in binary
-    for (u8 i = 0; i < 3; i++) {
-      for (u8 j = 7; j >= 0; j--) {
-        debug::debug("%u", (tx_data[i] >> j) & 1);
+    for (int i = 0; i < 3; i++) {
+      for (int j = 7; j >= 0; j--) {
+        comms::USB_CDC.printf("%d", (tx_data[i] >> j) & 1);
       }
-      debug::debug(" ");
+      comms::USB_CDC.printf(" ");
     }
-    debug::error("MCP23S17 write8 to register failed. Expected %u, got %u\r\n",
-                 tx_data[2], res);
+    comms::USB_CDC.printf(
+        "ERROR: MCP23S17 write8 to register failed. Expected %d, got %d\r\n",
+        tx_data[2], res);
   }
 }
 
-u8 MCP23S17::read8(u8 reg_address) {
+uint8_t MCP23S17::read8(uint8_t device_address, uint8_t reg_address) {
   configure_spi();
-  u8 tx_data[2] = {(u8)(SPI_CMD_DEFAULT | (_address << 1) | 0b1), reg_address};
+  uint8_t tx_data[2] = {
+      (uint8_t)(SPI_CMD_DEFAULT | (device_address << 1) | 0b1), reg_address};
 
-  u8 rx_data;
+  uint8_t rx_data;
 
   gpio_put((uint)pinmap::Pico::DMUX_SCS, 0);
-  spi_write_blocking(_spi_obj, tx_data, 2);
-  spi_read_blocking(_spi_obj, 0xFF, &rx_data, 1);
+  spi_write_blocking(spi_obj, tx_data, 2);
+  spi_read_blocking(spi_obj, 0xFF, &rx_data, 1);
   gpio_put((uint)pinmap::Pico::DMUX_SCS, 1);
 
   return rx_data;
@@ -161,268 +139,90 @@ u8 MCP23S17::read8(u8 reg_address) {
 
 void MCP23S17::configure_spi() {
   // Initialize SPI pins (except CS)
-  gpio_set_function(_SCLK, GPIO_FUNC_SPI);
-  gpio_set_function(_MOSI, GPIO_FUNC_SPI);
-  gpio_set_function(_MISO, GPIO_FUNC_SPI);
+  gpio_set_function((uint)pinmap::Pico::SPI0_SCLK, GPIO_FUNC_SPI);
+  gpio_set_function((uint)pinmap::Pico::SPI0_MOSI, GPIO_FUNC_SPI);
+  gpio_set_function((uint)pinmap::Pico::SPI0_MISO, GPIO_FUNC_SPI);
 
   // Initialize CS pin as GPIO
-  gpio_init(_SCS);
-  gpio_set_dir(_SCS, GPIO_OUT);
-  gpio_put(_SCS, DEFAULT_CS);
+  gpio_init((uint)pinmap::Pico::DMUX_SCS);
+  gpio_set_dir((uint)pinmap::Pico::DMUX_SCS, GPIO_OUT);
+  gpio_put((uint)pinmap::Pico::DMUX_SCS, DEFAULT_CS);
 
   // Set SPI format
-  spi_set_format(_spi_obj, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+  spi_set_format(spi_obj, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 }
 
 void MCP23S17::reset() {
-  gpio_put(_RESET, 0);
+  gpio_put((uint)pinmap::Pico::DMUX_RESET, 0);
   sleep_ms(1);
-  gpio_put(_RESET, 1);
+  gpio_put((uint)pinmap::Pico::DMUX_RESET, 1);
 }
 
-void MCP23S17::set_pin_mode(u8 pin, bool on_A, DigitalPinMode pinmode) {
+void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
   if (pin < 0 || pin > 7) {
-    debug::error("Error: Invalid pin number: %u\r\n", pin);
+    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
     return;
   }
 
-  switch (pinmode) {
-  case DigitalPinMode::INPUT:
-    write8(on_A ? IODIRA : IODIRB, 1 << pin, 0b1 << pin);
-    write8(on_A ? GPPUA : GPPUB, 0 << pin, 0b1 << pin); // dont pullup
-    _pin_state[pin + (on_A ? 0 : 8)] = 1;               // input
-    break;
-  case DigitalPinMode::INPUT_PULLUP:
-    write8(on_A ? IODIRA : IODIRB, 1 << pin, 0b1 << pin);
-    write8(on_A ? GPPUA : GPPUB, 1 << pin, 0b1 << pin); // pullup
-    _pin_state[pin + (on_A ? 0 : 8)] = 1;               // input
-    break;
-  case DigitalPinMode::OUTPUT:
-    write8(on_A ? IODIRA : IODIRB, 0 << pin, 0b1 << pin);
-    _pin_state[pin + (on_A ? 0 : 8)] = 0; // output
-    break;
-  }
+  // configure direction
+  write8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? IODIRA : IODIRB,
+         !is_output << pin, 0b1 << pin);
+
+  pin_state[pin + (on_A ? 0 : 8)] = is_output;
 }
 
-void MCP23S17::write(u8 pin, bool on_A, bool value) {
+void MCP23S17::write_gpio(uint8_t pin, bool on_A, bool value) {
   if (pin < 0 || pin > 7) {
-    debug::error("Error: Invalid pin number: %u\r\n", pin);
+    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
     return;
   }
 
-  if (_pin_state[pin + (on_A ? 0 : 8)] != 0) {
-    debug::error("Error: Pin %u on_A %u is not configured as output\r\n", pin,
-                 on_A);
+  if (pin_state[pin + (on_A ? 0 : 8)] != 1) {
+    comms::USB_CDC.printf(
+        "Error: Pin %d ID %d on_A %d is not configured as output\r\n", pin, id,
+        on_A);
     return;
   }
 
   // write to the pin
-  write8(on_A ? GPIOA : GPIOB, value << pin, 0b1 << pin);
+  write8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? GPIOA : GPIOB, value << pin,
+         0b1 << pin);
 
-  debug::debug(
-      "MCP23S17 address %u wrote to pin %u on bus %u with value %u\r\n",
-      _address, pin, on_A, value);
+  // comms::USB_CDC.printf("Driver ID: %d, A: %d, Wrote to pin %d with value %d\r\n", id, on_A, pin, value);
 
   // check that OUTPUT_LATCH has the written bit
-  u8 res = read8(on_A ? OLATA : OLATB);
+  uint8_t res = read8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? OLATA : OLATB);
 
   if ((res & (1 << pin)) != (value << pin)) {
-    debug::error(
-        "ERROR: Write to MCP23S17 GPIO failed. Expected %u, got %u\r\n",
+    comms::USB_CDC.printf(
+        "ERROR: Write to MCP23S17 GPIO failed. Expected %d, got %d\r\n",
         value << pin, res);
   }
 }
 
-bool MCP23S17::read(u8 pin, bool on_A) {
+bool MCP23S17::read_gpio(uint8_t pin, bool on_A) {
   if (pin < 0 || pin > 7) {
-    debug::error("Error: Invalid pin number: %u\r\n", pin);
+    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
     return false;
   }
 
-  if (_pin_state[pin + (on_A ? 0 : 8)] != 1) {
-    debug::error("Error: Pin %u ID %u on_A %u is not configured as input\r\n",
-                 pin, on_A);
+  if (pin_state[pin + (on_A ? 0 : 8)] != 0) {
+    comms::USB_CDC.printf(
+        "Error: Pin %d ID %d on_A %d is not configured as input\r\n", pin, id,
+        on_A);
     return false;
   }
 
   // read the pin
-  uint8_t res = read8(on_A ? GPIOA : GPIOB) & (1 << pin);
-  debug::debug("MCP23S17 address %u read pin %u on bus %u with value %u\r\n",
-               _address, pin, on_A, res);
-  return res;
+  return read8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? GPIOA : GPIOB) &
+         (1 << pin);
 }
 
-// bool MCP23S17::attach_interrupt(u8 pin, bool on_A,
-//                                 DigitalPinInterrupt interrupt_fn,
-//                                 DigitalPinInterruptState interrupt_state,
-//                                 void *interrupt_fn_params) {
-//   if (pin < 0 || pin > 7) {
-//     comms::USB_CDC.printf("Error: Invalid pin number: %u\r\n", pin);
-//     return false;
-//   }
-//   if (_pin_state[pin + (on_A ? 0 : 8)] != 1) {
-//     comms::USB_CDC.printf(
-//         "Error: Pin %u ID %u on_A %u is not configured as input\r\n", pin,
-//         on_A);
-//     return false;
-//   }
-//
-//   // configure interrupt condition
-//   // disable interrupt on that pin first
-//   write8(on_A ? GPINTENA : GPINTENB, 0 << pin, 0b1 << pin);
-//   switch (interrupt_state) {
-//   case DigitalPinInterruptState::EDGE_FALL:
-//     // default value high, interrupt on change
-//     write8(on_A ? DEFVALA : DEFVALB, 1 << pin, 0b1 << pin);
-//     write8(on_A ? INTCONA : INTCONB, 0 << pin, 0b1 << pin);
-//     _interrupt_states[pin + (on_A ? 0 : 8)] =
-//         DigitalPinInterruptState::EDGE_FALL;
-//     break;
-//   case DigitalPinInterruptState::EDGE_RISE:
-//     // default value high, interrupt on change
-//     write8(on_A ? DEFVALA : DEFVALB, 1 << pin, 0b1 << pin);
-//     write8(on_A ? INTCONA : INTCONB, 0 << pin, 0b1 << pin);
-//     _interrupt_states[pin + (on_A ? 0 : 8)] =
-//         DigitalPinInterruptState::EDGE_RISE;
-//     break;
-//   case DigitalPinInterruptState::LEVEL_HIGH:
-//     // default value high, interrupt on change
-//     write8(on_A ? DEFVALA : DEFVALB, 0 << pin, 0b1 << pin);
-//     write8(on_A ? INTCONA : INTCONB, 1 << pin, 0b1 << pin);
-//     _interrupt_states[pin + (on_A ? 0 : 8)] =
-//         DigitalPinInterruptState::LEVEL_HIGH;
-//     break;
-//   case DigitalPinInterruptState::LEVEL_LOW:
-//     // default value high, interrupt on change
-//     write8(on_A ? DEFVALA : DEFVALB, 1 << pin, 0b1 << pin);
-//     write8(on_A ? INTCONA : INTCONB, 1 << pin, 0b1 << pin);
-//     _interrupt_states[pin + (on_A ? 0 : 8)] =
-//         DigitalPinInterruptState::LEVEL_LOW;
-//     break;
-//   }
-//   _interrupt_handlers[pin + (on_A ? 0 : 8)] = interrupt_fn;
-//   // enable interrupt on that pin
-//   write8(on_A ? GPINTENA : GPINTENB, 1 << pin, 0b1 << pin);
-//   return true;
-// }
-//
-// void MCP23S17::detach_interrupt(u8 pin, bool on_A) {
-//   disable_interrupt(pin, on_A);
-//   _interrupt_handlers[pin + (on_A ? 0 : 8)] = nullptr;
-// }
-//
-// void MCP23S17::disable_interrupt(u8 pin, bool on_A) {
-//   write8(on_A ? GPINTENA : GPINTENB, 0 << pin, 0b1 << pin);
-// }
-//
-// void MCP23S17::enable_interrupt(u8 pin, bool on_A) {
-//   write8(on_A ? GPINTENA : GPINTENB, 1 << pin, 0b1 << pin);
-// }
-//
-// void MCP23S17::interrupt_handler(void *params) {
-//   if (_int_from_isr) {
-//     BaseType_t higher_priority_task_woken;
-//     xTaskNotifyFromISR(interrupt_handler_task_handle, 0, eNoAction,
-//                        &higher_priority_task_woken);
-//     portYIELD_FROM_ISR(higher_priority_task_woken);
-//   } else {
-//     xTaskNotify(interrupt_handler_task_handle, 0, eNoAction);
-//   }
-// }
-//
-// void MCP23S17::interrupt_handler_task(void *params) {
-//   MCP23S17 *_this = (MCP23S17 *)params;
-//   for (;;) {
-//     ulTaskNotifyTake(
-//         pdTRUE, portMAX_DELAY); // block until notified by interrupt handler
-//     // read INTFA and INTFB
-//     u8 int_flags_a = _this->read8(INTFA);
-//     u8 int_flags_b = _this->read8(INTFB);
-//     u8 int_cap_a = _this->read8(INTCAPA);
-//     u8 int_cap_b = _this->read8(INTCAPB);
-//
-//     // see which pins caused interrupt
-//     // bus A
-//     if (int_flags_a) {
-//       for (u8 pin = 0; pin < 8; pin++) {
-//         if (!_this->_interrupt_handlers[pin]) {
-//           // complain (very loudly)
-//           debug::fatal("interrupt on pin %u without handler attached in \
-// MCP23S17 with address %u\r\n",
-//                        pin, _this->_address);
-//           continue; // handle gracefully
-//         }
-//         u8 pin_mask = (1 << pin);
-//         if (int_flags_a & pin_mask) { // pin flagged
-//           // check if int_cap has the same trigger condition as attached
-//           bool pin_state = int_cap_a & pin_mask;
-//           switch (_this->_interrupt_states[pin]) {
-//           case DigitalPinInterruptState::LEVEL_HIGH:
-//             if (pin_state) {
-//               _this->_interrupt_handlers[pin](
-//                   _this->_interrupt_handler_args[pin]);
-//             }
-//             break;
-//           case DigitalPinInterruptState::LEVEL_LOW:
-//             if (!pin_state) {
-//               _this->_interrupt_handlers[pin](
-//                   _this->_interrupt_handler_args[pin]);
-//             }
-//             break;
-//           case DigitalPinInterruptState::EDGE_RISE:
-//             if (pin_state) {
-//               _this->_interrupt_handlers[pin](
-//                   _this->_interrupt_handler_args[pin]);
-//             }
-//             break;
-//           case DigitalPinInterruptState::EDGE_FALL:
-//             if (!pin_state) {
-//               _this->_interrupt_handlers[pin](
-//                   _this->_interrupt_handler_args[pin]);
-//             }
-//             break;
-//           }
-//         }
-//       }
-//     }
-//
-//     // bus B
-//     if (int_flags_b) {
-//       for (u8 pin = 0; pin < 8; pin++) {
-//         u8 pin_mask = (1 << pin);
-//         if (int_flags_b & pin_mask) { // pin flagged
-//           // check if int_cap has the same trigger condition as attached
-//           bool pin_state = int_cap_a & pin_mask;
-//           switch (_this->_interrupt_states[pin + 8]) {
-//           case DigitalPinInterruptState::LEVEL_HIGH:
-//             if (pin_state) {
-//               _this->_interrupt_handlers[pin + 8](
-//                   _this->_interrupt_handler_args[pin + 8]);
-//             }
-//             break;
-//           case DigitalPinInterruptState::LEVEL_LOW:
-//             if (!pin_state) {
-//               _this->_interrupt_handlers[pin + 8](
-//                   _this->_interrupt_handler_args[pin + 8]);
-//             }
-//             break;
-//           case DigitalPinInterruptState::EDGE_RISE:
-//             if (pin_state) {
-//               _this->_interrupt_handlers[pin + 8](
-//                   _this->_interrupt_handler_args[pin + 8]);
-//             }
-//             break;
-//           case DigitalPinInterruptState::EDGE_FALL:
-//             if (!pin_state) {
-//               _this->_interrupt_handlers[pin + 8](
-//                   _this->_interrupt_handler_args[pin + 8]);
-//             }
-//             break;
-//           }
-//         }
-//       }
-//     }
-//   }
-// }
+void MCP23S17::pullup_gpio(uint8_t pin, bool on_A) {
+  if (pin < 0 || pin > 7) {
+    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
+  }
 
-} // namespace pins
+  write8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? GPPUA : GPPUB, 1 << pin,
+         0b1 << pin);
+}
