@@ -108,9 +108,30 @@ COPY --chown=develop:develop install-scripts/libcamera.sh .
 RUN chmod +x libcamera.sh && ./libcamera.sh
 
 # ---------------------------------------------------------------------------
+# Stage: GPIO Build
+# ---------------------------------------------------------------------------
+FROM libcamera-build AS gpio-build
+
+# Install build dependencies for GPIO
+RUN sudo apt-get update && sudo apt-get install -y \
+    autoconf \
+    automake \
+    libtool \
+    autoconf-archive \
+    && sudo rm -rf /var/lib/apt/lists/*
+
+# Ensure sysroot and staging areas are available
+COPY --from=libcamera-build --chown=develop ${RPI_STAGING} ${RPI_STAGING}
+COPY --from=libcamera-build --chown=develop ${RPI_SYSROOT} ${RPI_SYSROOT}
+
+# Build GPIO library
+COPY --chown=develop:develop install-scripts/gpio.sh .
+RUN chmod +x gpio.sh && ./gpio.sh
+
+# ---------------------------------------------------------------------------
 # Stage: OpenCV Build
 # ---------------------------------------------------------------------------
-FROM libcamera-build AS opencv-build
+FROM gpio-build AS opencv-build
 
 # Ensure sysroot and staging areas are available
 COPY --from=video-build --chown=develop ${RPI_STAGING} ${RPI_STAGING}

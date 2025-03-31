@@ -52,8 +52,8 @@ void ParticleFilter::predict(double std_dev_pos, double std_dev_camera, double s
             //p.x += x_change;
             //p.y += y_change;
             
-            p.x += (x_change)*(std::sin(M_PI/2 - (p.theta + M_PI/2))) + (y_change)*(std::sin(M_PI/2 - p.theta));
-            p.y += (x_change)*(std::cos(M_PI/2 - (p.theta + M_PI/2))) + (y_change)*(std::cos(M_PI/2 - p.theta));
+            p.x += (x_change)*(std::sin((p.theta + M_PI/2))) + (y_change)*(std::sin(p.theta));
+            p.y += (x_change)*(std::cos((p.theta + M_PI/2))) + (y_change)*(std::cos(p.theta));
             p.theta += theta_changes[i];
             //std::cout << theta_changes[i] << '\n';
             if(meas_x != 10000){
@@ -258,3 +258,4 @@ Particle ParticleFilter::estimate_position(){
 
     return {x_est, y_est, theta_est, 1.0};
 }
+
