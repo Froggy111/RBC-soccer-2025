@@ -6,10 +6,10 @@ import time
 
 DEBUG = True
 
-video_path = "RBC-soccer-2025/software/middle/goalpost_detection/vid.mp4"
+video_path = "RBC-soccer-2025/software/rpi-direct/libs/camera/scripts/vid.mp4"
 print(
     "file exists? "
-    + str(os.path.exists("RBC-soccer-2025/software/middle/goalpost_detection/vid.mp4"))
+    + str(os.path.exists("RBC-soccer-2025/software/rpi-direct/libs/camera/scripts/vid.mp4"))
 )
 cap = cv2.VideoCapture(video_path)
 
@@ -328,6 +328,14 @@ def combine_goalpost_parts(contours, min_area):
         return significant_contours[0]
     return None
 
+def find_quad_midpoint(quad_points):
+    total_x = 0.0
+    total_y = 0.0
+    for i in range(4):
+        total_x += quad_points[i][0]
+        total_y += quad_points[i][1]
+
+    return [total_x/4, total_y/4]
 
 # Main loop
 while cap.isOpened():
@@ -413,9 +421,12 @@ while cap.isOpened():
             blue_quad, bottom_edge_y, frame.shape[0]
         )
         nearest_x, nearest_y = nearest_point.astype(int)
-
+        blue_midpoint = find_quad_midpoint(blue_quad)
+        print(blue_midpoint)
         # Draw the nearest field point
         cv2.circle(output, (nearest_x, nearest_y), 5, (255, 255, 0), -1)
+        cv2.circle(output, (blue_midpoint[0].astype(int), blue_midpoint[1].astype(int)), 5, (255, 255, 255), -1)
+
         cv2.line(
             output,
             (nearest_x - 10, nearest_y),
@@ -430,6 +441,15 @@ while cap.isOpened():
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,
             (255, 255, 0),
+            1,
+        )
+        cv2.putText(
+            output,
+            f"({blue_midpoint[0].astype(int)},{blue_midpoint[1].astype(int)})",
+            (blue_midpoint[0].astype(int) - 40, blue_midpoint[1].astype(int) - 10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (255, 255, 255),
             1,
         )
 
@@ -481,10 +501,12 @@ while cap.isOpened():
         nearest_point = find_nearest_field_point(
             yellow_quad, bottom_edge_y, frame.shape[0]
         )
+        yellow_midpoint = find_quad_midpoint(yellow_quad)
         nearest_x, nearest_y = nearest_point.astype(int)
 
         # Draw the nearest field point
         cv2.circle(output, (nearest_x, nearest_y), 5, (0, 255, 255), -1)
+        cv2.circle(output, (yellow_midpoint[0].astype(int), yellow_midpoint[1].astype(int)), 5, (255, 255, 255), -1)
         cv2.line(
             output,
             (nearest_x - 10, nearest_y),
@@ -499,6 +521,15 @@ while cap.isOpened():
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,
             (0, 255, 255),
+            1,
+        )
+        cv2.putText(
+            output,
+            f"({yellow_midpoint[0].astype(int)},{yellow_midpoint[1].astype(int)})",
+            (yellow_midpoint[0].astype(int) - 40, yellow_midpoint[1].astype(int) - 10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (255, 255, 255),
             1,
         )
 
