@@ -1,16 +1,16 @@
+#include <cstdint>
 extern "C" {
 #include <hardware/spi.h>
 #include <pico/time.h>
 #include <hardware/gpio.h>
 #include <hardware/timer.h>
 #include <pico/stdlib.h>
+#include "comms.hpp"
 }
 #include "PMW3360.hpp"
 #include "types.hpp"
 #include "pin_selector.hpp"
 #include "srom_firmware.hpp"
-#include "pinmap.hpp"
-#include "comms.hpp"
 
 #define DEFAULT_CS 1 // CS high by default
 
@@ -96,49 +96,30 @@ extern "C" {
 #define FAULT_SUMMARY_REG 0x01
 
 namespace mouse {
-bool MouseSensor::dmux_init[2] = {false, false};
-MCP23S17 MouseSensor::dmux1;
-MCP23S17 MouseSensor::dmux2;
-
 bool MouseSensor::init(int id, spi_inst_t *spi_obj_touse) {
   pins.set_mouse_sensor_id(id);
-  _id = id;
-
-  // * init DMUX
-  dmux1.init(1, spi0);
-  dmux2.init(2, spi0);
 
   // * init SPI
-  spi_obj = spi_obj_touse;
   // Initialize SPI pins (except CS)
   gpio_set_function(pins.get_pin(SCLK), GPIO_FUNC_SPI);
   gpio_set_function(pins.get_pin(MOSI), GPIO_FUNC_SPI);
   gpio_set_function(pins.get_pin(MISO), GPIO_FUNC_SPI);
 
+  // Set SPI Object
+  spi_obj = spi_obj_touse;
+
   // Initialize CS pin as GPIO
-  if (_id == 0) {
-    gpio_init((uint)pinmap::Pico::MOUSE1_SCS);
-    gpio_set_dir((uint)pinmap::Pico::MOUSE1_SCS, GPIO_OUT);
-    gpio_put((uint)pinmap::Pico::MOUSE1_SCS, DEFAULT_CS);
-  } else {
-    gpio_init((uint)pinmap::Pico::MOUSE2_SCS);
-    gpio_set_dir((uint)pinmap::Pico::MOUSE2_SCS, GPIO_OUT);
-    gpio_put((uint)pinmap::Pico::MOUSE2_SCS, DEFAULT_CS);
-  }
+  inputControl.init_digital(pins.get_pin(CS), DEFAULT_CS);
 
   // Set SPI format
   spi_set_format(spi_obj, 8, SPI_CPOL_1, SPI_CPHA_1, SPI_MSB_FIRST);
 
   // * init the rest
   init_pins();
-
   if (!init_registers()) {
-    comms::USB_CDC.printf("Failed to init registers\r\n");
     return false;
   }
-
   if (!init_srom()) {
-    comms::USB_CDC.printf("Failed to init SROM\r\n");
     return false;
   }
 
@@ -146,31 +127,24 @@ bool MouseSensor::init(int id, spi_inst_t *spi_obj_touse) {
 }
 
 void MouseSensor::init_pins() {
-  if (_id == 1) {
-    dmux1.init_gpio((uint)pinmap::Mux1A::MOUSE1_MOT, true, false);
-    dmux1.init_gpio((uint)pinmap::Mux1A::MOUSE1_RST, true, true);
-    dmux1.write_gpio((uint)pinmap::Mux1A::MOUSE1_RST, true, false);
-  } else {
-    dmux2.init_gpio((uint)pinmap::Mux2A::MOUSE2_MOT, true, false);
-    dmux2.init_gpio((uint)pinmap::Mux2A::MOUSE2_RST, true, true);
-    dmux2.write_gpio((uint)pinmap::Mux2A::MOUSE2_RST, true, false);
-  }
+  // MOT
+  outputControl.init_digital(pins.get_pin(MOT));
+
+  // RST
+  inputControl.init_digital(pins.get_pin(RST), true);
 }
 
 bool MouseSensor::init_registers() {
-  gpio_put(
-      (uint)(_id == 1 ? pinmap::Pico::MOUSE1_SCS : pinmap::Pico::MOUSE2_SCS),
-      1);
-  gpio_put(
-      (uint)(_id == 1 ? pinmap::Pico::MOUSE1_SCS : pinmap::Pico::MOUSE2_SCS),
-      0);
+  inputControl.write_digital(pins.get_pin(CS), 1);
+  inputControl.write_digital(pins.get_pin(CS), 0);
+
+  int res;
 
   write8(POWER_UP_RESET, 0x5A);
 
-  sleep_ms(55);
+  sleep_ms(50);
 
   // read from registers 2 3 4 5 6
-  int res;
   res = read8(0x02);
   comms::USB_CDC.printf("%d\r\n", res);
   sleep_us(160);
@@ -190,8 +164,7 @@ bool MouseSensor::init_registers() {
 
 bool MouseSensor::init_srom() {
   // enable Rest_En in the CONFIG2 register
-  // ~ write8(CONFIG2, CONFIG2_RESET & 0b11011111);
-  write8(CONFIG2, 0x00);
+  write8(CONFIG2, CONFIG2_RESET & 0b11011111);
 
   // First SROM Reg Write
   write8(SROM_ENABLE, 0x1D);
@@ -201,17 +174,16 @@ bool MouseSensor::init_srom() {
   // Next SROM Reg Write
   write8(SROM_ENABLE, 0x18);
 
-  // ~ sleep_us(120); // wait cuz they said at least 120 microseconds
+  sleep_us(120); // wait cuz they said at least 120 microseconds
 
   // * Load the SROM firmware
-  // Custom SP\I write
-  uint8_t srom_address = 0x62 | 0x80;
-
-  gpio_put(
-      (uint)(_id == 1 ? pinmap::Pico::MOUSE1_SCS : pinmap::Pico::MOUSE2_SCS),
-      0);
+  // Custom SPI write
+  uint8_t srom_address = SROM_LOAD_BURST;
+  inputControl.write_digital(pins.get_pin(CS), 0);
 
   spi_write_blocking(spi_obj, &srom_address, 1);
+
+  // Send all firmware bytes
   for (int i = 0; i < firmware_length; i++) {
     sleep_us(15); // delay required between bytes
     uint8_t data = firmware_data[i];
@@ -219,19 +191,12 @@ bool MouseSensor::init_srom() {
   }
   sleep_us(15);
 
-  gpio_put(
-      (uint)(_id == 1 ? pinmap::Pico::MOUSE1_SCS : pinmap::Pico::MOUSE2_SCS),
-      1);
+  inputControl.write_digital(pins.get_pin(CS), 1);
 
-  // * read PRODUCT_ID register
-  uint8_t product_id = read8(PRODUCT_ID);
-  if (product_id != product_ID) {
-    comms::USB_CDC.printf("Product ID Mismatch: %d, expected: %d\r\n", product_id,
-                          product_ID);
-    return false;
-  }
+  // Wait for the SROM to load
+  sleep_ms(1000);
 
-  // * read SROM register
+  // read SROM register
   uint8_t srom_id = read8(SROM_ID);
   if (srom_id != firmware_ID) {
     comms::USB_CDC.printf("SROM ID Mismatch: %d, expected: %d\r\n", srom_id,
@@ -239,7 +204,7 @@ bool MouseSensor::init_srom() {
     return false;
   }
 
-  // * wired mouse to config 2
+  // wired mouse to config 2
   write8(CONFIG2, CONFIG2_RESET);
   return true;
 }
@@ -247,31 +212,26 @@ bool MouseSensor::init_srom() {
 void MouseSensor::write8(uint8_t reg, uint8_t value) {
   types::u8 buffer[2] = {(types::u8)(reg | 0x80), value};
 
-  gpio_put(
-      (uint)(_id == 1 ? pinmap::Pico::MOUSE1_SCS : pinmap::Pico::MOUSE2_SCS),
-      0);
+  inputControl.write_digital(pins.get_pin(CS), 0);
+
   spi_write_blocking(spi_obj, buffer, 2);
   sleep_us(35);
 
-  gpio_put(
-      (uint)(_id == 1 ? pinmap::Pico::MOUSE1_SCS : pinmap::Pico::MOUSE2_SCS),
-      1);
+  inputControl.write_digital(pins.get_pin(CS), 1);
 }
 
 uint8_t MouseSensor::read8(uint8_t reg) {
   types::u8 buffer = (types::u8)(reg & 0x7F);
   types::u8 response;
 
-  gpio_put(
-      (uint)(_id == 1 ? pinmap::Pico::MOUSE1_SCS : pinmap::Pico::MOUSE2_SCS),
-      0);
+  inputControl.write_digital(pins.get_pin(CS), 0);
+
   spi_write_blocking(spi_obj, &buffer, 1);
   sleep_us(160);
   spi_read_blocking(spi_obj, 0x00, &response, 1);
 
-  gpio_put(
-      (uint)(_id == 1 ? pinmap::Pico::MOUSE1_SCS : pinmap::Pico::MOUSE2_SCS),
-      1);
+  inputControl.write_digital(pins.get_pin(CS), 1);
+
   return response;
 }
 
@@ -282,9 +242,7 @@ void MouseSensor::read_motion_burst() {
   uint8_t reg[1] = {MOTION_BURST};
   uint8_t temp_buffer[12];
 
-  gpio_put(
-      (uint)(_id == 1 ? pinmap::Pico::MOUSE1_SCS : pinmap::Pico::MOUSE2_SCS),
-      0);
+  inputControl.write_digital(pins.get_pin(CS), 0);
 
   // write, wait 35 us, read
   spi_write_blocking(spi_obj, reg, 1);
@@ -296,9 +254,7 @@ void MouseSensor::read_motion_burst() {
     motion_burst_buffer[i] = temp_buffer[i];
   }
 
-  gpio_put(
-      (uint)(_id == 1 ? pinmap::Pico::MOUSE1_SCS : pinmap::Pico::MOUSE2_SCS),
-      1);
+  inputControl.write_digital(pins.get_pin(CS), 1); // Release CS pin
 }
 
 //Return X_Delta Values
@@ -332,4 +288,4 @@ types::u8 MouseSensor::read_squal() {
   types::u8 squal = read8(SQUAL);
   return squal;
 }
-} // namespace mouse
+}
