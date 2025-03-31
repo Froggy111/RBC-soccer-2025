@@ -56,7 +56,7 @@
 #include "sn3218.h"
 #include "drcSerial.h"
 #include "drcNet.h"
-#include "../wiringPiD/drcNetCmd.h"
+#include "drcNetCmd.h"
 #include "pseudoPins.h"
 #include "bmp180.h"
 #include "htu21d.h"

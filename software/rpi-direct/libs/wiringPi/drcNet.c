@@ -36,7 +36,7 @@
 
 #include "wiringPi.h"
 #include "drcNet.h"
-#include "../wiringPiD/drcNetCmd.h"
+#include "drcNetCmd.h"
 
 
 /*

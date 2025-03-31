@@ -4,7 +4,9 @@ target_sources(wiringPi
     PUBLIC
         include/ads1115.h
         include/bmp180.h
+        include/daemonise.h
         include/drcNet.h
+        include/drcNetCmd.h
         include/drcSerial.h
         include/ds18b20.h
         include/htu21d.h
@@ -22,15 +24,18 @@ target_sources(wiringPi
         include/mcp3004.h
         include/mcp3422.h
         include/mcp4802.h
+        include/network.h
         include/pcf8574.h
         include/pcf8591.h
         include/pseudoPins.h
         include/rht03.h
+        include/runRemote.h
         include/sn3218.h
         include/softPwm.h
         include/softServo.h
         include/softTone.h
         include/sr595.h
+        include/version.h
         include/wiringPi.h
         include/wiringPiI2C.h
         include/wiringPiLegacy.h
@@ -41,6 +46,7 @@ target_sources(wiringPi
     PRIVATE
         ads1115.c
         bmp180.c
+        daemonise.c
         drcNet.c
         drcSerial.c
         ds18b20.c
@@ -56,12 +62,14 @@ target_sources(wiringPi
         mcp3004.c
         mcp3422.c
         mcp4802.c
+        network.c
         pcf8574.c
         pcf8591.c
         piHiPri.c
         piThread.c
         pseudoPins.c
         rht03.c
+        runRemote.c
         sn3218.c
         softPwm.c
         softServo.c
@@ -70,6 +78,7 @@ target_sources(wiringPi
         wiringPi.c
         wiringPiI2C.c
         wiringPiLegacy.c
+        wiringpid.c
         wiringPiSPI.c
         wiringSerial.c
         wiringShift.c
