@@ -113,8 +113,8 @@ void PinInputControl::init(bool dbg, spi_inst_t *spi_obj) {
     dmux1.init(1, spi_obj);
     dmux2.init(2, spi_obj);
     if (!adc1.beginADSX((PICO_ADS1115::ADSXAddressI2C_e)ADC1_ADDR, i2c0,
-                        ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C0_SDA,
-                        (uint8_t)pinmap::Pico::I2C0_SCL, 1000)) {
+                        ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C1_SDA,
+                        (uint8_t)pinmap::Pico::I2C1_SCL, 1000)) {
       comms::USB_CDC.printf("ADC1 not found!\r\n");
     } else {
       adc1.setGain(PICO_ADS1115::ADSXGain_TWO);
@@ -122,8 +122,8 @@ void PinInputControl::init(bool dbg, spi_inst_t *spi_obj) {
     }
 
     if (!adc2.beginADSX((PICO_ADS1115::ADSXAddressI2C_e)ADC2_ADDR, i2c0,
-                        ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C0_SDA,
-                        (uint8_t)pinmap::Pico::I2C0_SCL, 1000)) {
+                        ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C1_SDA,
+                        (uint8_t)pinmap::Pico::I2C1_SCL, 1000)) {
       comms::USB_CDC.printf("ADC2 not found!\r\n");
     } else {
       adc2.setGain(PICO_ADS1115::ADSXGain_TWO);

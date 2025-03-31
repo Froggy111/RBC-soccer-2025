@@ -2,10 +2,9 @@
 #include "types.hpp"
 #include "pin_manager.hpp"
 #include "pin_selector.hpp"
-#include <cstdint>
+#include "registers.hpp"
 #include <hardware/spi.h>
 #include <pico/types.h>
-#include <string>
 
 namespace driver {
 
@@ -115,7 +114,7 @@ public:
    * TRUE = Sleeping, FALSE = Not Sleeping
    * @brief Set the NSLEEP pin, causing the motor to change between Standby and Active modes.
    * 
-   * @param sleep 
+   * @param sleaep 
    */
   void set_sleep(bool sleep);
 
@@ -143,6 +142,24 @@ public:
    * @return int16_t 
    */
   int16_t read_current();
+
+  /**
+   * @brief Set the current limit for the motor driver
+   * 
+   * @param current_limit 
+   * @return true 
+   * @return false 
+   */
+  bool set_ITRIP(ITRIP::ITRIP current_limit);
+
+  /**
+   * @brief Set the current limit for the motor driver
+   * 
+   * @param ocp 
+   * @return true 
+   * @return false 
+   */
+  bool set_OCP(OCP::OCP ocp);
 };
 
 }

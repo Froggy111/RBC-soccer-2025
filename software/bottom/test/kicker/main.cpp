@@ -1,10 +1,8 @@
 #include "comms.hpp"
 #include "pinmap.hpp"
-#include "pins/types.hpp"
 #include "types.hpp"
 #include <hardware/gpio.h>
 #include "pinmap.hpp"
-#include "pins/digital_pins.hpp"
 
 using namespace types;
 
@@ -13,16 +11,14 @@ const u8 LED_PIN = 25;
 void kicker_task(void *args) {
   comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
 
-  pins::digital_pins.init();
-  pins::digital_pins.set_mode(pinmap::Digital::KICK,
-                              pins::DigitalPinMode::OUTPUT);
-  pins::digital_pins.write(pinmap::Digital::KICK, 0);
+  gpio_init((uint)pinmap::Pico::KICK);
+  gpio_set_dir((uint)pinmap::Pico::KICK, GPIO_OUT);
 
   while (true) {
-    pins::digital_pins.write(pinmap::Digital::KICK, 0);
-    pins::digital_pins.write(pinmap::Digital::KICK, 1);
+    gpio_put((uint)pinmap::Pico::KICK, 0);
+    gpio_put((uint)pinmap::Pico::KICK, 1);
     vTaskDelay(pdMS_TO_TICKS(100));
-    pins::digital_pins.write(pinmap::Digital::KICK, 0);
+    gpio_put((uint)pinmap::Pico::KICK, 0);
     vTaskDelay(pdMS_TO_TICKS(10000));
   }
 }
