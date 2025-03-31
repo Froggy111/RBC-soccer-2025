@@ -114,7 +114,7 @@ public:
    * TRUE = Sleeping, FALSE = Not Sleeping
    * @brief Set the NSLEEP pin, causing the motor to change between Standby and Active modes.
    * 
-   * @param sleaep 
+   * @param sleep 
    */
   void set_sleep(bool sleep);
 
@@ -170,4 +170,4 @@ public:
   bool clear_fault();
 };
 
-}
+} // namespace driver
