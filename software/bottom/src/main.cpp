@@ -53,7 +53,7 @@ void main_task(void *args) {
 
 int main() {
   // * Init USB Comms
-  comms::USB_CDC.init();
+  comms::comms_init();
 
   xTaskCreate(main_task, "main_task", 1024, NULL, 20, &main_task_handle);
 

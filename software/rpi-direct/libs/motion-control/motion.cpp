@@ -332,7 +332,7 @@ std::tuple<float, float> MotionController::form_vector(float x_error_vel,
     float error_vel =
         std::sqrt(x_error_vel * x_error_vel + y_error_vel * y_error_vel);
 
-    return std::tuple(error_dir, std::max(0, std::min(1, error_vel/3))); 
+    return std::tuple(error_dir, std::max(0.0f, std::min(1.0f, error_vel / 3)));
 }
 
 std::tuple<float, float, float, float>

@@ -1,5 +1,9 @@
 add_library(wiringPi)
 
+set_target_properties(wiringPi PROPERTIES
+    LINKER_LANGUAGE C
+)
+
 target_sources(wiringPi
     PUBLIC
         include/ads1115.h
@@ -94,4 +98,4 @@ target_include_directories(wiringPi
 )
 
 
-target_compile_features(wiringPi PUBLIC cxx_std_17)
+target_compile_features(wiringPi PUBLIC c_std_11)
