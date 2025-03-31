@@ -1,40 +1,43 @@
 #include "ALSPT19.hpp"
+#include "pins/MCP23S17.hpp"
 #include "pinmap.hpp"
-#include "pins/digital_pins.hpp"
-#include "pins/types.hpp"
 #include "types.hpp"
 #include "comms.hpp"
-#include "debug.hpp"
 
 extern "C" {
 #include "hardware/adc.h"
 #include <pico/stdlib.h>
 }
 
-void LineSensor::init() {
-  debug::debug("---> Initializing ALSPT19\r\n");
+void LineSensor::init(spi_inst_t *spi_obj) {
+  comms::USB_CDC.printf("---> Initializing ALSPT19\r\n");
+
+  //init dmux
+  dmux.init(1, spi_obj);
+  comms::USB_CDC.printf("inited dmux\r\n");
 
   //init dmux gpio pins
-  pins::digital_pins.set_mode(pinmap::Digital::AMUX_S0, pins::DigitalPinMode::OUTPUT);
-  pins::digital_pins.set_mode(pinmap::Digital::AMUX_S1, pins::DigitalPinMode::OUTPUT);
-  pins::digital_pins.set_mode(pinmap::Digital::AMUX_S2, pins::DigitalPinMode::OUTPUT);
-  pins::digital_pins.set_mode(pinmap::Digital::AMUX_S3, pins::DigitalPinMode::OUTPUT);
-  pins::digital_pins.set_mode(pinmap::Digital::AMUX_EN, pins::DigitalPinMode::OUTPUT);
-  pins::digital_pins.write(pinmap::Digital::AMUX_EN, 0);
-  debug::debug("Line Sensors: Init DMUX GPIO\r\n");
+  dmux.init_gpio((int)pinmap::Mux1A::AMUX_S0, true, true);
+  dmux.init_gpio((int)pinmap::Mux1A::AMUX_S1, true, true);
+  dmux.init_gpio((int)pinmap::Mux1A::AMUX_S2, true, true);
+  dmux.init_gpio((int)pinmap::Mux1A::AMUX_S3, true, true);
+  dmux.init_gpio((int)pinmap::Mux1A::AMUX_EN, true, true);
+  dmux.write_gpio((int)pinmap::Mux1A::AMUX_EN, true, 0);
+  comms::USB_CDC.printf("init dmux gpio\r\n");
 
   //init adc
   adc_init(); // initialise ADC
   adc_gpio_init((int)pinmap::Pico::AMUX1_COM);
   adc_gpio_init((int)pinmap::Pico::AMUX2_COM);
   adc_gpio_init((int)pinmap::Pico::AMUX3_COM);
+  comms::USB_CDC.printf("done intialising\r\n");
 }
 
 void LineSensor::select_channel(uint8_t channel) {
-  pins::digital_pins.write(pinmap::Digital::AMUX_S0, channel & 0x01);
-  pins::digital_pins.write(pinmap::Digital::AMUX_S1, channel & 0x02);
-  pins::digital_pins.write(pinmap::Digital::AMUX_S2, channel & 0x04);
-  pins::digital_pins.write(pinmap::Digital::AMUX_S3, channel & 0x08);
+  dmux.write_gpio((int)pinmap::Mux1A::AMUX_S0, true, channel & 0x01);
+  dmux.write_gpio((int)pinmap::Mux1A::AMUX_S1, true, channel & 0x02);
+  dmux.write_gpio((int)pinmap::Mux1A::AMUX_S2, true, channel & 0x04);
+  dmux.write_gpio((int)pinmap::Mux1A::AMUX_S3, true, channel & 0x08);
 }
 
 // id starts from 0 to 47

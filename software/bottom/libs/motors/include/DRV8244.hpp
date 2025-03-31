@@ -1,10 +1,11 @@
 #pragma once
-#include "registers.hpp"
 #include "types.hpp"
+#include "pin_manager.hpp"
 #include "pin_selector.hpp"
+#include <cstdint>
 #include <hardware/spi.h>
 #include <pico/types.h>
-#include "pins/ADS1115.hpp"
+#include <string>
 
 namespace driver {
 
@@ -94,13 +95,12 @@ private:
    */
   bool check_config();
 
+  PinInputControl inputControl;
+  PinOutputControl outputControl;
   Pins pins;
-  int _id;
-  spi_inst_t *spi_obj;
 
-  // bool adc_init[2];
-  // PICO_ADS1115 adc1;
-  // PICO_ADS1115 adc2;
+  types::i16 duty_cycle_cache;
+  spi_inst_t *spi_obj;
 
 public:
   /**
@@ -136,27 +136,13 @@ public:
    * @param driver 
    */
   static void handle_error(MotorDriver *driver);
-  //
-  // /**
-  //  * @brief Returns the current running through the motor
-  //  *
-  //  * @return int16_t
-  //  */
-  // int16_t read_current();
 
   /**
-   * @brief Set the ITRIP register to the current_limit at which the motor should regulate
+   * @brief Returns the current running through the motor
    * 
-   * @param current_limit 
+   * @return int16_t 
    */
-  bool set_ITRIP(ITRIP::ITRIP current_limit);
-
-  /**
-   * @brief Set the OCP register to the current limit at which the motor should trip
-   * 
-   * @param current_limit 
-   */
-  bool set_OCP(OCP::OCP current_limit);
+  int16_t read_current();
 };
 
-} // namespace driver
+}
