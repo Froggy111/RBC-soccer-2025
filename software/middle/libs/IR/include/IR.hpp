@@ -27,23 +27,38 @@ const types::u8 SENSOR_PINS[SENSOR_COUNT] = {
 };
 
 struct PulseData {
-  types::u64 last_rise;
-  types::u32 uptime;
-  void reset(void) { uptime = 0; }
+  types::u64 last_fall = 0;
+  types::u32 uptime = 0;
+  inline void reset(void) volatile { last_fall = time_us_64(), uptime = 0; }
+  inline void zero(void) volatile { uptime = 0; }
 };
 
+struct ModulationData {
+  types::u32 uptime = 0;
+  inline void reset(void) volatile { uptime = 0; }
+};
+
+void init(void);
+
 // modulation timer
+const uint MODULATION_IRQ = TIMER_IRQ_0;
 const double MODULATION_FREQ = 1200; // 833.333us per cycle
 const types::u32 CYCLES_PER_MODULATION = (double)SYS_CLK_HZ / MODULATION_FREQ;
 const types::u8 MODULATION_ALARM_IDX = 0;
-static void modulation_handler(
-    void); // calculate, and pass task notification to modulation_handler_task to send data
-static void modulation_handler_task(void); // send data to host
+static volatile ModulationData modulation_data[SENSOR_COUNT];
+// calculate, and pass task notification to modulation_handler_task to send data
+static void modulation_handler(void);
+// send data to host
+static void modulation_handler_task(void *params);
+static TaskHandle_t modulation_handler_task_handle;
+const types::u16 MODULATION_HANLDER_TASK_STACK_SIZE = 1024;
+const types::u16 MODULATION_HANLDER_TASK_PRIORITY = 12;
 
 // // pulse timer
 // const double PULSE_FREQ = 40000;
 // const types::u32 CYCLES_PER_PULSE = (double)SYS_CLK_HZ / PULSE_FREQ;
 // const types::u8 PULSE_ALARM_IDX = 1;
 static volatile PulseData pulse_data[SENSOR_COUNT];
-static void pulse_handler(void); // handles GPIO interrupts
+static void pulse_handler(uint gpio,
+                          types::u32 event); // handles GPIO interrupts
 } // namespace IR
