@@ -17,6 +17,7 @@ target_sources(comms
 target_include_directories(comms PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(comms pico_unique_id pico_usb_reset_interface tinyusb_device)
 target_link_globals(comms)
+add_global_library(comms)
 
 add_library(debug_) # named debug_ to avoid clashing with cmake option debug
 target_sources(debug_
