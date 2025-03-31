@@ -40,7 +40,8 @@ void imu_task(void *args) {
   // Initialize IMU
   int8_t result = icm20948::init(&imu_config);
   if (result != 0) {
-    comms::USB_CDC.printf("Error initializing ICM20948, Error Code: %d\r\n", result);
+    comms::USB_CDC.printf("Error initializing ICM20948, Error Code: %d\r\n",
+                          result);
     while (1) {
       gpio_put(LED_PIN, 0);
       sleep_ms(100);
@@ -103,12 +104,12 @@ int main() {
   gpio_put(LED_PIN, 1);
 
   // Initialize CS pin for the other IMU
-  gpio_init((uint) pinmap::Pico::IMU2_NCS);
-  gpio_set_dir((uint) pinmap::Pico::IMU2_NCS, GPIO_OUT);
-  gpio_put((uint) pinmap::Pico::IMU2_NCS, 1);
+  gpio_init((uint)pinmap::Pico::IMU2_NCS);
+  gpio_set_dir((uint)pinmap::Pico::IMU2_NCS, GPIO_OUT);
+  gpio_put((uint)pinmap::Pico::IMU2_NCS, 1);
 
   // Initialize USB CDC for communication
-  comms::USB_CDC.init();
+  comms::init();
 
   // Configure IMU
   imu_config.spi = spi0;

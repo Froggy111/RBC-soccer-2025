@@ -23,9 +23,10 @@ int main() {
   gpio_put(LED_PIN, 1);
 
   // * Init USB Comms
-  comms::USB_CDC.init();
+  comms::init();
 
-  xTaskCreate(led_blinker_task, "led_blinker_task", 1024, NULL, 10, &led_blinker_handle);
+  xTaskCreate(led_blinker_task, "led_blinker_task", 1024, NULL, 10,
+              &led_blinker_handle);
 
   led_blinker_data_mutex = xSemaphoreCreateMutex();
   bool led_attach_successful = comms::USB_CDC.attach_listener(

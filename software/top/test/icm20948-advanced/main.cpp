@@ -42,7 +42,8 @@ void imu_task(void *args) {
   int8_t result1 = icm20948::init(&imu_config1);
   int8_t result2 = icm20948::init(&imu_config2);
   if (result1 != 0 || result2 != 0) {
-    comms::USB_CDC.printf("Error initializing ICM20948, Error Code: %d %d\r\n", result1, result2);
+    comms::USB_CDC.printf("Error initializing ICM20948, Error Code: %d %d\r\n",
+                          result1, result2);
     while (1) {
       gpio_put(LED_PIN, 0);
       sleep_ms(100);
@@ -66,7 +67,7 @@ void imu_task(void *args) {
   comms::USB_CDC.printf("Calibrating gyroscope 1...\r\n");
   icm20948::cal_gyro(&imu_config1, gyro_bias1);
   comms::USB_CDC.printf("Gyro bias: [%d, %d, %d]\r\n", gyro_bias1[0],
-    gyro_bias1[1], gyro_bias1[2]);
+                        gyro_bias1[1], gyro_bias1[2]);
 
   comms::USB_CDC.printf("Calibrating accelerometer 1...\r\n");
   icm20948::cal_accel(&imu_config1, accel_bias1);
@@ -82,7 +83,7 @@ void imu_task(void *args) {
   icm20948::cal_accel(&imu_config2, accel_bias2);
   comms::USB_CDC.printf("Accel bias: [%d, %d, %d]\r\n", accel_bias2[0],
                         accel_bias2[1], accel_bias2[2]);
-  
+
   comms::USB_CDC.printf("Starting IMU readings...\r\n");
 
   while (true) {
@@ -109,8 +110,8 @@ void imu_task(void *args) {
                              ((accel1[1] - accel2[1]) / 2),
                              ((accel1[2] + accel2[2]) / 2)};
     int combined_gyro[3] = {((gyro1[0] + gyro2[0]) / 2),
-                             ((gyro1[1] + gyro2[1]) / 2),
-                             ((gyro1[2] + gyro2[2]) / 2)};
+                            ((gyro1[1] + gyro2[1]) / 2),
+                            ((gyro1[2] + gyro2[2]) / 2)};
 
     // Print sensor data
     comms::USB_CDC.printf("IMU Data:\r\n");
@@ -137,12 +138,12 @@ int main() {
   gpio_put(LED_PIN, 1);
 
   // Initialize CS pin for the other IMU
-  gpio_init((uint) pinmap::Pico::IMU2_NCS);
-  gpio_set_dir((uint) pinmap::Pico::IMU2_NCS, GPIO_OUT);
-  gpio_put((uint) pinmap::Pico::IMU2_NCS, 1);
+  gpio_init((uint)pinmap::Pico::IMU2_NCS);
+  gpio_set_dir((uint)pinmap::Pico::IMU2_NCS, GPIO_OUT);
+  gpio_put((uint)pinmap::Pico::IMU2_NCS, 1);
 
   // Initialize USB CDC for communication
-  comms::USB_CDC.init();
+  comms::init();
 
   // Configure IMU
   imu_config1.spi = spi0;

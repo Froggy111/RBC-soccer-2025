@@ -26,15 +26,17 @@ int main() {
   gpio_put(LED_PIN, 1);
 
   // * Init USB Comms
-  comms::USB_CDC.init();
+  comms::init();
 
   // * Init SPIs
   if (!spi_init(spi0, 4000000)) {
     urgent_blink();
   }
 
-  xTaskCreate(imu_poll_task, "imu_poll_task", 1024, NULL, 10, &imu_poll_task_handle);
-  xTaskCreate(led_blinker_task, "led_blinker_task", 1024, NULL, 10, &led_blinker_handle);
+  xTaskCreate(imu_poll_task, "imu_poll_task", 1024, NULL, 10,
+              &imu_poll_task_handle);
+  xTaskCreate(led_blinker_task, "led_blinker_task", 1024, NULL, 10,
+              &led_blinker_handle);
 
   led_blinker_data_mutex = xSemaphoreCreateMutex();
   bool led_attach_successful = comms::USB_CDC.attach_listener(

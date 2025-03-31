@@ -19,7 +19,7 @@ extern usb::CDC USB_CDC;
 extern uart::Serial UART_serial;
 
 // initialises communication interfaces
-bool comms_init(void);
+bool init(void);
 
 // ping task
 static void ping_task(void *params);

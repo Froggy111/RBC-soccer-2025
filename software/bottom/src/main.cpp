@@ -20,13 +20,12 @@ void main_task(void *args) {
   gpio_init(LED_PIN);
   gpio_set_dir(LED_PIN, GPIO_OUT);
   gpio_put(LED_PIN, 1);
-  
+
   // * Init SPIs
   if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.write(comms::SendIdentifiers::SPI_INIT_FAIL, NULL, 0);
     vTaskDelete(main_task_handle);
   }
-  
 
   xTaskCreate(line_sensor_task, "line_sensor_task", 1024, NULL, 10, NULL);
   xTaskCreate(mouse_sensor_task, "mouse_sensor_task", 1024, NULL, 10, NULL);
@@ -53,7 +52,7 @@ void main_task(void *args) {
 
 int main() {
   // * Init USB Comms
-  comms::comms_init();
+  comms::init();
 
   xTaskCreate(main_task, "main_task", 1024, NULL, 20, &main_task_handle);
 

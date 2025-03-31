@@ -19,7 +19,7 @@ namespace comms {
 usb::CDC USB_CDC = usb::CDC();
 uart::Serial UART_serial = uart::Serial();
 
-bool comms_init(void) {
+bool init(void) {
   USB_CDC.init();
   ping_task_mutex = xSemaphoreCreateMutex();
   xTaskCreate(ping_task, "ping task", PING_TASK_STACK_DEPTH, nullptr,
@@ -65,9 +65,9 @@ void board_id_task(void *params) {
 #ifdef IS_BOTTOM_PICO
     BoardIdentifiers board_id = BoardIdentifiers::BOTTOM_PICO;
 #elif defined(IS_MIDDLE_PICO)
-    Boardboard_ids board_id = Boardboard_ids::MIDDLE_PICO;
+    BoardIdentifiers board_id = BoardIdentifiers::MIDDLE_PICO;
 #elif defined(IS_TOP_PICO)
-    Boardboard_ids board_id = Boardboard_ids::TOP_PICO;
+    BoardIdentifiers board_id = BoardIdentifiers::TOP_PICO;
 #endif
 
     USB_CDC.write(SendIdentifiers::BOARD_ID, (u8 *)&board_id, sizeof(board_id));
