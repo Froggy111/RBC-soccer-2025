@@ -30,7 +30,7 @@ void PinOutputControl::init(bool dbg, spi_inst_t *spi_obj) {
 
 // pins responsible for providing input to DRV8244
 void PinOutputControl::init_digital(types::u8 pin, bool value,
-                                   PinInterface interface) {
+                                    PinInterface interface) {
   if (debug || interface == GPIO) {
     gpio_init(pin);
     gpio_set_dir(pin, GPIO_OUT);
@@ -46,7 +46,7 @@ void PinOutputControl::init_digital(types::u8 pin, bool value,
 }
 
 void PinOutputControl::write_digital(types::u8 pin, bool value,
-                                    PinInterface interface) {
+                                     PinInterface interface) {
   if (this->digital_cache.find(pin) == this->digital_cache.end()) {
     comms::USB_CDC.printf("Pin not initialized! pin %d\r\n", pin);
     return;
@@ -112,20 +112,25 @@ void PinInputControl::init(bool dbg, spi_inst_t *spi_obj) {
   if (!debug) {
     dmux1.init(1, spi_obj);
     dmux2.init(2, spi_obj);
-    if (!adc1.beginADSX((PICO_ADS1115::ADSXAddressI2C_e)ADC1_ADDR, i2c0,
+
+    if (!adc_init[0] &&
+        !adc1.beginADSX((PICO_ADS1115::ADSXAddressI2C_e)ADC1_ADDR, i2c1,
                         ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C1_SDA,
                         (uint8_t)pinmap::Pico::I2C1_SCL, 1000)) {
       comms::USB_CDC.printf("ADC1 not found!\r\n");
     } else {
+      adc_init[0] = true;
       adc1.setGain(PICO_ADS1115::ADSXGain_TWO);
       adc1.setDataRate(ADC_DATA_RATE);
     }
 
-    if (!adc2.beginADSX((PICO_ADS1115::ADSXAddressI2C_e)ADC2_ADDR, i2c0,
+    if (!adc_init[1] &&
+        !adc2.beginADSX((PICO_ADS1115::ADSXAddressI2C_e)ADC2_ADDR, i2c1,
                         ADC_CLK_SPEED, (uint8_t)pinmap::Pico::I2C1_SDA,
                         (uint8_t)pinmap::Pico::I2C1_SCL, 1000)) {
       comms::USB_CDC.printf("ADC2 not found!\r\n");
     } else {
+      adc_init[1] = true;
       adc2.setGain(PICO_ADS1115::ADSXGain_TWO);
       adc2.setDataRate(ADC_DATA_RATE);
     }
@@ -177,9 +182,9 @@ int16_t PinInputControl::read_analog(types::u8 pin, PinInterface interface) {
     return 0;
   } else {
     if (interface == ADC1)
-      return adc1.readADC_SingleEnded((PICO_ADS1X15::ADSX_AINX_e) pin);
+      return adc1.readADC_SingleEnded((PICO_ADS1X15::ADSX_AINX_e)pin);
     else
-      return adc2.readADC_SingleEnded((PICO_ADS1X15::ADSX_AINX_e) pin);
+      return adc2.readADC_SingleEnded((PICO_ADS1X15::ADSX_AINX_e)pin);
   }
 }
 
