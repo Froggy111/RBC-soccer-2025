@@ -3,6 +3,7 @@ import numpy as np
 import os
 import datetime
 import time
+import math
 
 DEBUG = True
 
@@ -337,6 +338,164 @@ def find_quad_midpoint(quad_points):
 
     return [total_x/4, total_y/4]
 
+def estimate_heading(blue_midpoint, yellow_midpoint):
+    width = 640
+    height = 480
+
+    blue_est_heading = [10000.0, 10000.0]
+    yellow_est_heading = [10000.0, 10000.0]
+
+    if blue_midpoint[0].astype(int) < 1000:
+        if blue_midpoint[0].astype(int) <= width/2:
+            blue_est_heading = [0.0, math.pi]
+            if blue_midpoint[1].astype(int) <= height/2:
+                blue_est_heading[1] = math.pi/2
+                if blue_midpoint[0].astype(int) > blue_midpoint[1].astype(int):
+                    blue_est_heading[1] = math.pi/4
+                else:
+                    blue_est_heading[0] = math.pi/4
+            else:
+                blue_est_heading = [math.pi/2, math.pi]
+            
+                if width/2 - blue_midpoint[0].astype(int) > blue_midpoint[1].astype(int) - height/2:
+                    blue_est_heading[1] = math.pi*3/4
+                else:
+                    blue_est_heading[0] = math.pi*3/4
+        else:
+            blue_est_heading = [-math.pi, 0.0]
+            if blue_midpoint[1].astype(int) <= height/2:
+                blue_est_heading[0] = -math.pi/2
+                if blue_midpoint[0].astype(int) -  width/2 > height/2 - blue_midpoint[1].astype(int):
+                    blue_est_heading[1] = -math.pi/4
+                else:
+                    blue_est_heading[0] = -math.pi/4
+            else:
+                blue_est_heading = [-math.pi, -math.pi/2]
+                if blue_midpoint[0].astype(int) - width/2 > blue_midpoint[1].astype(int) - height/2:
+                    blue_est_heading[0] = -math.pi*3/4
+                else:
+
+                    blue_est_heading[1] = -math.pi*3/4
+
+    if yellow_midpoint[0].astype(int) < 1000:
+        if yellow_midpoint[0].astype(int) <= width/2:
+            yellow_est_heading = [-math.pi, 0.0]
+            if yellow_midpoint[1].astype(int) <= height/2:
+                yellow_est_heading[1] = -math.pi/2
+                if yellow_midpoint[0].astype(int) > yellow_midpoint[1].astype(int):
+                    yellow_est_heading[1] = -math.pi*3/4
+                else:
+                    yellow_est_heading[0] = -math.pi*3/4
+            else:
+                yellow_est_heading = [-math.pi/2, 0.0] #90 - 180
+            
+                if width/2 - yellow_midpoint[0].astype(int) > yellow_midpoint[1].astype(int) - height/2:
+                    yellow_est_heading[1] = -math.pi/4
+                else:
+                    yellow_est_heading[0] = -math.pi/4
+        else:
+            yellow_est_heading[1] = [0.0, math.pi]
+            if yellow_midpoint[1].astype(int) <= height/2:
+                yellow_est_heading[0] = math.pi/2
+                if yellow_midpoint[0].astype(int) -  width/2 > height/2 - yellow_midpoint[1].astype(int):
+                    yellow_est_heading[1] = math.pi*3/4
+                else:
+                    yellow_est_heading[0] = math.pi*3/4
+            else:
+                yellow_est_heading = [0.0, math.pi/2]
+                if yellow_midpoint[0].astype(int) - width/2 > yellow_midpoint[1].astype(int) - height/2:
+                    yellow_est_heading[1] = math.pi*3/4
+                else:
+                    yellow_est_heading[0] = math.pi*3.4
+
+    est_heading = 0.0   
+    count = 0
+    if blue_est_heading[1] != 10000.0: 
+        est_heading += blue_est_heading[1]
+        count += 1
+    if yellow_est_heading[0] != 10000.0:
+        est_heading += yellow_est_heading[0]
+        count += 1
+    
+    if count > 0:
+        est_heading /= count
+    
+    return est_heading
+
+def estimate_heading_new(blue_midpoint, yellow_midpoint):
+    width = 640
+    height = 480
+
+    blue_vertical = 0
+    blue_horizontal = 0
+
+    yellow_vertical = 0
+    yellow_horizontal = 0
+
+    if blue_midpoint[0].astype(int) < 1000:
+        if blue_midpoint[1].astype(int) <= height/2:
+            blue_vertical = 1 #[-math.pi/2, math.pi/2]
+        else:
+            blue_vertical = 2 #[math.pi/2, math.pi*3/2]
+        
+        if blue_midpoint[0].astype(int) <= width/2:
+            blue_horizontal = 3 #[0.0, math.pi]
+        else:
+            blue_horizontal = 4 #[-math.pi, 0.0]
+    
+    if yellow_midpoint[0].astype(int) < 1000:
+        if yellow_midpoint[1].astype(int) <= height/2:
+            yellow_vertical = 2 #[math.pi/2, math.pi*3/2]
+        else:
+            yellow_vertical = 1 #[-math.pi/2, math.pi/2]
+        
+        if yellow_midpoint[0].astype(int) <= width/2:
+            yellow_horizontal = 4 #[-math.pi, 0.0]
+        else:
+            yellow_horizontal = 3 #[0.0, math.pi]
+
+    
+    blue_est_heading = 10000.0
+    yellow_est_heading = 10000.0
+
+    if blue_vertical == 1:
+        if blue_horizontal == 3:
+            blue_est_heading = math.pi/4
+        else:
+            blue_est_heading = -math.pi/4
+    elif blue_vertical == 2:
+        if blue_horizontal == 3:
+            blue_est_heading = math.pi*3/4
+        else:
+            blue_est_heading = -math.pi*3/4
+
+    if yellow_vertical == 1:
+        if yellow_horizontal == 3:
+            yellow_est_heading = math.pi/4
+        else:
+            yellow_est_heading = -math.pi/4
+    elif yellow_vertical == 2:
+        if yellow_horizontal == 3:
+            yellow_est_heading = math.pi*3/4
+        else:
+            yellow_est_heading = -math.pi*3/4
+   
+
+    est_heading = 0.0
+    count = 0
+    if blue_est_heading != 10000.0: 
+        est_heading += blue_est_heading
+        count += 1
+    if yellow_est_heading != 10000.0:
+        est_heading += yellow_est_heading
+        count += 1
+    
+    if count > 0:
+        est_heading /= count
+    
+    return est_heading
+
+
 # Main loop
 while cap.isOpened():
     ret, frame = cap.read()
@@ -483,7 +642,7 @@ while cap.isOpened():
             if quad is not None:
                 yellow_detected = True
                 yellow_quad = quad
-
+    
     # Draw yellow goalpost if detected
     if yellow_detected:
         # Draw the quadrilateral
@@ -533,6 +692,27 @@ while cap.isOpened():
             1,
         )
 
+
+    est_heading = 0.0
+    if blue_detected and yellow_detected:
+        est_heading = estimate_heading_new(blue_midpoint, yellow_midpoint)
+    elif not blue_detected and not yellow_detected:
+        pass
+    elif not blue_detected:
+        est_heading = estimate_heading_new(np.array([10000.0, 10000.0]), yellow_midpoint)
+    else:
+        est_heading = estimate_heading_new(blue_midpoint, np.array([10000.0, 10000.0]))
+    
+    
+    cv2.putText(
+        output,
+        f"({(est_heading*180/(math.pi)):.2f})",
+        (320, 240),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.5,
+        (0, 255, 0),
+        1,
+    )
     # Display debug visualization
     if DEBUG:
         # Create colored versions of masks for display
