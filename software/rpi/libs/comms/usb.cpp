@@ -68,12 +68,83 @@ bool CDC::init(void) {
     return true;
 }
 
+void CDC::attach_debug_listeners() {
+    // ^ Very scuffed way of attaching debug listeners, but it works
+
+    register_callback(
+        DeviceType::UNKNOWN,
+        static_cast<types::u8>(comms::RecvBottomPicoIdentifiers::COMMS_DEBUG),
+        log_pico);
+
+    register_callback(
+        DeviceType::UNKNOWN,
+        static_cast<types::u8>(comms::RecvBottomPicoIdentifiers::COMMS_ERROR),
+        log_pico);
+
+    register_callback(
+        DeviceType::UNKNOWN,
+        static_cast<types::u8>(comms::RecvBottomPicoIdentifiers::COMMS_WARN),
+        log_pico);
+
+    register_callback(
+        DeviceType::BOTTOM_PLATE,
+        static_cast<types::u8>(comms::RecvBottomPicoIdentifiers::COMMS_DEBUG),
+        log_pico);
+
+    register_callback(
+        DeviceType::BOTTOM_PLATE,
+        static_cast<types::u8>(comms::RecvBottomPicoIdentifiers::COMMS_ERROR),
+        log_pico);
+
+    register_callback(
+        DeviceType::BOTTOM_PLATE,
+        static_cast<types::u8>(comms::RecvBottomPicoIdentifiers::COMMS_WARN),
+        log_pico);
+
+    register_callback(
+        DeviceType::MIDDLE_PLATE,
+        static_cast<types::u8>(comms::RecvBottomPicoIdentifiers::COMMS_DEBUG),
+        log_pico);
+
+    register_callback(
+        DeviceType::MIDDLE_PLATE,
+        static_cast<types::u8>(comms::RecvBottomPicoIdentifiers::COMMS_ERROR),
+        log_pico);
+
+    register_callback(
+        DeviceType::MIDDLE_PLATE,
+        static_cast<types::u8>(comms::RecvBottomPicoIdentifiers::COMMS_WARN),
+        log_pico);
+
+    register_callback(
+        DeviceType::TOP_PLATE,
+        static_cast<types::u8>(comms::RecvBottomPicoIdentifiers::COMMS_DEBUG),
+        log_pico);
+
+    register_callback(
+        DeviceType::TOP_PLATE,
+        static_cast<types::u8>(comms::RecvBottomPicoIdentifiers::COMMS_ERROR),
+        log_pico);
+
+    register_callback(
+        DeviceType::TOP_PLATE,
+        static_cast<types::u8>(comms::RecvBottomPicoIdentifiers::COMMS_WARN),
+        log_pico);
+}
+
+void CDC::log_pico(const types::u8 *data, types::u16 length) {
+    if (length > 0) {
+        std::string message(reinterpret_cast<const char *>(data), length);
+        printf("%s", message.c_str());
+    }
+}
+
 void CDC::handle_board_id(comms::BoardIdentifiers board_id) {
     // This will be called when a device responds to the BOARD_ID request
-    
+
     // Safely access last pinged device
     std::lock_guard<std::mutex> lock(_device_map_mutex);
-    
+
     if (_last_pinged_device.deviceNode.empty()) {
         return;
     }
@@ -102,9 +173,9 @@ void CDC::handle_board_id(comms::BoardIdentifiers board_id) {
 
     // Add or update device in our map (already have mutex locked)
     _device_map[device_type] = _last_pinged_device;
-    
-    debug::info("Device %s identified as %d", 
-                _last_pinged_device.deviceNode.c_str(), 
+
+    debug::info("Device %s identified as %d",
+                _last_pinged_device.deviceNode.c_str(),
                 static_cast<int>(device_type));
 }
 
@@ -148,7 +219,7 @@ void CDC::identify_device(USBDevice &device) {
         std::lock_guard<std::mutex> lock(_device_map_mutex);
         _last_pinged_device = device;
     }
-    
+
     // Send BOARD_ID request
     types::u8 ping_data = 0;
     debug::info("Sending BOARD_ID request to %s", device.deviceNode.c_str());
@@ -329,18 +400,18 @@ bool CDC::is_connected(DeviceType type) {
 
 void CDC::read_thread(USBDevice device) {
     types::u8 buffer[MAX_RX_BUF_SIZE];
-    
+
     device.rxState.data_buffer = new types::u8[MAX_RX_BUF_SIZE];
 
     while (_running) {
         bool deviceValid = false;
-        
+
         // Check if the device is still valid
         {
             std::lock_guard<std::mutex> lock(_device_map_mutex);
-            
+
             // First check if this is the last pinged device
-            if (_last_pinged_device.deviceNode == device.deviceNode && 
+            if (_last_pinged_device.deviceNode == device.deviceNode &&
                 _last_pinged_device.fileDescriptor >= 0) {
                 deviceValid = true;
             }
@@ -362,14 +433,15 @@ void CDC::read_thread(USBDevice device) {
                     deviceValid = true;
                 }
             }
-            
+
             if (!deviceValid) {
                 break;
             }
         }
 
         // Rest of the function stays the same
-        ssize_t bytes_read = read(device.fileDescriptor, buffer, sizeof(buffer));
+        ssize_t bytes_read =
+            read(device.fileDescriptor, buffer, sizeof(buffer));
 
         if (bytes_read > 0) {
             // Process the received data
