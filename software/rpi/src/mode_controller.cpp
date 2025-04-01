@@ -25,17 +25,17 @@ void change_mode(Mode new_mode) {
     mode = new_mode;
     switch (mode) {
         case Mode::RUNNING:
-            debug::info("Set to RUNNING");
-            digitalWrite((int)pinmap::PI::BOTTOMPICO_TOGGLE_RUN, 1);
-            digitalWrite((int)pinmap::PI::MIDPICO_TOGGLE_RUN, 1);
-            digitalWrite((int)pinmap::PI::TOPPICO_TOGGLE_RUN, 1);
+            debug::info("=============== RUNNING ===============");
+            digitalWrite((int)pinmap::RPI::BOTTOMPICO_TOGGLE_RUN, 1);
+            digitalWrite((int)pinmap::RPI::MIDPICO_TOGGLE_RUN, 1);
+            digitalWrite((int)pinmap::RPI::TOPPICO_TOGGLE_RUN, 1);
             break;
 
         case Mode::EMERGENCY_STOP:
-            debug::info("Emergency stop triggered (Ctrl+C)");
-            digitalWrite((int) pinmap::PI::BOTTOMPICO_TOGGLE_RUN, 0);
-            digitalWrite((int) pinmap::PI::MIDPICO_TOGGLE_RUN, 0);
-            digitalWrite((int) pinmap::PI::TOPPICO_TOGGLE_RUN, 0);
+            debug::info("=============== EMERGENCY ===============");
+            digitalWrite((int) pinmap::RPI::BOTTOMPICO_TOGGLE_RUN, 0);
+            digitalWrite((int) pinmap::RPI::MIDPICO_TOGGLE_RUN, 0);
+            digitalWrite((int) pinmap::RPI::TOPPICO_TOGGLE_RUN, 0);
             break;
 
         default:
@@ -47,9 +47,9 @@ void init_mode_controller() {
     signal(SIGINT, signal_handler);
 
     // * Initialize all RUN pins
-    pinMode((int)pinmap::PI::BOTTOMPICO_TOGGLE_RUN, OUTPUT);
-    pinMode((int)pinmap::PI::MIDPICO_TOGGLE_RUN, OUTPUT);
-    pinMode((int)pinmap::PI::TOPPICO_TOGGLE_RUN, OUTPUT);
+    pinMode((int)pinmap::RPI::BOTTOMPICO_TOGGLE_RUN, OUTPUT);
+    pinMode((int)pinmap::RPI::MIDPICO_TOGGLE_RUN, OUTPUT);
+    pinMode((int)pinmap::RPI::TOPPICO_TOGGLE_RUN, OUTPUT);
 
     change_mode(Mode::RUNNING);
 }

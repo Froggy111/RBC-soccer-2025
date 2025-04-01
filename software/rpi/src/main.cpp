@@ -3,6 +3,7 @@
 #include "debug.hpp"
 #include "mode_controller.hpp"
 #include "motion.hpp"
+#include "pinmap.hpp"
 #include "processor.hpp"
 #include "sensors/IR.hpp"
 #include "wiringPi.h"
