@@ -1,4 +1,4 @@
-#include "include/pf.hpp"
+#include "include/pf_test.hpp"
 #include <complex>
 #include <iostream>
 #include <algorithm>
@@ -68,7 +68,7 @@ void ParticleFilter::predict(double std_dev_pos, double std_dev_camera, double s
                 // double angle_weight = exp((-error_theta * error_theta)/ (2 * std_dev_theta * std_dev_theta));
         
                 // p.weight = position_weight*pos_weight + angle_weight*orientation_weight;
-                double distance_sq = 0.5*(error_dist) + 0.5*(error_theta);
+                double distance_sq = 0.6*(error_dist) + 0.4*(error_theta);
                 p.weight = exp(-0.5 * distance_sq / (std_dev_camera * std_dev_camera));
 
                 weight_sum += p.weight;
@@ -82,6 +82,7 @@ void ParticleFilter::predict(double std_dev_pos, double std_dev_camera, double s
     theta_changes.clear();
     position_changes.clear();
     position_archive.clear();
+    next_updated_index = 0;
 }
 
 void ParticleFilter::check_added_new_input(){
@@ -93,14 +94,22 @@ void ParticleFilter::check_added_new_input(){
     }
 }
 
-void ParticleFilter::update_mouse(std::tuple<double, double> delta_position){
-    check_added_new_input();
+// void ParticleFilter::update_mouse(std::tuple<double, double> delta_position){
+//     check_added_new_input();
+//     added_velocity = true;
+//     position_changes[position_changes.size() - 1]  = delta_position;
+// }
 
-    position_changes[position_changes.size() - 1]  = delta_position;
-}
-
-void ParticleFilter::update_imu(double delta_theta){
+void ParticleFilter::update_imu(double delta_vel_x, double delta_vel_y, double delta_theta){
     check_added_new_input();
+    std::tuple<float, float> new_vel = std::make_tuple(std::get<0>(last_vel) + delta_vel_x, std::get<1>(last_vel) + delta_vel_y);
+    int num_of_frames = position_changes.size() - next_updated_index + 1;
+    int count = 1;
+    for(int i = next_updated_index; i < position_changes.size(); i++){
+        position_changes[i] = std::make_tuple((std::get<0>(last_vel) + delta_vel_x/num_of_frames*count), (std::get<1>(last_vel) + delta_vel_y/num_of_frames*count));
+    }
+    last_vel = position_changes[position_changes.size() - 1];
+    next_updated_index = position_changes.size();
 
     theta_changes[theta_changes.size() - 1] = delta_theta;
 }
@@ -258,4 +267,3 @@ Particle ParticleFilter::estimate_position(){
 
     return {x_est, y_est, theta_est, 1.0};
 }
-
