@@ -148,8 +148,17 @@ void CDC::handle_board_id(comms::BoardIdentifiers board_id) {
         return;
     }
 
-    DeviceType device_type;
+    // Check if this device is already mapped to the same board ID
+    auto existing = boardDeviceNodeMap.find(board_id);
+    if (existing != boardDeviceNodeMap.end() && 
+        existing->second == _last_pinged_device.deviceNode) {
+        debug::debug("Ignoring duplicate BOARD_ID response from %s", 
+                    _last_pinged_device.deviceNode.c_str());
+        return;
+    }
 
+    DeviceType device_type;
+    
     // Map board ID to device type
     switch (board_id) {
         case comms::BoardIdentifiers::BOTTOM_PICO:
@@ -198,6 +207,13 @@ void CDC::scan_thread() {
 
 bool CDC::is_device_identified(const std::string &device_node) {
     std::lock_guard<std::mutex> lock(_device_map_mutex);
+    
+    // First check if we've already sent a ping to this device
+    if (_pinged_devices.find(device_node) != _pinged_devices.end()) {
+        return true; // Already pinged, don't ping again
+    }
+    
+    // Then check if it's already identified with a known type
     for (const auto &pair : _device_map) {
         if (pair.second.deviceNode == device_node &&
             pair.second.type != DeviceType::UNKNOWN) {
@@ -217,6 +233,8 @@ void CDC::identify_device(USBDevice &device) {
     {
         std::lock_guard<std::mutex> lock(_device_map_mutex);
         _last_pinged_device = device;
+        // Add device to pinged list
+        _pinged_devices.insert(device.deviceNode);
     }
 
     // Send BOARD_ID request
@@ -230,7 +248,6 @@ void CDC::identify_device(USBDevice &device) {
     // Wait for response (handled by callback registered in init)
     usleep(100000); // Wait 100ms for response
 }
-
 bool CDC::write_to_device(const USBDevice &device, types::u8 identifier,
                           const types::u8 *data, types::u16 data_len) {
     if (device.fileDescriptor < 0) {
