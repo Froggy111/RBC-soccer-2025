@@ -1,10 +1,8 @@
 #pragma once
-#include <atomic>
 
 namespace mode_controller {
 
 enum Mode {
-	IDLE,
 	RUNNING,
 	EMERGENCY_STOP
 };

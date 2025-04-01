@@ -24,13 +24,6 @@ void change_mode(Mode new_mode) {
 
     mode = new_mode;
     switch (mode) {
-        case Mode::IDLE:
-            debug::info("\nSet to IDLE\n");
-            digitalWrite((int)pinmap::PI::BOTTOMPICO_TOGGLE_RUN, 0);
-            digitalWrite((int)pinmap::PI::MIDPICO_TOGGLE_RUN, 0);
-            digitalWrite((int)pinmap::PI::TOPPICO_TOGGLE_RUN, 0);
-            break;
-
         case Mode::RUNNING:
             debug::info("\nSet to RUNNING\n");
             digitalWrite((int)pinmap::PI::BOTTOMPICO_TOGGLE_RUN, 1);

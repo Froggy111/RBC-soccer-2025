@@ -7,6 +7,7 @@
 #include "wiringPi.h"
 #include <cstdio>
 #include <opencv2/opencv.hpp>
+#include "IR.hpp"
 
 camera::Camera cam;
 camera::CamProcessor processor;
@@ -15,21 +16,25 @@ MotionController motion_controller;
 bool start() {
     // Initialize with desired resolution
     if (!cam.initialize(camera::RES_480P)) {
-        debug::error("Failed to initialize camera\n");
+        debug::error("INITIALIZED CAMERA - FAILED\n");
         return false;
     } else {
-        debug::info("Camera Capture Initialized");
+        debug::info("INITIALIZED CAMERA - SUCCESS\n");
     }
 
     // Start capturing with our frame processor
     if (!cam.startCapture(processor.process_frame)) {
-        debug::error("Failed to start camera capture\n");
+        debug::error("INITIALIZED CAMERA CAPTURE - FAILED\n");
         return false;
     } else {
-        debug::info("Camera capture started successfully\n");
+        debug::info("INITIALIZED CAMERA CAPTURE - SUCCESS\n");
     }
 
     // motion_controller.startControlThread();
+    // debug::info("INITIALIZED MOTION CONTROL - SUCCESS\n");
+
+    IR::IR_sensors.init();
+    debug::info("INITIALIZED IR SENSORS - SUCCESS\n");
 
     return true;
 }
@@ -41,7 +46,7 @@ void stop() {
     debug::info("Stopping camera capture...\n");
     cam.stopCapture();
 
-    debug::info("Stopping motion control thread...\n");
+    // debug::info("Stopping motion control thread...\n");
     // motion_controller.stopControlThread();
 }
 
