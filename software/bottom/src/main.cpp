@@ -55,7 +55,9 @@ void main_task(void *args) {
 
   debug::info("All tasks created.\n");
 
-  vTaskDelete(main_task_handle);
+  while (true) {
+    vTaskDelay(pdMS_TO_TICKS(portMAX_DELAY));
+  }
 }
 
 int main() {
