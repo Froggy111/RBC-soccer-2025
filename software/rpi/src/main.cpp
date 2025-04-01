@@ -7,7 +7,7 @@
 #include "wiringPi.h"
 #include <cstdio>
 #include <opencv2/opencv.hpp>
-#include "IR.hpp"
+#include "sensors/IR.hpp"
 
 camera::Camera cam;
 camera::CamProcessor processor;
