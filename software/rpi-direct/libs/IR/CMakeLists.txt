@@ -7,4 +7,4 @@ PUBLIC
 )
 
 target_include_directories(IR PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_globals(IR)
+target_link_globals(IR comms types)

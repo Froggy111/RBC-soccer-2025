@@ -40,6 +40,11 @@ int main() {
     IR::IR_sensors.init();
 
     while (true) {
+        const int gotten_values[24] = {0, 0, 0, 50, 100, 150, 150, 150, 100, 100, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        IR::IR_sensors.data_processor(gotten_values, 24);
+        std::tuple<float, float> funny = IR::IR_sensors.find_ball();
+
+        std::cout << "Ball Heading: " << std::get<0>(funny)*180/(M_PI) << " | Ball Distance: " << std::get<1>(funny) << '\n';
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
