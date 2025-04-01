@@ -394,13 +394,13 @@ int16_t MotorDriver::read_current() {
 }
 
 bool MotorDriver::command(types::i16 duty_cycle) {
-  // TODO: Implement Accel Safeguards
+  // screw this shit
   // Verify if the driver can accept commands
-  if (!check_config()) {
-    comms::USB_CDC.printf(
-        "Motor command aborted due to configuration error.\r\n");
-    return false;
-  }
+  // if (!check_config()) {
+  //   comms::USB_CDC.printf(
+  //       "Motor command aborted due to configuration error.\r\n");
+  //   return false;
+  // }
   if (duty_cycle < -1250 || duty_cycle > 1250) {
     comms::USB_CDC.printf(
         "Invalid duty cycle. Must be between -12500 and 12500.\r\n");
