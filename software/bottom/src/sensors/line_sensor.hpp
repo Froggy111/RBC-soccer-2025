@@ -17,7 +17,7 @@ void line_sensor_task(void *args) {
     comms::USB_CDC.write(comms::SendIdentifiers::LINE_SENSOR_DATA,
                           reinterpret_cast<uint8_t *>(raw_data),
                           sizeof(raw_data));
-
+                          
     vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(POLL_RATE));
   }
 }

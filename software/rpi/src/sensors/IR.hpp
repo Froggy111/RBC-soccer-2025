@@ -1,3 +1,4 @@
+#pragma once
 #include "comms.hpp"
 #include "debug.hpp"
 #include "types.hpp"
