@@ -75,9 +75,8 @@ void MotionController::controlThreadWorker() {
                 .id         = (uint8_t)i,
                 .duty_cycle = (uint16_t)(std::get<0>(res) * 12500)};
 
-            comms::USB_CDC.write(
-                usb::DeviceType::BOTTOM_PLATE,
-                (types::u8)comms::SendBottomPicoIdentifiers::MOTOR_DRIVER_CMD,
+            comms::USB_CDC.writeToBottomPico(
+                comms::SendBottomPicoIdentifiers::MOTOR_DRIVER_CMD,
                 reinterpret_cast<uint8_t *>(&motor_data), sizeof(motor_data));
         }
 
