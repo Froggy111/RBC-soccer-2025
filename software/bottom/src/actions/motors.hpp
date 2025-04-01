@@ -25,6 +25,8 @@ static u8 motor_task_buffer[sizeof(motor_task_data)];
 static SemaphoreHandle_t motor_data_mutex = nullptr;
 
 void motor_task(void *args) {
+  debug::info("Motor task started.\n");
+  
   // initialize all motors
   if (driver1.init(1, spi0)) {
     debug::info("Motor Driver 1 Initialized!\n");

@@ -11,6 +11,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <set>
 
 namespace usb {
 
@@ -211,6 +212,8 @@ class CDC {
 
     std::atomic<bool> _initialized;
     std::atomic<bool> _running;
+
+    std::set<std::string> _pinged_devices;
 };
 
 } // namespace usb
