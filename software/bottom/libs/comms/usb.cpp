@@ -402,10 +402,10 @@ bool CDC::_vendor_control_xfer_cb(u8 rhport, u8 stage,
   case 0x01: // reset to bootloader
     reset_usb_boot(0, 0);
     return true;
-
-  case 0x02: // restart
-    watchdog_reboot(0, 0, 100);
-    return true;
+    //
+    // case 0x02: // restart
+    //   watchdog_reboot(0, 0, 100);
+    //   return true;
   }
 
   return false;
