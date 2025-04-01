@@ -1,9 +1,9 @@
-add_executable(usb-led-blink main.cpp)
+add_executable(usb_led_blink main.cpp)
 
-target_link_libraries(usb-led-blink
+target_link_libraries(usb_led_blink
     PUBLIC
     comms
     debug_
 )
 
-target_compile_features(usb-led-blink PUBLIC cxx_std_17)
+target_compile_features(usb_led_blink PUBLIC cxx_std_17)
