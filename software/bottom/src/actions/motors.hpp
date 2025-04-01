@@ -37,5 +37,7 @@ void motor_task(void *args) {
     xSemaphoreGive(motor_data_mutex);
 
     motor_drivers[motor_task_data.id].command(motor_task_data.duty_cycle);
+    debug::info("Motor %d: %d\n", motor_task_data.id,
+                motor_task_data.duty_cycle);
   }
 }
