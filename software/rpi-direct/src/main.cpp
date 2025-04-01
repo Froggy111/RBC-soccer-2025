@@ -1,4 +1,5 @@
 #include "camera.hpp"
+#include "comms.hpp"
 #include "motion.hpp"
 #include "processor.hpp"
 #include <cstdio>
@@ -45,6 +46,8 @@ void stop() {
 }
 
 int main() {
+    comms::USB_CDC.init();
+
     // * wiring PI setup
     wiringPiSetupGpio();
 

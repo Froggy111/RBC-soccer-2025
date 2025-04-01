@@ -55,6 +55,7 @@ bool CDC::init(void) {
         DeviceType::UNKNOWN,
         static_cast<types::u8>(comms::RecvBottomPicoIdentifiers::BOARD_ID),
         [this](const types::u8 *data, types::u16 length) {
+            debug::info("Received BOARD_ID response, %d bytes", length);
             if (length >= 1) {
                 // Process received board ID
                 handle_board_id(static_cast<comms::BoardIdentifiers>(data[0]));
@@ -69,9 +70,10 @@ bool CDC::init(void) {
 
 void CDC::handle_board_id(comms::BoardIdentifiers board_id) {
     // This will be called when a device responds to the BOARD_ID request
-    // We need to determine which device sent this response
-
-    // We use the last device that was pinged
+    
+    // Safely access last pinged device
+    std::lock_guard<std::mutex> lock(_device_map_mutex);
+    
     if (_last_pinged_device.deviceNode.empty()) {
         return;
     }
@@ -98,9 +100,12 @@ void CDC::handle_board_id(comms::BoardIdentifiers board_id) {
     // Update device information
     _last_pinged_device.type = device_type;
 
-    // Add or update device in our map
-    std::lock_guard<std::mutex> lock(_device_map_mutex);
+    // Add or update device in our map (already have mutex locked)
     _device_map[device_type] = _last_pinged_device;
+    
+    debug::info("Device %s identified as %d", 
+                _last_pinged_device.deviceNode.c_str(), 
+                static_cast<int>(device_type));
 }
 
 void CDC::scan_thread() {
@@ -138,11 +143,15 @@ void CDC::identify_device(USBDevice &device) {
         return;
     }
 
-    // Store as the last pinged device
-    _last_pinged_device = device;
-
+    // Store as the last pinged device with mutex protection
+    {
+        std::lock_guard<std::mutex> lock(_device_map_mutex);
+        _last_pinged_device = device;
+    }
+    
     // Send BOARD_ID request
     types::u8 ping_data = 0;
+    debug::info("Sending BOARD_ID request to %s", device.deviceNode.c_str());
     write_to_device(
         device,
         static_cast<types::u8>(comms::SendBottomPicoIdentifiers::BOARD_ID),
@@ -320,61 +329,69 @@ bool CDC::is_connected(DeviceType type) {
 
 void CDC::read_thread(USBDevice device) {
     types::u8 buffer[MAX_RX_BUF_SIZE];
-    CurrentRXState state;
-    state.data_buffer = new types::u8[MAX_RX_BUF_SIZE];
+    
+    device.rxState.data_buffer = new types::u8[MAX_RX_BUF_SIZE];
 
     while (_running) {
+        bool deviceValid = false;
+        
         // Check if the device is still valid
         {
             std::lock_guard<std::mutex> lock(_device_map_mutex);
-            // For UNKNOWN devices, just check if they're in any slot in the map
-            if (device.type == DeviceType::UNKNOWN) {
-                bool found = false;
+            
+            // First check if this is the last pinged device
+            if (_last_pinged_device.deviceNode == device.deviceNode && 
+                _last_pinged_device.fileDescriptor >= 0) {
+                deviceValid = true;
+            }
+            // For UNKNOWN devices, check if they're in any slot in the map
+            else if (device.type == DeviceType::UNKNOWN) {
                 for (const auto &pair : _device_map) {
                     if (pair.second.deviceNode == device.deviceNode &&
                         pair.second.fileDescriptor >= 0) {
-                        found = true;
+                        deviceValid = true;
                         break;
                     }
                 }
-                if (!found) {
-                    break; // Device not found in map
-                }
             } else {
+                // For identified devices
                 auto it = _device_map.find(device.type);
-                if (it == _device_map.end() ||
-                    it->second.deviceNode != device.deviceNode ||
-                    it->second.fileDescriptor < 0) {
-                    // Device no longer in our map or disconnected
-                    break;
+                if (it != _device_map.end() &&
+                    it->second.deviceNode == device.deviceNode &&
+                    it->second.fileDescriptor >= 0) {
+                    deviceValid = true;
                 }
+            }
+            
+            if (!deviceValid) {
+                break;
             }
         }
 
-        // Read from device
-        ssize_t bytes_read =
-            read(device.fileDescriptor, buffer, sizeof(buffer));
+        // Rest of the function stays the same
+        ssize_t bytes_read = read(device.fileDescriptor, buffer, sizeof(buffer));
 
-        if (bytes_read <= 0) {
-            // No data or error
+        if (bytes_read > 0) {
+            // Process the received data
+            process_data(device, buffer, bytes_read);
+        } else if (bytes_read < 0) {
             usleep(10000); // Wait 10ms before trying again
-            continue;
+        } else {
+            // No data
+            usleep(10000); // Wait 10ms before trying again
         }
-
-        // Process the received data
-        process_data(device, buffer, bytes_read);
     }
 
-    delete[] state.data_buffer;
+    delete[] device.rxState.data_buffer;
 }
 
-void CDC::process_data(const USBDevice &device, const types::u8 *data,
+void CDC::process_data(USBDevice &device, const types::u8 *data,
                        types::u16 length) {
-    static CurrentRXState state;
-    static types::u8 data_buffer[MAX_RX_BUF_SIZE];
+    // Use the device's own state instead of a static one
+    CurrentRXState &state = device.rxState;
 
     if (state.data_buffer == nullptr) {
-        state.data_buffer = data_buffer;
+        state.data_buffer = new types::u8[MAX_RX_BUF_SIZE];
     }
 
     size_t offset = 0;
@@ -387,6 +404,7 @@ void CDC::process_data(const USBDevice &device, const types::u8 *data,
                 memcpy(&state.expected_length, data + offset, N_LENGTH_BYTES);
                 offset += N_LENGTH_BYTES;
                 state.length_bytes_received = true;
+                state.bytes_received        = 0; // Reset the counter
 
                 // Check if length is valid
                 if (state.expected_length > MAX_RX_BUF_SIZE) {
@@ -400,20 +418,20 @@ void CDC::process_data(const USBDevice &device, const types::u8 *data,
             }
         } else {
             // We have the length, now read the data
-            types::u16 remaining =
-                state.expected_length - (state.data_buffer - data_buffer);
+            types::u16 remaining = state.expected_length - state.bytes_received;
             types::u16 available = length - offset;
             types::u16 to_read   = std::min(remaining, available);
 
             // Copy data to buffer
-            memcpy(state.data_buffer, data + offset, to_read);
-            state.data_buffer += to_read;
+            memcpy(state.data_buffer + state.bytes_received, data + offset,
+                   to_read);
+            state.bytes_received += to_read;
             offset += to_read;
 
             // Check if we've read all the data
-            if (state.data_buffer - data_buffer == state.expected_length) {
+            if (state.bytes_received == state.expected_length) {
                 // Complete packet received
-                types::u8 recv_id = data_buffer[0];
+                types::u8 recv_id = state.data_buffer[0];
 
                 // Find and call the appropriate callback
                 std::lock_guard<std::mutex> lock(_callbacks_mutex);
@@ -424,7 +442,7 @@ void CDC::process_data(const USBDevice &device, const types::u8 *data,
                     auto callback_it = unknown_callbacks->second.find(recv_id);
                     if (callback_it != unknown_callbacks->second.end()) {
                         // Found a callback for UNKNOWN device type, execute it
-                        callback_it->second(data_buffer + 1,
+                        callback_it->second(state.data_buffer + 1,
                                             state.expected_length - 1);
                     }
                 }
@@ -436,14 +454,13 @@ void CDC::process_data(const USBDevice &device, const types::u8 *data,
                     auto callback_it = device_callbacks->second.find(recv_id);
                     if (callback_it != device_callbacks->second.end()) {
                         // Found a callback, execute it
-                        callback_it->second(data_buffer + 1,
+                        callback_it->second(state.data_buffer + 1,
                                             state.expected_length - 1);
                     }
                 }
 
                 // Reset state for next packet
                 state.reset();
-                state.data_buffer = data_buffer;
             }
         }
     }

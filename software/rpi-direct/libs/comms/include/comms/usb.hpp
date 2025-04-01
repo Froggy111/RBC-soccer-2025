@@ -20,7 +20,7 @@ namespace usb {
 
 static const types::u32 DEVICE_SCAN_TIMEOUT = 1000; // in milliseconds
 static const types::u32 CDC_CONNECTION_TIMEOUT = 1000;  // in milliseconds
-static const types::u32 DEVICE_SCAN_INTERVAL = 2000;    // in milliseconds
+static const types::u32 DEVICE_SCAN_INTERVAL = 200;    // in milliseconds
 
 static const types::u16 MAX_RX_BUF_SIZE = USB_RX_BUFSIZE;
 static const types::u16 MAX_TX_BUF_SIZE = USB_TX_BUFSIZE;
@@ -41,27 +41,27 @@ enum class DeviceType {
  * Structs *
  * ******* */
 
+struct CurrentRXState {
+    bool length_bytes_received = false;
+    types::u16 expected_length = 0;
+    types::u8* data_buffer = nullptr;
+    types::u16 bytes_received = 0;
+    
+    void reset() {
+        length_bytes_received = false;
+        expected_length = 0;
+        bytes_received = 0;
+    }
+};
+
 struct USBDevice {
     std::string path;
     std::string deviceNode;
     int fileDescriptor;
     DeviceType type;
+    CurrentRXState rxState;
     
     USBDevice() : fileDescriptor(-1), type(DeviceType::UNKNOWN) {}
-};
-
-struct CurrentRXState {
-    bool length_bytes_received = false;
-    types::u16 expected_length = 0;
-    types::u8 *data_buffer = nullptr;
-    
-    inline void reset(void) {
-        length_bytes_received = false;
-        expected_length = 0;
-        if (data_buffer) {
-            std::memset(data_buffer, 0, MAX_RX_BUF_SIZE);
-        }
-    }
 };
 
 /* ********** *
@@ -177,7 +177,8 @@ private:
      * @param data Received data
      * @param length Data length
      */
-    void process_data(const USBDevice& device, const types::u8* data, types::u16 length);
+     void process_data(USBDevice &device, const types::u8 *data,
+        types::u16 length);
     
     /* *************************************************************** *
      * Private buffers, synchronization primitives and other variables *
