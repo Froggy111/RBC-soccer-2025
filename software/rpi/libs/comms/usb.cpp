@@ -18,9 +18,7 @@ namespace usb {
 // Map to store the device nodes by board ID
 static std::map<comms::BoardIdentifiers, std::string> boardDeviceNodeMap;
 
-CDC::CDC() : _initialized(false), _running(false) {
-    // No need to initialize VID/PID identifiers anymore
-}
+CDC::CDC() : _initialized(false), _running(false) {}
 
 CDC::~CDC() {
     _running = false;

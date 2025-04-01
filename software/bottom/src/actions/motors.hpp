@@ -4,6 +4,7 @@
 #include "comms.hpp"
 #include "DRV8244.hpp"
 #include "projdefs.h"
+#include "debug.hpp"
 
 using namespace types;
 

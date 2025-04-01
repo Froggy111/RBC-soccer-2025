@@ -9,7 +9,7 @@ extern "C" {
 
 namespace mode_controller {
 
-Mode mode;
+Mode mode = Mode::IDLE;
 
 void signal_handler(int signum) {
     if (signum == SIGINT) {
@@ -24,25 +24,21 @@ void change_mode(Mode new_mode) {
 
     mode = new_mode;
     switch (mode) {
-        case Mode::IDLE:
-            debug::info("\nSet to IDLE\n");
-            digitalWrite((int)pinmap::PI::BOTTOMPICO_TOGGLE_RUN, 0);
-            digitalWrite((int)pinmap::PI::MIDPICO_TOGGLE_RUN, 0);
-            digitalWrite((int)pinmap::PI::TOPPICO_TOGGLE_RUN, 0);
-            break;
-
         case Mode::RUNNING:
-            debug::info("\nSet to RUNNING\n");
+            debug::info("Set to RUNNING");
             digitalWrite((int)pinmap::PI::BOTTOMPICO_TOGGLE_RUN, 1);
             digitalWrite((int)pinmap::PI::MIDPICO_TOGGLE_RUN, 1);
             digitalWrite((int)pinmap::PI::TOPPICO_TOGGLE_RUN, 1);
             break;
 
         case Mode::EMERGENCY_STOP:
-            debug::info("\nEmergency stop triggered (Ctrl+C)\n");
+            debug::info("Emergency stop triggered (Ctrl+C)");
             digitalWrite((int) pinmap::PI::BOTTOMPICO_TOGGLE_RUN, 0);
             digitalWrite((int) pinmap::PI::MIDPICO_TOGGLE_RUN, 0);
             digitalWrite((int) pinmap::PI::TOPPICO_TOGGLE_RUN, 0);
+            break;
+
+        default:
             break;
     }
 }

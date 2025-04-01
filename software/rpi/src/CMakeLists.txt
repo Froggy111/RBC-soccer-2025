@@ -3,6 +3,8 @@ target_sources(main
   PUBLIC
   mode_controller.cpp
   mode_controller.hpp
+  sensors/IR.cpp
+  sensors/IR.hpp
 )
 
 find_package(Threads REQUIRED)
