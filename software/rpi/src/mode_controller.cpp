@@ -55,7 +55,7 @@ void init_mode_controller() {
     pinMode((int)pinmap::PI::MIDPICO_TOGGLE_RUN, OUTPUT);
     pinMode((int)pinmap::PI::TOPPICO_TOGGLE_RUN, OUTPUT);
 
-    change_mode(Mode::IDLE);
+    change_mode(Mode::RUNNING);
 }
 
 }

@@ -46,7 +46,7 @@ void stop() {
 }
 
 int main() {
-    comms::init();
+    comms::USB_CDC.init();
 
     // * wiring PI setup
     wiringPiSetupGpio();
