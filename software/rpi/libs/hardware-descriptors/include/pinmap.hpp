@@ -9,7 +9,7 @@ enum class PI : types::u8 {
     TOPPICO_TOGGLE_RUN     = 4,
     TOPPICO_TOGGLE_EN      = 5,
     BOTTOMPICO_TOGGLE_RUN  = 17,
-    BOTTOMPICO_TOGGLE_EN13 = 27,
+    BOTTOMPICO_TOGGLE_EN   = 27,
     RPI_SPI0_MOSI          = 10,
     RPI_SPI0_MISO          = 9,
     RPI_SPI0_SCLK          = 11,

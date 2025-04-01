@@ -29,7 +29,7 @@ bool start() {
         debug::info("Camera capture started successfully\n");
     }
 
-    motion_controller.startControlThread();
+    // motion_controller.startControlThread();
 
     return true;
 }
@@ -42,20 +42,36 @@ void stop() {
     cam.stopCapture();
 
     debug::info("Stopping motion control thread...\n");
-    motion_controller.stopControlThread();
+    // motion_controller.stopControlThread();
 }
 
-int main() {
-    comms::USB_CDC.init();
+struct MotorRecvData {
+    uint8_t id;
+    uint16_t duty_cycle;
+};
 
+int main() {
     // * wiring PI setup
     wiringPiSetupGpio();
 
     // * Mode controller setup
     mode_controller::init_mode_controller();
 
+    comms::USB_CDC.init();
+
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
+        for (int i = 0; i < 4; i++) {
+            MotorRecvData motor_data = {
+                .id         = (uint8_t)i,
+                .duty_cycle = (uint16_t)(1000)};
+
+            comms::USB_CDC.write(
+                usb::DeviceType::BOTTOM_PLATE,
+                (types::u8)comms::SendBottomPicoIdentifiers::MOTOR_DRIVER_CMD,
+                reinterpret_cast<uint8_t *>(&motor_data), sizeof(motor_data));
+            debug::info("Motor %d duty cycle: %d\n", i, motor_data.duty_cycle);
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
