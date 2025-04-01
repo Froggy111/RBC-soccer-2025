@@ -6,6 +6,7 @@
 LineSensor line_sensors;
 
 void line_sensor_task(void *args) {
+  line_sensors.init(spi0);
   for (;;) {
     TickType_t previous_wait_time = xTaskGetTickCount();
 

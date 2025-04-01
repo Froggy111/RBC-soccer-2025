@@ -21,12 +21,22 @@ static MotorRecvData motor_task_data = {};
 static u8 motor_task_buffer[sizeof(motor_task_data)];
 static SemaphoreHandle_t motor_data_mutex = nullptr;
 
-static void motor_task(void *args) {
+void motor_task(void *args) {
   // initialize all motors
-  for (int i = 0; i < MOTOR_COUNT; i++) {
-    motor_drivers[i].init(i, spi0);
+  for (int i = 1; i <= MOTOR_COUNT; i++) {
+    if (!motor_drivers[i].init(i, spi0)) {
+      debug::error("Motor %d failed to initialize\n", i);
+      while (true) {
+        gpio_put(25, 1);
+        vTaskDelay(pdMS_TO_TICKS(100));
+        gpio_put(25, 0);
+        vTaskDelay(pdMS_TO_TICKS(100));
+      }
+    }
     motor_drivers[i].command(0);
   }
+
+  debug::info("Motors initialized");
 
   for (;;) {
     // * data transfer

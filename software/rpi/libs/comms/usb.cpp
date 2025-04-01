@@ -62,6 +62,7 @@ bool CDC::init(void) {
 
     // Start the background scanning thread
     _scan_thread = std::thread(&CDC::scan_thread, this);
+    attach_debug_listeners();
 
     return true;
 }
