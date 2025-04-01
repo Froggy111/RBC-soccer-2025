@@ -7,3 +7,4 @@ build
 out/
 heatmap_frames
 frame.png
+compile_commands.json

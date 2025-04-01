@@ -18,6 +18,7 @@ enum class RecvMiddlePicoIdentifiers : types::u8 {
     COMMS_WARN  = 0, // warnings should be sent here
     COMMS_ERROR = 1, // hard errors sent here
     COMMS_DEBUG = 2, // everything should fall under here by default
+    IR_DATA     = 3,
     PING        = 254,
     BOARD_ID    = 255,
 };

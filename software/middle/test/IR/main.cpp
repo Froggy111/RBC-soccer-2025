@@ -19,7 +19,7 @@ int main() {
   gpio_put(LED_PIN, 1);
 
   comms::init();
-  xTaskCreate(main_task, "ir_sensor_poll_task", 1024, NULL, 10, NULL);
+  xTaskCreate(main_task, "main task", 1024, NULL, 10, NULL);
 
   vTaskStartScheduler();
   return 0;
