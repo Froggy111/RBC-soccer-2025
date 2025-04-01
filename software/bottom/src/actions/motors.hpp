@@ -15,13 +15,13 @@ struct MotorRecvData {
   uint16_t duty_cycle;
 };
 
-TaskHandle_t motor_task_handle = nullptr;
-driver::MotorDriver motor_drivers[MOTOR_COUNT];
-MotorRecvData motor_task_data = {};
-u8 motor_task_buffer[sizeof(motor_task_data)];
-SemaphoreHandle_t motor_data_mutex = nullptr;
+static TaskHandle_t motor_task_handle = nullptr;
+static driver::MotorDriver motor_drivers[MOTOR_COUNT];
+static MotorRecvData motor_task_data = {};
+static u8 motor_task_buffer[sizeof(motor_task_data)];
+static SemaphoreHandle_t motor_data_mutex = nullptr;
 
-void motor_task(void *args) {
+static void motor_task(void *args) {
   // initialize all motors
   for (int i = 0; i < MOTOR_COUNT; i++) {
     motor_drivers[i].init(i, spi0);
@@ -32,8 +32,7 @@ void motor_task(void *args) {
     // * data transfer
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
     xSemaphoreTake(motor_data_mutex, portMAX_DELAY);
-    memcpy(&motor_task_data, motor_task_buffer,
-           sizeof(motor_task_data));
+    memcpy(&motor_task_data, motor_task_buffer, sizeof(motor_task_data));
     memset(motor_task_buffer, 0, sizeof(motor_task_buffer));
     xSemaphoreGive(motor_data_mutex);
 
