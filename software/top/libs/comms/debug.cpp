@@ -103,7 +103,7 @@ void log(const char *format, ...) {
 
   // Buffer for formatted string with prefix
   char buffer[256];
-  const char *prefix = "[LOG - BOTTOM_PICO] ";
+  const char *prefix = "[LOG - TOP_PICO] ";
 
   // Copy prefix to buffer
   int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
@@ -127,7 +127,7 @@ void debug(const char *format, ...) {
 
   // Buffer for formatted string with prefix
   char buffer[256];
-  const char *prefix = "[DEBUG - BOTTOM_PICO] ";
+  const char *prefix = "[DEBUG - TOP_PICO] ";
 
   // Copy prefix to buffer
   int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
@@ -151,7 +151,7 @@ void info(const char *format, ...) {
 
   // Buffer for formatted string with prefix
   char buffer[256];
-  const char *prefix = "[INFO - BOTTOM_PICO] ";
+  const char *prefix = "[INFO - TOP_PICO] ";
 
   // Copy prefix to buffer
   int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
@@ -175,7 +175,7 @@ void warn(const char *format, ...) {
 
   // Buffer for formatted string with prefix
   char buffer[256];
-  const char *prefix = "[WARN - BOTTOM_PICO] ";
+  const char *prefix = "[WARN - TOP_PICO] ";
 
   // Copy prefix to buffer
   int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
@@ -199,7 +199,7 @@ void error(const char *format, ...) {
 
   // Buffer for formatted string with prefix
   char buffer[256];
-  const char *prefix = "[ERROR - BOTTOM_PICO] ";
+  const char *prefix = "[ERROR - TOP_PICO] ";
 
   // Copy prefix to buffer
   int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
@@ -223,7 +223,7 @@ void fatal(const char *format, ...) {
 
   // Buffer for formatted string with prefix
   char buffer[256];
-  const char *prefix = "[FATAL - BOTTOM_PICO] ";
+  const char *prefix = "[FATAL - TOP_PICO] ";
 
   // Copy prefix to buffer
   int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
