@@ -10,6 +10,7 @@ extern "C" {
 #include "pin_manager.hpp"
 #include "registers.hpp"
 #include "comms.hpp"
+#include "debug.hpp"
 
 #define DEFAULT_NSLEEP 1 // not sleeping by default
 #define DEFAULT_DRVOFF 0 // driver on by default
@@ -76,7 +77,7 @@ bool MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
 
   comms::USB_CDC.printf("-> Configuring registers\r\n");
   if (!init_registers()) {
-    comms::USB_CDC.printf("Error: Could not configure registers\r\n");
+    debug::error("Error: Could not configure registers\r\n");
     return false;
   }
 

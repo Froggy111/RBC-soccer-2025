@@ -53,7 +53,7 @@ void stop() {
 
 struct MotorRecvData {
     uint8_t id;
-    uint16_t duty_cycle;
+    types::i16 duty_cycle;
 };
 
 int main() {
@@ -67,9 +67,9 @@ int main() {
 
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
-        for (int i = 0; i < 4; i++) {
+        for (int i = 1; i <= 4; i++) {
             MotorRecvData motor_data = {.id         = (uint8_t)i,
-                                        .duty_cycle = (uint16_t)(1000)};
+                                        .duty_cycle = 1000};
 
             comms::USB_CDC.write(
                 usb::DeviceType::BOTTOM_PLATE,
