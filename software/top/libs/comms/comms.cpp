@@ -29,11 +29,18 @@ bool init(void) {
                           sizeof(ping_task_buffer));
 
   board_id_task_mutex = xSemaphoreCreateMutex();
-  xTaskCreate(board_id_task, "board_id task", board_id_TASK_STACK_DEPTH,
-              nullptr, board_id_TASK_PRIORITY, &board_id_task_handle);
+  xTaskCreate(board_id_task, "board_id task", BOARD_ID_TASK_STACK_DEPTH,
+              nullptr, BOARD_ID_TASK_PRIORITY, &board_id_task_handle);
   USB_CDC.attach_listener(RecvIdentifiers::BOARD_ID, board_id_task_handle,
                           board_id_task_mutex, board_id_task_buffer,
                           sizeof(board_id_task_buffer));
+
+  blink_task_mutex = xSemaphoreCreateMutex();
+  xTaskCreate(blink_task, "blink_task", BLINK_TASK_STACK_DEPTH, nullptr,
+              BLINK_TASK_PRIORITY, &blink_task_handle);
+  USB_CDC.attach_listener(RecvIdentifiers::BLINK, blink_task_handle,
+                          blink_task_mutex, blink_task_buffer,
+                          sizeof(blink_task_buffer));
 
   return true;
 }
@@ -71,6 +78,21 @@ void board_id_task(void *params) {
 #endif
 
     USB_CDC.write(SendIdentifiers::BOARD_ID, (u8 *)&board_id, sizeof(board_id));
+  }
+}
+
+void blink_task(void *args) {
+  for (;;) {
+    blink_task_data.reset();
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    xSemaphoreTake(blink_task_mutex, portMAX_DELAY);
+    memcpy(&blink_task_data, blink_task_buffer, sizeof(BlinkTaskData));
+    memset(blink_task_buffer, 0, sizeof(blink_task_buffer));
+    xSemaphoreGive(blink_task_mutex);
+    gpio_put(LED_PIN, 1);
+    // vTaskDelay(pdMS_TO_TICKS(blink_task_data.blink_time_ms));
+    sleep_ms(blink_task_data.blink_time_ms);
+    gpio_put(LED_PIN, 0);
   }
 }
 
