@@ -4,7 +4,7 @@
 #include "types.hpp"
 #include "ALSPT19.hpp"
 
-// TODO: WEIRD SPI ERRORS 
+// TODO: WEIRD SPI ERRORS
 
 using namespace types;
 
@@ -39,7 +39,7 @@ int main() {
   gpio_set_dir(LED_PIN, GPIO_OUT);
   gpio_put(LED_PIN, 1);
 
-  comms::USB_CDC.init();
+  comms::init();
 
   xTaskCreate(line_sensor_poll_task, "line_sensor_poll_task", 1024, NULL, 10,
               NULL);

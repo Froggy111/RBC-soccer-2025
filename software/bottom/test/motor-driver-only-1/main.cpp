@@ -83,7 +83,7 @@ int main() {
   gpio_set_dir(LED_PIN, GPIO_OUT);
   gpio_put(LED_PIN, 1);
 
-  comms::USB_CDC.init();
+  comms::init();
   xTaskCreate(motor_driver_task, "motor_driver_task", 1024, NULL, 10, NULL);
   // xTaskCreate(motor_driver_clear_fault_task, "motor_driver_clear_fault_task",
   //             1024, NULL, 10, NULL);

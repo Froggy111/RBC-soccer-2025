@@ -109,7 +109,7 @@ int main() {
   gpio_set_function((uint)pinmap::Pico::SPI0_MISO, GPIO_FUNC_SPI);
 
   // Initialize USB CDC
-  comms::USB_CDC.init();
+  comms::init();
 
   dmux = new MCP23S17();
 

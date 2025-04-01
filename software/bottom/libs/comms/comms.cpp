@@ -22,14 +22,14 @@ uart::Serial UART_serial = uart::Serial();
 bool init(void) {
   USB_CDC.init();
   ping_task_mutex = xSemaphoreCreateMutex();
-  xTaskCreate(ping_task, "ping task", PING_TASK_STACK_DEPTH, nullptr,
+  xTaskCreate(ping_task, "ping_task", PING_TASK_STACK_DEPTH, nullptr,
               PING_TASK_PRIORITY, &ping_task_handle);
   USB_CDC.attach_listener(RecvIdentifiers::PING, ping_task_handle,
                           ping_task_mutex, ping_task_buffer,
                           sizeof(ping_task_buffer));
 
   board_id_task_mutex = xSemaphoreCreateMutex();
-  xTaskCreate(board_id_task, "board_id task", board_id_TASK_STACK_DEPTH,
+  xTaskCreate(board_id_task, "board_id_task", board_id_TASK_STACK_DEPTH,
               nullptr, board_id_TASK_PRIORITY, &board_id_task_handle);
   USB_CDC.attach_listener(RecvIdentifiers::BOARD_ID, board_id_task_handle,
                           board_id_task_mutex, board_id_task_buffer,
@@ -56,6 +56,7 @@ void ping_task(void *params) {
 
 void board_id_task(void *params) {
   // ignore params
+
   for (;;) {
     // data-less command
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);

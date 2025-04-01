@@ -34,7 +34,7 @@ int main() {
   gpio_init(LED_PIN);
   gpio_set_dir(LED_PIN, GPIO_OUT);
   gpio_put(LED_PIN, 0);
-  comms::USB_CDC.init();
+  comms::init();
   blink_on_cmd_data_mutex = xSemaphoreCreateMutex();
   xTaskCreate(blink_on_cmd, "blink_on_cmd", 1024, NULL, 10,
               &blink_on_cmd_handle);

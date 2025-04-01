@@ -20,7 +20,7 @@ void led_shiny_shiny(void *args) {
   gpio_put((uint)pinmap::Pico::LED_SIG_DIR, 1);
 
   uint8_t offset = 0;
-  
+
   while (true) {
     // Rainbow wheel animation
     for (int i = 0; i < 24; i++) {
@@ -28,10 +28,10 @@ void led_shiny_shiny(void *args) {
       uint8_t hue = ((i * 256 / 24) + offset) % 256;
       led_strip.setPixelColor(i, WS2812::hue_to_rgb(hue));
     }
-    
+
     led_strip.show();
     vTaskDelay(50 / portTICK_PERIOD_MS);
-    
+
     // Increment offset to make the wheel spin
     offset = (offset + 5) % 256;
   }
@@ -42,7 +42,7 @@ int main() {
   gpio_set_dir(LED_PIN, GPIO_OUT);
   gpio_put(LED_PIN, 1);
 
-  comms::USB_CDC.init();
+  comms::init();
 
   xTaskCreate(led_shiny_shiny, "led_shiny_shiny", 1024, NULL, 10, NULL);
 
