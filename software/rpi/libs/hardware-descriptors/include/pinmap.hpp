@@ -3,7 +3,7 @@
 
 namespace pinmap {
 
-enum class PI : types::u8 {
+enum class RPI : types::u8 {
     PI_I2C_SDA             = 2,
     PI_I2C_SCL             = 3,
     TOPPICO_TOGGLE_RUN     = 4,
