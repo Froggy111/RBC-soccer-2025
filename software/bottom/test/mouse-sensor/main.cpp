@@ -24,7 +24,7 @@ void mouse_sensor_task(void *args) {
   comms::USB_CDC.printf("CDC Connected!\r\n");
 
   //usb::CDC *cdc = (usb::CDC *)args;
-  if (!spi_init(spi0, 1000000)) { 
+  if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.printf("SPI Initialization Failed!\r\n");
     urgent_blink();
   } else {
@@ -37,21 +37,28 @@ void mouse_sensor_task(void *args) {
   } else {
     comms::USB_CDC.printf("Mouse Sensor Initialised!\r\n");
   }
-  
+
   while (true) {
-      vTaskDelay(pdMS_TO_TICKS(1000));
-      sensor.read_motion_burst();
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    sensor.read_motion_burst();
 
-      types::u16 x_delta, y_delta, shutter;
-      for(int j = 0;j < 12; j++){
-        comms::USB_CDC.printf("TERM %u: %u \r\n", j, sensor.motion_burst_buffer[j]);
-      }
+    types::u16 x_delta, y_delta, shutter;
+    for (int j = 0; j < 12; j++) {
+      comms::USB_CDC.printf("TERM %u: %u \r\n", j,
+                            sensor.motion_burst_buffer[j]);
+    }
 
-      x_delta = ((sensor.motion_burst_buffer[2] << 8) | sensor.motion_burst_buffer[3]);
-      y_delta = ((sensor.motion_burst_buffer[4] << 8) | sensor.motion_burst_buffer[5]);
-      comms::USB_CDC.printf("X_L: %u | X_H: %u \r\n", sensor.motion_burst_buffer[2], sensor.motion_burst_buffer[3]);
-      comms::USB_CDC.printf("Y_L: %u | Y_H: %u \r\n", sensor.motion_burst_buffer[4], sensor.motion_burst_buffer[5]);
-      comms::USB_CDC.printf("X delta: %u | Y delta: %u \r\n", x_delta, y_delta);
+    x_delta =
+        ((sensor.motion_burst_buffer[2] << 8) | sensor.motion_burst_buffer[3]);
+    y_delta =
+        ((sensor.motion_burst_buffer[4] << 8) | sensor.motion_burst_buffer[5]);
+    comms::USB_CDC.printf("X_L: %u | X_H: %u \r\n",
+                          sensor.motion_burst_buffer[2],
+                          sensor.motion_burst_buffer[3]);
+    comms::USB_CDC.printf("Y_L: %u | Y_H: %u \r\n",
+                          sensor.motion_burst_buffer[4],
+                          sensor.motion_burst_buffer[5]);
+    comms::USB_CDC.printf("X delta: %u | Y delta: %u \r\n", x_delta, y_delta);
   }
 }
 
@@ -60,7 +67,7 @@ int main() {
   gpio_set_dir(LED_PIN, GPIO_OUT);
   gpio_put(LED_PIN, 1);
 
-  comms::USB_CDC.init();
+  comms::init();
 
   xTaskCreate(mouse_sensor_task, "mouse_sensor_task", 1024, NULL, 10, NULL);
   vTaskStartScheduler();

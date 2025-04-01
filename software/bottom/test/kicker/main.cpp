@@ -28,10 +28,9 @@ int main() {
   gpio_set_dir(LED_PIN, GPIO_OUT);
   gpio_put(LED_PIN, 1);
 
-  comms::USB_CDC.init();
+  comms::init();
 
-  xTaskCreate(kicker_task, "kicker_task", 1024, NULL, 10,
-              NULL);
+  xTaskCreate(kicker_task, "kicker_task", 1024, NULL, 10, NULL);
 
   vTaskStartScheduler();
   return 0;

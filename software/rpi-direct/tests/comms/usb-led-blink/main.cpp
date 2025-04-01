@@ -34,13 +34,13 @@ int main() {
     debug::info("Will send test commands when device is connected...");
 
     while (!comms::USB_CDC.is_connected(
-            usb::DeviceType::TOP_PLATE)) {
+            usb::DeviceType::BOTTOM_PLATE)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     types::u8 testData[] = {10};
     bool success         = comms::USB_CDC.write(
-        usb::DeviceType::TOP_PLATE,
+        usb::DeviceType::BOTTOM_PLATE,
         (types::u8)comms::SendTopPicoIdentifiers::DEBUG_TEST_BLINK, testData,
         sizeof(testData));
 

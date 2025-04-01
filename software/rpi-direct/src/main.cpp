@@ -1,12 +1,12 @@
 #include "camera.hpp"
 #include "comms.hpp"
+#include "debug.hpp"
+#include "mode_controller.hpp"
 #include "motion.hpp"
 #include "processor.hpp"
+#include "wiringPi.h"
 #include <cstdio>
 #include <opencv2/opencv.hpp>
-#include "mode_controller.hpp"
-#include "wiringPi.h"
-#include "debug.hpp"
 
 camera::Camera cam;
 camera::CamProcessor processor;
@@ -37,7 +37,7 @@ bool start() {
 void stop() {
     debug::info("Stopping motion controller...\n");
     motion_controller.stopControlThread();
-    
+
     debug::info("Stopping camera capture...\n");
     cam.stopCapture();
 
@@ -46,7 +46,7 @@ void stop() {
 }
 
 int main() {
-    comms::USB_CDC.init();
+    comms::init();
 
     // * wiring PI setup
     wiringPiSetupGpio();
