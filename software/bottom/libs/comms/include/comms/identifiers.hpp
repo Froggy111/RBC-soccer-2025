@@ -18,7 +18,7 @@ enum class RecvIdentifiers : types::u8 {
   KICKER_CMD = 1,
   PING = 253,
   BOARD_ID = 254,
-  DEBUG_TEST_BLINK = 255,
+  BLINK = 255,
 };
 
 enum class BoardIdentifiers : types::u8 {
