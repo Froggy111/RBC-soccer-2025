@@ -78,6 +78,8 @@ void board_id_task(void *params) {
     BoardIdentifiers board_id = BoardIdentifiers::TOP_PICO;
 #endif
 
+    gpio_put(25, 0);
+
     USB_CDC.write(SendIdentifiers::BOARD_ID, (u8 *)&board_id, sizeof(board_id));
   }
 }

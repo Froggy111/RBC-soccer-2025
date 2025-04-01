@@ -15,7 +15,7 @@ void log(const char *format, ...) {
   vsnprintf(buffer, sizeof(buffer), format, args);
 
   // Use the CDC printf for debug mode
-  usb::CDC::printf("%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -30,7 +30,7 @@ void debug(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  usb::CDC::printf("%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -45,7 +45,7 @@ void info(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  usb::CDC::printf("%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -60,7 +60,7 @@ void warn(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  usb::CDC::printf("%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -75,7 +75,7 @@ void error(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  usb::CDC::printf("%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -90,7 +90,7 @@ void fatal(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  usb::CDC::printf("%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -114,7 +114,7 @@ void log(const char *format, ...) {
   int total_len = prefix_len + msg_len;
 
   // Use CDC write with LOG identifier for non-debug mode
-  usb::CDC::write(comms::SendIdentifiers::COMMS_DEBUG,
+  comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
                   (const types::u8 *)buffer,
                   static_cast<types::u16>(total_len));
 
@@ -138,7 +138,7 @@ void debug(const char *format, ...) {
   int total_len = prefix_len + msg_len;
 
   // Use CDC write with LOG identifier for non-debug mode
-  usb::CDC::write(comms::SendIdentifiers::COMMS_DEBUG,
+  comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
                   (const types::u8 *)buffer,
                   static_cast<types::u16>(total_len));
 
@@ -162,7 +162,7 @@ void info(const char *format, ...) {
   int total_len = prefix_len + msg_len;
 
   // Use CDC write with LOG identifier for non-debug mode
-  usb::CDC::write(comms::SendIdentifiers::COMMS_DEBUG,
+  comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
                   (const types::u8 *)buffer,
                   static_cast<types::u16>(total_len));
 
@@ -186,7 +186,7 @@ void warn(const char *format, ...) {
   int total_len = prefix_len + msg_len;
 
   // Use CDC write with LOG identifier for non-debug mode
-  usb::CDC::write(comms::SendIdentifiers::COMMS_DEBUG,
+  comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
                   (const types::u8 *)buffer,
                   static_cast<types::u16>(total_len));
 
@@ -210,7 +210,7 @@ void error(const char *format, ...) {
   int total_len = prefix_len + msg_len;
 
   // Use CDC write with LOG identifier for non-debug mode
-  usb::CDC::write(comms::SendIdentifiers::COMMS_DEBUG,
+  comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
                   (const types::u8 *)buffer,
                   static_cast<types::u16>(total_len));
 
@@ -234,7 +234,7 @@ void fatal(const char *format, ...) {
   int total_len = prefix_len + msg_len;
 
   // Use CDC write with LOG identifier for non-debug mode
-  usb::CDC::write(comms::SendIdentifiers::COMMS_DEBUG,
+  comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
                   (const types::u8 *)buffer,
                   static_cast<types::u16>(total_len));
 

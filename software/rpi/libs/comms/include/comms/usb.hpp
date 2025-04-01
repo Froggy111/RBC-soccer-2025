@@ -11,7 +11,6 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include <set>
 
 namespace usb {
 
@@ -21,7 +20,6 @@ namespace usb {
 
 static const types::u32 DEVICE_SCAN_TIMEOUT    = 1000; // in milliseconds
 static const types::u32 CDC_CONNECTION_TIMEOUT = 1000; // in milliseconds
-static const types::u32 DEVICE_SCAN_INTERVAL   = 200;  // in milliseconds
 
 static const types::u16 MAX_RX_BUF_SIZE = USB_RX_BUFSIZE;
 static const types::u16 MAX_TX_BUF_SIZE = USB_TX_BUFSIZE;
@@ -70,7 +68,7 @@ class CDC {
     ~CDC();
 
     /**
-     * @brief Initializes communication and starts background device scanning
+     * @brief Initializes communication and performs one-time device scanning
      * @returns true if successfully initialized, false if not
      */
     bool init(void);
@@ -115,14 +113,12 @@ class CDC {
      * ***************** */
 
     /**
-   * @brief Attaches debug listeners to the devices
-   * 
-   */
+     * @brief Attaches debug listeners to the devices
+     */
     void attach_debug_listeners();
 
     /**
      * @brief Logs the current state of the Pico device
-     * 
      */
     static void log_pico(const types::u8 *data, types::u16 length);
 
@@ -133,28 +129,22 @@ class CDC {
     void read_thread(USBDevice device);
 
     /**
-     * @brief Thread function for continuously scanning for devices
-     */
-    void scan_thread();
-
-    /**
      * @brief Handles a BOARD_ID response from a device
      * @param board_id The board ID that was received
      */
     void handle_board_id(comms::BoardIdentifiers board_id);
 
     /**
-     * @brief Checks if a device has already been identified
-     * @param device_node Path to the device node (e.g. "/dev/ttyACM0")
-     * @return true if identified, false otherwise
-     */
-    bool is_device_identified(const std::string &device_node);
-
-    /**
      * @brief Attempts to identify a device by sending a BOARD_ID request
      * @param device Reference to the device to identify
      */
     void identify_device(USBDevice &device);
+
+    /**
+     * @brief Scan for devices and attempt to identify them
+     * @return true if any devices were found and identified
+     */
+    bool scan_and_identify_devices();
 
     /**
      * @brief Writes data to a specific device
@@ -175,12 +165,6 @@ class CDC {
     bool connect(USBDevice &device);
 
     /**
-     * @brief Closes connection to a device
-     * @param device Reference to the device to disconnect
-     */
-    void disconnect(USBDevice &device);
-
-    /**
      * @brief Process received data
      * @param device Source device
      * @param data Received data
@@ -197,11 +181,10 @@ class CDC {
     std::map<DeviceType, USBDevice> _device_map;
     std::mutex _device_map_mutex;
 
-    // Record of which device was last pinged for identification
-    USBDevice _last_pinged_device;
+    // Device currently being identified
+    USBDevice _pending_identification;
 
     std::vector<std::thread> _read_threads;
-    std::thread _scan_thread;
 
     // Callbacks for received data, mapped by device type and identifier
     std::map<
@@ -212,8 +195,6 @@ class CDC {
 
     std::atomic<bool> _initialized;
     std::atomic<bool> _running;
-
-    std::set<std::string> _pinged_devices;
 };
 
 } // namespace usb
