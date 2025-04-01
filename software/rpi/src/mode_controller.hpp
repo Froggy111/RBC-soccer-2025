@@ -3,6 +3,7 @@
 namespace mode_controller {
 
 enum Mode {
+    IDLE,
 	RUNNING,
 	EMERGENCY_STOP
 };

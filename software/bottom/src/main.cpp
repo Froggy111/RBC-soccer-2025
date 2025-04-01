@@ -16,6 +16,8 @@ extern "C" {
 
 TaskHandle_t main_task_handle = nullptr;
 void main_task(void *args) {
+  comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
+
   // * Init LED
   gpio_init(LED_PIN);
   gpio_set_dir(LED_PIN, GPIO_OUT);
