@@ -1,6 +1,7 @@
-#include <atomic>
+#include <csignal>
 #include "debug.hpp"
 #include <signal.h>
+#include <unistd.h>
 #include "mode_controller.hpp"
 #include "pinmap.hpp"
 extern "C" {
@@ -35,7 +36,8 @@ void change_mode(Mode new_mode) {
             debug::info("=============== EMERGENCY ===============");
             digitalWrite((int) pinmap::RPI::BOTTOMPICO_TOGGLE_RUN, 0);
             digitalWrite((int) pinmap::RPI::MIDPICO_TOGGLE_RUN, 0);
-            digitalWrite((int) pinmap::RPI::TOPPICO_TOGGLE_RUN, 0);
+            digitalWrite((int)pinmap::RPI::TOPPICO_TOGGLE_RUN, 0);
+            _exit(0);
             break;
 
         default:
