@@ -27,6 +27,9 @@ public:
     
     // Initialize the communication system
     bool init();
+
+    void addDebugCallbacks();
+    static void handle_debug(const types::u8 *data, types::u16 data_len);
     
     // Send messages to specific boards
     bool writeToBottomPico(comms::SendBottomPicoIdentifiers identifier, const types::u8* data, types::u16 data_len);
@@ -36,7 +39,9 @@ public:
     // Register message handlers for specific message types
     void registerBottomPicoHandler(comms::RecvBottomPicoIdentifiers identifier, MessageCallback callback);
     void registerMiddlePicoHandler(comms::RecvMiddlePicoIdentifiers identifier, MessageCallback callback);
-    void registerTopPicoHandler(comms::RecvTopPicoIdentifiers identifier, MessageCallback callback);
+    void registerTopPicoHandler(comms::RecvTopPicoIdentifiers identifier,
+                                MessageCallback callback);
+    void registerUnknownPicoHandler(types::u8 identifier, MessageCallback callback);
 
 private:
     // Struct to store detected Pico devices
@@ -72,6 +77,7 @@ private:
     std::map<types::u8, MessageCallback> _bottom_pico_handlers;
     std::map<types::u8, MessageCallback> _middle_pico_handlers;
     std::map<types::u8, MessageCallback> _top_pico_handlers;
+    std::map<types::u8, MessageCallback> _unknown_pico_handlers;
     
     // Mutex for thread safety
     std::mutex _devices_mutex;
