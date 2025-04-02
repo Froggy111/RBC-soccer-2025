@@ -233,9 +233,6 @@ void CDC::rxThreadFunc(PicoDevice &device) {
                     if (processed_pos + 2 + msg_len <= temp_buffer_pos) {
                         // Extract identifier
                         types::u8 identifier = temp_buffer[processed_pos + 2];
-                        debug::info(
-                            "Received message with identifier: %d, length: %d",
-                            identifier, msg_len);
 
                         // Handle board identification
                         if (identifier == static_cast<types::u8>(
@@ -283,9 +280,6 @@ void CDC::rxThreadFunc(PicoDevice &device) {
 void CDC::processMessage(comms::BoardIdentifiers board, types::u8 identifier,
                          const types::u8 *data, types::u16 data_len) {
     std::lock_guard<std::mutex> lock(_handlers_mutex);
-
-    debug::info("Board ID: %d, Identifier: %d, Data Length: %d", board,
-                identifier, data_len);
 
     switch (board) {
         case comms::BoardIdentifiers::BOTTOM_PICO: {
