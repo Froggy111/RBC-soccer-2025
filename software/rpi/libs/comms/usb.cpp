@@ -319,6 +319,7 @@ bool CDC::writeToPico(PicoDevice &device, const types::u8 *identifier_ptr,
     types::u16 reported_len =
         data_len + sizeof(*identifier_ptr); // +1 for identifier
     types::u16 packet_len = sizeof(reported_len) + reported_len;
+    debug::info("Reported length: %u, Data length: %u", reported_len, data_len);
 
     if (packet_len > MAX_TX_BUF_SIZE) {
         return false;
