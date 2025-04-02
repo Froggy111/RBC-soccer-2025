@@ -1,469 +1,403 @@
 #include "comms/usb.hpp"
 #include "comms.hpp"
-#include "comms/errors.hpp"
 #include "comms/identifiers.hpp"
 #include "debug.hpp"
-#include <algorithm>
-#include <cstdarg>
-#include <cstdio>
+#include <chrono>
 #include <cstring>
 #include <dirent.h>
 #include <fcntl.h>
-#include <regex>
+#include <stdarg.h>
+#include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
 
 namespace usb {
 
-// Map to store the device nodes by board ID
-static std::map<comms::BoardIdentifiers, std::string> boardDeviceNodeMap;
-
-CDC::CDC() : _initialized(false), _running(false) {
-    // No need to initialize VID/PID identifiers anymore
-}
+CDC::CDC() : _initialized(false) {}
 
 CDC::~CDC() {
-    _running = false;
-
-    // Join scan thread
-    if (_scan_thread.joinable()) {
-        _scan_thread.join();
-    }
-
-    // Join all read threads
-    for (auto &thread : _read_threads) {
-        if (thread.joinable()) {
-            thread.join();
-        }
-    }
-
-    // Close all open devices
-    std::lock_guard<std::mutex> lock(_device_map_mutex);
-    for (auto &pair : _device_map) {
-        if (pair.second.fileDescriptor >= 0) {
-            close(pair.second.fileDescriptor);
-        }
-    }
-}
-
-bool CDC::init(void) {
-    _initialized = true;
-    _running     = true;
-
-    // Register a callback for BOARD_ID responses
-    register_callback(
-        DeviceType::UNKNOWN,
-        static_cast<types::u8>(comms::RecvBottomPicoIdentifiers::BOARD_ID),
-        [this](const types::u8 *data, types::u16 length) {
-            debug::info("Received BOARD_ID response, %d bytes", length);
-            if (length >= 1) {
-                // Process received board ID
-                handle_board_id(static_cast<comms::BoardIdentifiers>(data[0]));
+    // Clean up: close all open devices and stop threads
+    std::lock_guard<std::mutex> lock(_devices_mutex);
+    for (auto &device_pair : _devices) {
+        if (device_pair.second) {
+            device_pair.second->running = false;
+            if (device_pair.second->rx_thread.joinable()) {
+                device_pair.second->rx_thread.join();
             }
-        });
-
-    // Start the background scanning thread
-    _scan_thread = std::thread(&CDC::scan_thread, this);
-
-    return true;
+            if (device_pair.second->fd >= 0) {
+                close(device_pair.second->fd);
+            }
+        }
+    }
 }
 
-void CDC::handle_board_id(comms::BoardIdentifiers board_id) {
-    // This will be called when a device responds to the BOARD_ID request
-    
-    // Safely access last pinged device
-    std::lock_guard<std::mutex> lock(_device_map_mutex);
-    
-    if (_last_pinged_device.deviceNode.empty()) {
+bool CDC::init() {
+    if (_initialized) {
+        return true;
+    }
+
+    addDebugCallbacks();
+
+    debug::info("Initializing scan...");
+    // Scan for Pico devices
+    scanDevices();
+
+    _initialized = !_devices.empty();
+    return _initialized;
+}
+
+void CDC::addDebugCallbacks() {
+    // Register debug message handlers for each board type
+    registerBottomPicoHandler(comms::RecvBottomPicoIdentifiers::COMMS_DEBUG,
+                              handle_debug);
+    registerMiddlePicoHandler(comms::RecvMiddlePicoIdentifiers::COMMS_DEBUG,
+                              handle_debug);
+    registerTopPicoHandler(comms::RecvTopPicoIdentifiers::COMMS_DEBUG,
+                           handle_debug);
+    registerUnknownPicoHandler(
+        (types::u8)comms::RecvBottomPicoIdentifiers::COMMS_DEBUG, handle_debug);
+
+    registerBottomPicoHandler(comms::RecvBottomPicoIdentifiers::COMMS_WARN,
+                              handle_debug);
+    registerMiddlePicoHandler(comms::RecvMiddlePicoIdentifiers::COMMS_WARN,
+                              handle_debug);
+    registerTopPicoHandler(comms::RecvTopPicoIdentifiers::COMMS_WARN,
+                           handle_debug);
+    registerUnknownPicoHandler(
+        (types::u8)comms::RecvBottomPicoIdentifiers::COMMS_WARN, handle_debug);
+
+    registerBottomPicoHandler(comms::RecvBottomPicoIdentifiers::COMMS_ERROR,
+                              handle_debug);
+    registerMiddlePicoHandler(comms::RecvMiddlePicoIdentifiers::COMMS_ERROR,
+                              handle_debug);
+    registerTopPicoHandler(comms::RecvTopPicoIdentifiers::COMMS_ERROR,
+                           handle_debug);
+    registerUnknownPicoHandler(
+        (types::u8)comms::RecvBottomPicoIdentifiers::COMMS_ERROR, handle_debug);
+}
+
+void CDC::handle_debug(const types::u8 *data, types::u16 data_len) {
+    printf("%.*s", data_len, data);
+}
+
+void CDC::scanDevices() {
+    DIR *dir;
+    struct dirent *entry;
+
+    dir = opendir("/dev");
+    if (!dir) {
+        debug::error("Failed to open /dev directory");
         return;
     }
 
-    DeviceType device_type;
-
-    // Map board ID to device type
-    switch (board_id) {
-        case comms::BoardIdentifiers::BOTTOM_PICO:
-            device_type = DeviceType::BOTTOM_PLATE;
-            break;
-        case comms::BoardIdentifiers::MIDDLE_PICO:
-            device_type = DeviceType::MIDDLE_PLATE;
-            break;
-        case comms::BoardIdentifiers::TOP_PICO:
-            device_type = DeviceType::TOP_PLATE;
-            break;
-        default: return; // Unknown board ID
+    // Find all ttyACM devices
+    std::vector<std::string> ttyACM_devices;
+    while ((entry = readdir(dir)) != nullptr) {
+        std::string name(entry->d_name);
+        if (name.find("ttyACM") != std::string::npos) {
+            ttyACM_devices.push_back("/dev/" + name);
+            debug::info("Found device: %s", name.c_str());
+        }
     }
+    closedir(dir);
 
-    // Store the board device node association
-    boardDeviceNodeMap[board_id] = _last_pinged_device.deviceNode;
+    // Try to connect to each device and identify it
+    for (const auto &port : ttyACM_devices) {
+        int fd = open(port.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
 
-    // Update device information
-    _last_pinged_device.type = device_type;
+        if (fd < 0) {
+            debug::error("Failed to open %s", port.c_str());
+            continue;
+        }
 
-    // Add or update device in our map (already have mutex locked)
-    _device_map[device_type] = _last_pinged_device;
-    
-    debug::info("Device %s identified as %d", 
-                _last_pinged_device.deviceNode.c_str(), 
-                static_cast<int>(device_type));
+        // Set up serial port
+        struct termios tty;
+        memset(&tty, 0, sizeof(tty));
+
+        if (tcgetattr(fd, &tty) != 0) {
+            debug::error("Error from tcgetattr for %s", port.c_str());
+            close(fd);
+            continue;
+        }
+
+        // Set baud rate and other settings (8N1, no flow control)
+        cfsetospeed(&tty, B115200);
+        cfsetispeed(&tty, B115200);
+
+        tty.c_cflag &= ~PARENB; // No parity
+        tty.c_cflag &= ~CSTOPB; // 1 stop bit
+        tty.c_cflag &= ~CSIZE;
+        tty.c_cflag |= CS8;      // 8 data bits
+        tty.c_cflag &= ~CRTSCTS; // No hardware flow control
+        tty.c_cflag |= CREAD | CLOCAL;
+
+        tty.c_lflag &= ~ICANON; // No canonical mode
+        tty.c_lflag &= ~ECHO;   // No echo
+        tty.c_lflag &= ~ECHOE;  // No echo erase
+        tty.c_lflag &= ~ECHONL; // No echo new line
+        tty.c_lflag &= ~ISIG;   // No interpretation of INTR, QUIT, SUSP
+
+        tty.c_iflag &= ~(IXON | IXOFF | IXANY); // No software flow control
+        tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR |
+                         ICRNL); // No special handling of received bytes
+
+        tty.c_oflag &= ~OPOST; // No output processing
+        tty.c_oflag &= ~ONLCR; // No conversion of newline to CR/LF
+
+        tty.c_cc[VTIME] = 0; // No timeout
+        tty.c_cc[VMIN]  = 1; // Read at least 1 character
+
+        if (tcsetattr(fd, TCSANOW, &tty) != 0) {
+            debug::error("Error from tcsetattr for %s", port.c_str());
+            close(fd);
+            continue;
+        }
+
+        // Create device object
+        auto device        = std::make_shared<PicoDevice>();
+        device->port       = port;
+        device->fd         = fd;
+        device->identified = false;
+        device->running    = true;
+        device->board_id   = comms::BoardIdentifiers::UNKNOWN;
+
+        // Start RX thread for this device
+        device->rx_thread =
+            std::thread(&CDC::rxThreadFunc, this, std::ref(*device));
+
+        // Send board ID request to identify the board
+        types::u8 id_cmd =
+            static_cast<types::u8>(comms::SendBottomPicoIdentifiers::BOARD_ID);
+        debug::info("Sending BOARD_ID to %s", port.c_str());
+        writeToPico(*device, &id_cmd, nullptr, 0);
+
+        // If the board is identified, add it to our devices map
+        uint16_t timeout = 1000;
+        while (!device->identified && timeout > 0) {
+            // Wait for identification
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+            timeout -= 10;
+        }
+
+        if (device->identified) {
+            // Add device to the map
+            std::lock_guard<std::mutex> lock(_devices_mutex);
+            _devices[device->board_id] = device;
+            std::string identifier;
+            switch (device->board_id) {
+                case comms::BoardIdentifiers::BOTTOM_PICO:
+                    identifier = "Bottom Pico";
+                    break;
+                case comms::BoardIdentifiers::MIDDLE_PICO:
+                    identifier = "Middle Pico";
+                    break;
+                case comms::BoardIdentifiers::TOP_PICO:
+                    identifier = "Top Pico";
+                    break;
+                default: identifier = "Unknown board"; break;
+            }
+            debug::info("Found %s on %s", identifier.c_str(), port.c_str());
+        }
+    }
 }
 
-void CDC::scan_thread() {
-    while (_running) {
-        // Get all ttyACM devices
-        auto devices = scan_devices();
+void CDC::rxThreadFunc(PicoDevice &device) {
+    types::u8 rx_buffer[MAX_RX_BUF_SIZE];
+    types::u8 temp_buffer[MAX_RX_BUF_SIZE];
+    size_t temp_buffer_pos = 0;
 
-        // Try to identify each device by pinging it
-        for (auto &device : devices) {
-            // Skip devices already identified
-            if (!is_device_identified(device.deviceNode)) {
-                identify_device(device);
+    while (device.running) {
+        // Try to read data
+        int bytes_avail;
+        ioctl(device.fd, FIONREAD, &bytes_avail);
+
+        if (bytes_avail > 0) {
+            int n =
+                read(device.fd, temp_buffer + temp_buffer_pos,
+                     std::min(bytes_avail, static_cast<int>(MAX_RX_BUF_SIZE -
+                                                            temp_buffer_pos)));
+            if (n > 0) {
+                temp_buffer_pos += n;
+
+                // Process complete messages
+                size_t processed_pos = 0;
+                while (
+                    processed_pos + 3 <=
+                    temp_buffer_pos) { // At least length (2 bytes) + identifier (1 byte)
+                    // Extract message length (little endian)
+                    types::u16 msg_len = temp_buffer[processed_pos] |
+                                         (temp_buffer[processed_pos + 1] << 8);
+
+                    // Check if we have a complete message
+                    if (processed_pos + 2 + msg_len <= temp_buffer_pos) {
+                        // Extract identifier
+                        types::u8 identifier = temp_buffer[processed_pos + 2];
+
+                        // Handle board identification
+                        if (identifier == static_cast<types::u8>(
+                                              comms::RecvBottomPicoIdentifiers::
+                                                  BOARD_ID) &&
+                            msg_len == 2) { // 1 for identifier + 1 for board ID
+                            comms::BoardIdentifiers board_id =
+                                static_cast<comms::BoardIdentifiers>(
+                                    temp_buffer[processed_pos + 3]);
+                            device.board_id   = board_id;
+                            device.identified = true;
+                        }
+
+                        processMessage(
+                            device.board_id, identifier,
+                            temp_buffer + processed_pos +
+                                3, // Data starts after length and identifier
+                            msg_len -
+                                1); // Length includes identifier, so subtract 1
+
+                        // Move to next message
+                        processed_pos += 2 + msg_len;
+                    } else {
+                        // Incomplete message, wait for more data
+                        break;
+                    }
+                }
+
+                // Move any remaining data to the beginning of the buffer
+                if (processed_pos < temp_buffer_pos) {
+                    memmove(temp_buffer, temp_buffer + processed_pos,
+                            temp_buffer_pos - processed_pos);
+                    temp_buffer_pos -= processed_pos;
+                } else {
+                    temp_buffer_pos = 0;
+                }
             }
         }
 
-        // Sleep for a bit before scanning again
-        usleep(DEVICE_SCAN_INTERVAL * 1000);
+        // Small delay to avoid hogging the CPU
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
 }
 
-bool CDC::is_device_identified(const std::string &device_node) {
-    std::lock_guard<std::mutex> lock(_device_map_mutex);
-    for (const auto &pair : _device_map) {
-        if (pair.second.deviceNode == device_node &&
-            pair.second.type != DeviceType::UNKNOWN) {
-            return true;
+void CDC::processMessage(comms::BoardIdentifiers board, types::u8 identifier,
+                         const types::u8 *data, types::u16 data_len) {
+    std::lock_guard<std::mutex> lock(_handlers_mutex);
+
+    switch (board) {
+        case comms::BoardIdentifiers::BOTTOM_PICO: {
+            auto it = _bottom_pico_handlers.find(identifier);
+            if (it != _bottom_pico_handlers.end()) {
+                it->second(data, data_len);
+            }
+            break;
+        }
+        case comms::BoardIdentifiers::MIDDLE_PICO: {
+            auto it = _middle_pico_handlers.find(identifier);
+            if (it != _middle_pico_handlers.end()) {
+                it->second(data, data_len);
+            }
+            break;
+        }
+        case comms::BoardIdentifiers::TOP_PICO: {
+            auto it = _top_pico_handlers.find(identifier);
+            if (it != _top_pico_handlers.end()) {
+                it->second(data, data_len);
+            }
+            break;
+        }
+        case comms::BoardIdentifiers::UNKNOWN: {
+            // Handle messages from unknown board types
+            auto it = _unknown_pico_handlers.find(identifier);
+            if (it != _unknown_pico_handlers.end()) {
+                it->second(data, data_len);
+            }
+            break;
         }
     }
-    return false;
 }
 
-void CDC::identify_device(USBDevice &device) {
-    // First try to connect to the device
-    if (!connect(device)) {
-        return;
-    }
-
-    // Store as the last pinged device with mutex protection
-    {
-        std::lock_guard<std::mutex> lock(_device_map_mutex);
-        _last_pinged_device = device;
-    }
-    
-    // Send BOARD_ID request
-    types::u8 ping_data = 0;
-    debug::info("Sending BOARD_ID request to %s", device.deviceNode.c_str());
-    write_to_device(
-        device,
-        static_cast<types::u8>(comms::SendBottomPicoIdentifiers::BOARD_ID),
-        &ping_data, 1);
-
-    // Wait for response (handled by callback registered in init)
-    usleep(100000); // Wait 100ms for response
-}
-
-bool CDC::write_to_device(const USBDevice &device, types::u8 identifier,
-                          const types::u8 *data, types::u16 data_len) {
-    if (device.fileDescriptor < 0) {
-        return false;
-    }
-
-    types::u16 reported_len = data_len + sizeof(identifier);
-    types::u16 packet_len   = sizeof(reported_len) + reported_len;
+bool CDC::writeToPico(PicoDevice &device, const types::u8 *identifier_ptr,
+                      const types::u8 *data, types::u16 data_len) {
+    types::u16 reported_len =
+        data_len + sizeof(*identifier_ptr); // +1 for identifier
+    types::u16 packet_len = sizeof(reported_len) + reported_len;
 
     if (packet_len > MAX_TX_BUF_SIZE) {
         return false;
     }
 
-    // Create the packet buffer
-    types::u8 buffer[MAX_TX_BUF_SIZE];
-    size_t offset = 0;
+    // Prepare packet
+    types::u8 tx_buffer[MAX_TX_BUF_SIZE] = {0};
 
-    // Copy length
-    memcpy(buffer + offset, &reported_len, sizeof(reported_len));
-    offset += sizeof(reported_len);
+    // Write length (little endian)
+    memcpy(tx_buffer, &reported_len, sizeof(reported_len));
 
-    // Copy identifier
-    memcpy(buffer + offset, &identifier, sizeof(identifier));
-    offset += sizeof(identifier);
+    // Write identifier
+    tx_buffer[sizeof(reported_len)] = *identifier_ptr;
 
-    // Copy data
-    memcpy(buffer + offset, data, data_len);
-    offset += data_len;
+    memcpy(&tx_buffer[3], data, data_len);
 
-    // Write to device
-    ssize_t written = ::write(device.fileDescriptor, buffer, offset);
-    return written == offset;
+    // Send packet
+    std::lock_guard<std::mutex> lock(device.tx_mutex);
+    return write(device.fd, tx_buffer, packet_len) == packet_len;
 }
 
-std::vector<USBDevice> CDC::scan_devices() {
-    std::vector<USBDevice> devices;
-
-    if (!_initialized) {
-        return devices;
-    }
-
-    // Scan /dev for ttyACM devices
-    DIR *dir = opendir("/dev");
-    if (!dir) {
-        return devices;
-    }
-
-    struct dirent *entry;
-    std::regex ttyACMPattern("ttyACM[0-9]+");
-
-    while ((entry = readdir(dir)) != nullptr) {
-        std::string name = entry->d_name;
-        if (std::regex_match(name, ttyACMPattern)) {
-            std::string devicePath = "/dev/" + name;
-
-            // Create a basic device structure - we'll identify it later
-            USBDevice device;
-            device.deviceNode = devicePath;
-            device.type       = DeviceType::UNKNOWN;
-
-            devices.push_back(device);
-        }
-    }
-
-    closedir(dir);
-    return devices;
-}
-
-bool CDC::connect(USBDevice &device) {
-    if (device.deviceNode.empty()) {
+bool CDC::writeToBottomPico(comms::SendBottomPicoIdentifiers identifier,
+                            const types::u8 *data, types::u16 data_len) {
+    std::lock_guard<std::mutex> lock(_devices_mutex);
+    auto it = _devices.find(comms::BoardIdentifiers::BOTTOM_PICO);
+    if (it == _devices.end()) {
         return false;
     }
 
-    // Open the device
-    int fd = open(device.deviceNode.c_str(), O_RDWR | O_NOCTTY);
-    if (fd < 0) {
+    types::u8 id = static_cast<types::u8>(identifier);
+    return writeToPico(*(it->second), &id, data, data_len);
+}
+
+bool CDC::writeToMiddlePico(comms::SendMiddlePicoIdentifiers identifier,
+                            const types::u8 *data, types::u16 data_len) {
+    std::lock_guard<std::mutex> lock(_devices_mutex);
+    auto it = _devices.find(comms::BoardIdentifiers::MIDDLE_PICO);
+    if (it == _devices.end()) {
         return false;
     }
 
-    // Configure the terminal
-    struct termios tty;
-    memset(&tty, 0, sizeof(tty));
+    types::u8 id = static_cast<types::u8>(identifier);
+    return writeToPico(*(it->second), &id, data, data_len);
+}
 
-    // Get current terminal attributes
-    if (tcgetattr(fd, &tty) != 0) {
-        close(fd);
+bool CDC::writeToTopPico(comms::SendTopPicoIdentifiers identifier,
+                         const types::u8 *data, types::u16 data_len) {
+    std::lock_guard<std::mutex> lock(_devices_mutex);
+    auto it = _devices.find(comms::BoardIdentifiers::TOP_PICO);
+    if (it == _devices.end()) {
         return false;
     }
 
-    // Set baud rate (115200)
-    cfsetospeed(&tty, B115200);
-    cfsetispeed(&tty, B115200);
-
-    // 8N1 mode, no flow control
-    tty.c_cflag &= ~PARENB; // No parity
-    tty.c_cflag &= ~CSTOPB; // 1 stop bit
-    tty.c_cflag &= ~CSIZE;
-    tty.c_cflag |= CS8;      // 8 bits
-    tty.c_cflag &= ~CRTSCTS; // No hardware flow control
-    tty.c_cflag |=
-        CREAD | CLOCAL; // Enable receiver, ignore modem control lines
-
-    // Raw input
-    tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-
-    // Raw output
-    tty.c_oflag &= ~OPOST;
-
-    // No software flow control
-    tty.c_iflag &= ~(IXON | IXOFF | IXANY);
-
-    // No special handling of bytes
-    tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL);
-
-    // Non-blocking read with timeout
-    tty.c_cc[VMIN]  = 0;
-    tty.c_cc[VTIME] = 1; // 0.1 seconds
-
-    // Apply the settings
-    if (tcsetattr(fd, TCSANOW, &tty) != 0) {
-        close(fd);
-        return false;
-    }
-
-    device.fileDescriptor = fd;
-
-    // Start the read thread
-    _read_threads.emplace_back(&CDC::read_thread, this, device);
-
-    return true;
+    types::u8 id = static_cast<types::u8>(identifier);
+    return writeToPico(*(it->second), &id, data, data_len);
 }
 
-void CDC::disconnect(USBDevice &device) {
-    // Close the file descriptor
-    if (device.fileDescriptor >= 0) {
-        close(device.fileDescriptor);
-        device.fileDescriptor = -1;
-    }
-}
-bool CDC::write(DeviceType type, types::u8 identifier, const types::u8 *data,
-                const types::u16 data_len) {
-    std::lock_guard<std::mutex> lock(_device_map_mutex);
-
-    // Find the device of this type
-    auto it = _device_map.find(type);
-    if (it == _device_map.end() || it->second.fileDescriptor < 0) {
-        return false; // Device not found or not connected
-    }
-
-    const USBDevice &device = it->second;
-    return write_to_device(device, identifier, data, data_len);
+void CDC::registerBottomPicoHandler(comms::RecvBottomPicoIdentifiers identifier,
+                                    MessageCallback callback) {
+    std::lock_guard<std::mutex> lock(_handlers_mutex);
+    _bottom_pico_handlers[static_cast<types::u8>(identifier)] = callback;
 }
 
-void CDC::register_callback(
-    DeviceType type, types::u8 identifier,
-    std::function<void(const types::u8 *, types::u16)> callback) {
-    std::lock_guard<std::mutex> lock(_callbacks_mutex);
-    _callbacks[type][identifier] = callback;
+void CDC::registerMiddlePicoHandler(comms::RecvMiddlePicoIdentifiers identifier,
+                                    MessageCallback callback) {
+    std::lock_guard<std::mutex> lock(_handlers_mutex);
+    _middle_pico_handlers[static_cast<types::u8>(identifier)] = callback;
 }
 
-bool CDC::is_connected(DeviceType type) {
-    std::lock_guard<std::mutex> lock(_device_map_mutex);
-    auto it = _device_map.find(type);
-    return (it != _device_map.end() && it->second.fileDescriptor >= 0);
+void CDC::registerTopPicoHandler(comms::RecvTopPicoIdentifiers identifier,
+                                 MessageCallback callback) {
+    std::lock_guard<std::mutex> lock(_handlers_mutex);
+    _top_pico_handlers[static_cast<types::u8>(identifier)] = callback;
 }
 
-void CDC::read_thread(USBDevice device) {
-    types::u8 buffer[MAX_RX_BUF_SIZE];
-    
-    device.rxState.data_buffer = new types::u8[MAX_RX_BUF_SIZE];
-
-    while (_running) {
-        bool deviceValid = false;
-        
-        // Check if the device is still valid
-        {
-            std::lock_guard<std::mutex> lock(_device_map_mutex);
-            
-            // First check if this is the last pinged device
-            if (_last_pinged_device.deviceNode == device.deviceNode && 
-                _last_pinged_device.fileDescriptor >= 0) {
-                deviceValid = true;
-            }
-            // For UNKNOWN devices, check if they're in any slot in the map
-            else if (device.type == DeviceType::UNKNOWN) {
-                for (const auto &pair : _device_map) {
-                    if (pair.second.deviceNode == device.deviceNode &&
-                        pair.second.fileDescriptor >= 0) {
-                        deviceValid = true;
-                        break;
-                    }
-                }
-            } else {
-                // For identified devices
-                auto it = _device_map.find(device.type);
-                if (it != _device_map.end() &&
-                    it->second.deviceNode == device.deviceNode &&
-                    it->second.fileDescriptor >= 0) {
-                    deviceValid = true;
-                }
-            }
-            
-            if (!deviceValid) {
-                break;
-            }
-        }
-
-        // Rest of the function stays the same
-        ssize_t bytes_read = read(device.fileDescriptor, buffer, sizeof(buffer));
-
-        if (bytes_read > 0) {
-            // Process the received data
-            process_data(device, buffer, bytes_read);
-        } else if (bytes_read < 0) {
-            usleep(10000); // Wait 10ms before trying again
-        } else {
-            // No data
-            usleep(10000); // Wait 10ms before trying again
-        }
-    }
-
-    delete[] device.rxState.data_buffer;
-}
-
-void CDC::process_data(USBDevice &device, const types::u8 *data,
-                       types::u16 length) {
-    // Use the device's own state instead of a static one
-    CurrentRXState &state = device.rxState;
-
-    if (state.data_buffer == nullptr) {
-        state.data_buffer = new types::u8[MAX_RX_BUF_SIZE];
-    }
-
-    size_t offset = 0;
-    while (offset < length) {
-        // If we haven't received length bytes yet
-        if (!state.length_bytes_received) {
-            // Check if we have enough data for the length
-            if (offset + N_LENGTH_BYTES <= length) {
-                // Read the length bytes
-                memcpy(&state.expected_length, data + offset, N_LENGTH_BYTES);
-                offset += N_LENGTH_BYTES;
-                state.length_bytes_received = true;
-                state.bytes_received        = 0; // Reset the counter
-
-                // Check if length is valid
-                if (state.expected_length > MAX_RX_BUF_SIZE) {
-                    // Invalid length, reset state
-                    state.reset();
-                    continue;
-                }
-            } else {
-                // Not enough data for length, wait for more
-                break;
-            }
-        } else {
-            // We have the length, now read the data
-            types::u16 remaining = state.expected_length - state.bytes_received;
-            types::u16 available = length - offset;
-            types::u16 to_read   = std::min(remaining, available);
-
-            // Copy data to buffer
-            memcpy(state.data_buffer + state.bytes_received, data + offset,
-                   to_read);
-            state.bytes_received += to_read;
-            offset += to_read;
-
-            // Check if we've read all the data
-            if (state.bytes_received == state.expected_length) {
-                // Complete packet received
-                types::u8 recv_id = state.data_buffer[0];
-
-                // Find and call the appropriate callback
-                std::lock_guard<std::mutex> lock(_callbacks_mutex);
-
-                // First check for UNKNOWN device callbacks (used for identification)
-                auto unknown_callbacks = _callbacks.find(DeviceType::UNKNOWN);
-                if (unknown_callbacks != _callbacks.end()) {
-                    auto callback_it = unknown_callbacks->second.find(recv_id);
-                    if (callback_it != unknown_callbacks->second.end()) {
-                        // Found a callback for UNKNOWN device type, execute it
-                        callback_it->second(state.data_buffer + 1,
-                                            state.expected_length - 1);
-                    }
-                }
-
-                // Then check for this specific device type callbacks
-                auto device_callbacks = _callbacks.find(device.type);
-                if (device_callbacks != _callbacks.end()) {
-                    // Look for a callback for this identifier
-                    auto callback_it = device_callbacks->second.find(recv_id);
-                    if (callback_it != device_callbacks->second.end()) {
-                        // Found a callback, execute it
-                        callback_it->second(state.data_buffer + 1,
-                                            state.expected_length - 1);
-                    }
-                }
-
-                // Reset state for next packet
-                state.reset();
-            }
-        }
-    }
+void CDC::registerUnknownPicoHandler(types::u8 identifier,
+                                     MessageCallback callback) {
+    std::lock_guard<std::mutex> lock(_handlers_mutex);
+    _unknown_pico_handlers[identifier] = callback;
 }
 
 } // namespace usb

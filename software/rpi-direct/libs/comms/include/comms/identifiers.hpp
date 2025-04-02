@@ -60,6 +60,7 @@ enum class BoardIdentifiers : types::u8 {
     BOTTOM_PICO = 0,
     MIDDLE_PICO = 1,
     TOP_PICO    = 2,
+    UNKNOWN     = 3
 };
 
 static const types::u16 identifier_arr_len = 256;
