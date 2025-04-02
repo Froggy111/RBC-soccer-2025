@@ -1,8 +1,8 @@
 #pragma once
 
+#include "config.hpp"
 #include "position.hpp"
 #include <opencv2/opencv.hpp>
-#include "config.hpp"
 
 namespace camera {
 class CamProcessor {
@@ -31,6 +31,11 @@ class CamProcessor {
      */
     static float calculate_loss(const cv::Mat &camera_image, Pos &guess);
 
+    /**
+     * @brief Same as calculate_loss, but using the chunks
+     */
+    static float calculate_loss_chunks(const cv::Mat &camera_image, Pos &guess);
+  
     // * Functions to find the minima
 
     /**
@@ -43,10 +48,11 @@ class CamProcessor {
      * @param num_generations Number of generations to run
      * @return std::pair<Pos, float> returns the position and the loss
      */
-    static std::pair<Pos, float>
-    find_minima_particle_search(const cv::Mat &camera_image, Pos &initial_guess,
-                        int num_particles = PARTICLE_SEARCH_NUM, int num_generations = PARTICLE_SEARCH_GEN,
-                        int variance_per_generation = PARTICLE_SEARCH_VAR);
+    static std::pair<Pos, float> find_minima_particle_search(
+        const cv::Mat &camera_image, Pos &initial_guess,
+        int num_particles           = PARTICLE_SEARCH_NUM,
+        int num_generations         = PARTICLE_SEARCH_GEN,
+        int variance_per_generation = PARTICLE_SEARCH_VAR);
     /**
      * @brief Find the minima from an initial guess, using smart search
      * Aims to do grid search efficiently by searching middle first
@@ -61,8 +67,9 @@ class CamProcessor {
      */
     static std::pair<Pos, float>
     find_minima_full_search(const cv::Mat &camera_image, Pos &center,
-                             int step = FULL_SEARCH_HEADING_STEP, int heading_step = FULL_SEARCH_STEP);
-                             
+                            int step         = FULL_SEARCH_HEADING_STEP,
+                            int heading_step = FULL_SEARCH_STEP);
+
     /**
      * @brief Find the minima using gradient descent regression
      * Efficiently refines position estimate by moving in the direction 
@@ -78,13 +85,13 @@ class CamProcessor {
      * @param convergence_threshold Threshold to determine convergence
      * @return std::pair<Pos, float> returns the position and the loss
      */
-    static std::pair<Pos, float> 
-    find_minima_regression(const cv::Mat &camera_image, Pos &initial_guess,
-                          int max_iterations = REGRESSION_MAX_ITERATIONS,
-                          float initial_step_x = REGRESSION_INITIAL_STEP_X,
-                          float initial_step_y = REGRESSION_INITIAL_STEP_Y,
-                          float initial_step_heading = REGRESSION_INITIAL_STEP_HEADING,
-                          float step_decay = REGRESSION_STEP_DECAY,
-                          float convergence_threshold = REGRESSION_CONVERGENCE_THRESHOLD);
+    static std::pair<Pos, float> find_minima_regression(
+        const cv::Mat &camera_image, Pos &initial_guess,
+        int max_iterations          = REGRESSION_MAX_ITERATIONS,
+        float initial_step_x        = REGRESSION_INITIAL_STEP_X,
+        float initial_step_y        = REGRESSION_INITIAL_STEP_Y,
+        float initial_step_heading  = REGRESSION_INITIAL_STEP_HEADING,
+        float step_decay            = REGRESSION_STEP_DECAY,
+        float convergence_threshold = REGRESSION_CONVERGENCE_THRESHOLD);
 };
 } // namespace camera

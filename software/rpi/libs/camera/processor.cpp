@@ -2,6 +2,7 @@
 #include "config.hpp"
 #include "debug.hpp"
 #include "field.hpp"
+#include "field_chunked.hpp"
 #include "position.hpp"
 #include <cstdio>
 #include <cstdlib>
@@ -33,13 +34,13 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     int32_t cos_theta_fp = static_cast<int32_t>(cos(guess.heading) * FP_ONE);
 
     // Transform & rotate white line coords
-    for (int i = 0; i < WHITE_LINES_LENGTH; i++) {
-        int16_t x = WHITE_LINES[i][0];
-        int16_t y = WHITE_LINES[i][1];
+    for (int i = 0; i < field::WHITE_LINES_LENGTH; i++) {
+        int16_t x = field::WHITE_LINES[i][0];
+        int16_t y = field::WHITE_LINES[i][1];
 
         // Transform to relative coordinates
-        int32_t rel_x = x + guess.x / GRID_SIZE;
-        int32_t rel_y = y + guess.y / GRID_SIZE;
+        int32_t rel_x = x + guess.x;
+        int32_t rel_y = y + guess.y;
 
         // Rotate using fixed-point arithmetic
         int32_t rotated_x_fp =
@@ -85,6 +86,82 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     return loss;
 }
 
+float CamProcessor::calculate_loss_chunks(const cv::Mat &camera_image,
+                                          Pos &guess) {
+    uint32_t count = 0, white = 0;
+
+    // Fixed-point scaling factor (Q16.16 format)
+    constexpr int FP_SHIFT = 16;
+    constexpr int FP_ONE   = 1 << FP_SHIFT;
+
+    // Convert angles to fixed point representation
+    int32_t sin_theta_fp = static_cast<int32_t>(sin(guess.heading) * FP_ONE);
+    int32_t cos_theta_fp = static_cast<int32_t>(cos(guess.heading) * FP_ONE);
+
+    // Transform & rotate white line coords
+    for (int i = 0; i < field_chunked::WHITE_CHUNK_COUNT; i++) {
+        int16_t x = field_chunked::WHITE_CHUNK_INDICES[i][0];
+        int16_t y = field_chunked::WHITE_CHUNK_INDICES[i][1];
+
+        // Transform to relative coordinates
+        int32_t rel_x = x + guess.x / field_chunked::CHUNK_SIZE;
+        int32_t rel_y = y + guess.y / field_chunked::CHUNK_SIZE;
+
+        // Rotate using fixed-point arithmetic
+        int32_t rotated_x_fp =
+            (rel_x * cos_theta_fp - rel_y * sin_theta_fp) >> FP_SHIFT;
+        int32_t rotated_y_fp =
+            (rel_x * sin_theta_fp + rel_y * cos_theta_fp) >> FP_SHIFT;
+
+        // Convert back to integer coordinate space with offset
+        int32_t final_x =
+            rotated_x_fp + (IMG_WIDTH / 2) / field_chunked::CHUNK_SIZE;
+        int32_t final_y =
+            rotated_y_fp + (IMG_HEIGHT / 2) / field_chunked::CHUNK_SIZE;
+
+        // Check if the point is within IMAGE boundaries
+        if (final_x < 0 || final_x >= IMG_WIDTH || final_y < 0 ||
+            final_y >= IMG_HEIGHT) {
+            continue;
+        }
+
+        bool found = false;
+        for (int j = 0; j < field_chunked::CHUNK_SIZE; j++) {
+            for (int k = 0; k < field_chunked::CHUNK_SIZE; k++) {
+                int32_t adjusted_x = final_x * field_chunked::CHUNK_SIZE + j;
+                int32_t adjusted_y = final_y * field_chunked::CHUNK_SIZE + k;
+
+                const cv::Vec3b *row   = camera_image.ptr<cv::Vec3b>(adjusted_x);
+                const cv::Vec3b &pixel = row[IMG_HEIGHT - adjusted_y];
+
+                if (!(pixel[0] > COLOR_R_THRES && pixel[1] > COLOR_G_THRES &&
+                      pixel[2] > COLOR_B_THRES)) {
+                    found = true;
+                    break;
+                    // debug::log("White pixel at (%d, %d): (%d, %d, %d)",
+                    //            IMG_HEIGHT - final_y, final_x, pixel[0], pixel[1],
+                    //            pixel[2]);
+                } else {
+                    // debug::log("Non-white pixel at (%d, %d): (%d, %d, %d)",
+                    //            IMG_HEIGHT - final_y, final_x, pixel[0], pixel[1],
+                    //            pixel[2]);
+                }
+            }
+            if (found) break;
+        }
+        white += found;
+        count++;
+    }
+
+    if (count == 0) {
+        return 1.0f;
+    }
+
+    // Use integer division if possible, or at least avoid double casting
+    float loss = static_cast<float>(count - white) / count;
+    return loss;
+}
+
 std::pair<Pos, float> CamProcessor::find_minima_particle_search(
     const cv::Mat &camera_image, Pos &initial_guess, int num_particles,
     int num_generations, int variance_per_generation) {
@@ -101,11 +178,11 @@ std::pair<Pos, float> CamProcessor::find_minima_particle_search(
 
             // randomize new guess properties, with the randomness proportional to the best_loss
             new_guess.x = (int)generate_random_number(
-                new_guess.x, variance_per_generation, -FIELD_X_SIZE / 2,
-                FIELD_X_SIZE / 2);
+                new_guess.x, variance_per_generation, -field::FIELD_X_SIZE / 2,
+                field::FIELD_X_SIZE / 2);
             new_guess.y = (int)generate_random_number(
-                new_guess.y, variance_per_generation, -FIELD_Y_SIZE / 2,
-                FIELD_Y_SIZE / 2);
+                new_guess.y, variance_per_generation, -field::FIELD_Y_SIZE / 2,
+                field::FIELD_Y_SIZE / 2);
             new_guess.heading =
                 generate_random_number(
                     (int)(new_guess.heading * (float)180 / M_PI), 10, 0, 360) *
@@ -145,7 +222,7 @@ CamProcessor::find_minima_full_search(const cv::Mat &camera_image, Pos &center,
         for (int y = y_min; y <= y_max; y += step) {
             for (int heading = 0; heading < 360; heading += heading_step) {
                 Pos guess  = {x, y, heading * (float)M_PI / 180.0f};
-                float loss = calculate_loss(camera_image, guess);
+                float loss = calculate_loss_chunks(camera_image, guess);
 
                 if (loss < best_loss) {
                     best_guess = guess;
@@ -214,10 +291,10 @@ std::pair<Pos, float> CamProcessor::find_minima_regression(
                 test_pos.heading -= 2 * M_PI;
 
             // Keep position within field bounds
-            test_pos.x = std::max(std::min(test_pos.x, FIELD_X_SIZE / 2),
-                                  -FIELD_X_SIZE / 2);
-            test_pos.y = std::max(std::min(test_pos.y, FIELD_Y_SIZE / 2),
-                                  -FIELD_Y_SIZE / 2);
+            test_pos.x = std::max(std::min(test_pos.x, field::FIELD_X_SIZE / 2),
+                                  -field::FIELD_X_SIZE / 2);
+            test_pos.y = std::max(std::min(test_pos.y, field::FIELD_Y_SIZE / 2),
+                                  -field::FIELD_Y_SIZE / 2);
 
             movements[i].loss = calculate_loss(camera_image, test_pos);
             movements[i].pos  = test_pos;
@@ -258,19 +335,19 @@ void CamProcessor::process_frame(const cv::Mat &frame) {
 
     if (_frame_count % FULL_SEARCH_INTERVAL == 0) {
         // Perform a full search every FULL_SEARCH_INTERVAL frames
-        auto res = find_minima_full_search(frame, estimate, FULL_SEARCH_STEP,
-                                            FULL_SEARCH_HEADING_STEP);
-        current_pos = res.first;
-        debug::log("Full search: %d, %d, %f", current_pos.x,
-                   current_pos.y, current_pos.heading);
+        auto res    = find_minima_full_search(frame, estimate, FULL_SEARCH_STEP,
+                                              FULL_SEARCH_HEADING_STEP);
+        estimate = res.first;
+        debug::log("Full search: %d, %d, %f", estimate.x, estimate.y,
+                   estimate.heading);
     }
 
     auto res =
-        find_minima_particle_search(frame, current_pos, PARTICLE_SEARCH_NUM,
+        find_minima_particle_search(frame, estimate, PARTICLE_SEARCH_NUM,
                                     PARTICLE_SEARCH_GEN, PARTICLE_SEARCH_VAR);
     current_pos = res.first;
-    debug::log("Position: %d, %d, %f", current_pos.x,
-               current_pos.y, current_pos.heading);
+    debug::log("Position: %d, %d, %f", current_pos.x, current_pos.y,
+               current_pos.heading);
 
     _frame_count += 1;
 }

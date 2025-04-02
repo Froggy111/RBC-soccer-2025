@@ -14,8 +14,8 @@ const int IMG_WIDTH = 480;
 const int IMG_HEIGHT = 640;
 
 // full search
-const int FULL_SEARCH_STEP = 4;
-const int FULL_SEARCH_HEADING_STEP = 2;
+const int FULL_SEARCH_STEP = 10;
+const int FULL_SEARCH_HEADING_STEP = 3;
 const int FULL_SEARCH_INTERVAL = 60;
 
 // regression

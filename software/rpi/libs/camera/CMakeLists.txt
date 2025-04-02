@@ -7,7 +7,10 @@ target_sources(bbw_camera
     PUBLIC
     include/camera.hpp
     include/config.hpp
-    include/processor.hpp)
+    include/processor.hpp
+    include/field.hpp
+    include/field_chunked.hpp
+)
 
 find_package(OpenCV REQUIRED)
 
