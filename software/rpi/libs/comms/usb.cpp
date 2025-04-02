@@ -1,5 +1,6 @@
 #include "comms/usb.hpp"
 #include "comms.hpp"
+#include "comms/identifiers.hpp"
 #include "debug.hpp"
 #include <chrono>
 #include <cstring>
@@ -158,6 +159,7 @@ void CDC::scanDevices() {
         device->fd         = fd;
         device->identified = false;
         device->running    = true;
+        device->board_id   = comms::BoardIdentifiers::UNKNOWN;
 
         // Start RX thread for this device
         device->rx_thread =
@@ -282,8 +284,8 @@ void CDC::processMessage(comms::BoardIdentifiers board, types::u8 identifier,
                          const types::u8 *data, types::u16 data_len) {
     std::lock_guard<std::mutex> lock(_handlers_mutex);
 
-    debug::debug("Board ID: %d, Identifier: %d, Data Length: %d", board,
-                 identifier, data_len);
+    debug::info("Board ID: %d, Identifier: %d, Data Length: %d", board,
+                identifier, data_len);
 
     switch (board) {
         case comms::BoardIdentifiers::BOTTOM_PICO: {
@@ -307,7 +309,7 @@ void CDC::processMessage(comms::BoardIdentifiers board, types::u8 identifier,
             }
             break;
         }
-        default: {
+        case comms::BoardIdentifiers::UNKNOWN: {
             // Handle messages from unknown board types
             auto it = _unknown_pico_handlers.find(identifier);
             if (it != _unknown_pico_handlers.end()) {
