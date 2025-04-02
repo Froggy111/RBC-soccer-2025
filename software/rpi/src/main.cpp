@@ -3,7 +3,7 @@
 #include "debug.hpp"
 #include "mode_controller.hpp"
 #include "motion.hpp"
-#include "pinmap.hpp"
+#include "motors.hpp"
 #include "processor.hpp"
 #include "sensors/IR.hpp"
 #include "wiringPi.h"
@@ -15,7 +15,7 @@ camera::CamProcessor processor;
 MotionController motion_controller;
 
 bool start() {
-    // Initialize with desired resolution
+    // ^ Camera
     if (!cam.initialize(camera::RES_480P)) {
         debug::error("INITIALIZED CAMERA - FAILED");
         return false;
@@ -23,7 +23,6 @@ bool start() {
         debug::info("INITIALIZED CAMERA - SUCCESS");
     }
 
-    // Start capturing with our frame processor
     if (!cam.startCapture(processor.process_frame)) {
         debug::error("INITIALIZED CAMERA CAPTURE - FAILED");
         return false;
@@ -31,9 +30,16 @@ bool start() {
         debug::info("INITIALIZED CAMERA CAPTURE - SUCCESS");
     }
 
-    // motion_controller.startControlThread();
-    // debug::info("INITIALIZED MOTION CONTROL - SUCCESS\n");
+    // ^ Motion
+    // Reset motors
+    motors::command_motor(1, 0);
+    motors::command_motor(2, 0);
+    motors::command_motor(3, 0);
+    motors::command_motor(4, 0);
+    motion_controller.startControlThread();
+    debug::info("INITIALIZED MOTION CONTROL - SUCCESS\n");
 
+    // ^ IR Sensors
     IR::IR_sensors.init();
     debug::info("INITIALIZED IR SENSORS - SUCCESS");
 
@@ -41,13 +47,15 @@ bool start() {
 }
 
 void stop() {
+    // ^ Stop Motion
     debug::warn("STOPPING MOTION...\n");
     motion_controller.stopControlThread();
+    motors::command_motor(1, 0);
+    motors::command_motor(2, 0);
+    motors::command_motor(3, 0);
+    motors::command_motor(4, 0);
 
-    for (int i = 1; i <= 4; i++) {
-    }
-    
-
+    // ^ Stop Camera
     debug::warn("STOPPING CAMERA...");
     cam.stopCapture();
 
@@ -64,12 +72,10 @@ int main() {
 
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
-        
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     stop();
     debug::info("EMERGENCY STOP DONE.");
     return 0;
 }
-
-// 1 2 3

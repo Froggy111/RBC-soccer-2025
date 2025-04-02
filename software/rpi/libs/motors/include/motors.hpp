@@ -4,8 +4,8 @@
 namespace motors {
 
 struct MotorRecvData {
-	uint8_t id;
-	types::i16 duty_cycle;
+    uint8_t id;
+    types::i16 duty_cycle;
 } __attribute__((packed));
 
 /**
@@ -17,6 +17,6 @@ struct MotorRecvData {
  * @return true 
  * @return false 
  */
-bool command_motor(int id, int duty_cycle);
+bool command_motor(uint8_t id, types::i16 duty_cycle);
 
-}
+} // namespace motors
