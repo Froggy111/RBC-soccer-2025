@@ -3,6 +3,7 @@
 #include "pinmap.hpp"
 #include "types.hpp"
 #include "comms.hpp"
+#include "debug.hpp"
 
 extern "C" {
 #include "hardware/adc.h"
@@ -10,11 +11,11 @@ extern "C" {
 }
 
 void LineSensor::init(spi_inst_t *spi_obj) {
-  comms::USB_CDC.printf("---> Initializing ALSPT19\r\n");
+  debug::log("---> Initializing ALSPT19\r\n");
 
   //init dmux
   dmux.init(1, spi_obj);
-  comms::USB_CDC.printf("inited dmux\r\n");
+  debug::log("inited dmux\r\n");
 
   //init dmux gpio pins
   dmux.init_gpio((int)pinmap::Mux1A::AMUX_S0, true, true);
@@ -23,14 +24,14 @@ void LineSensor::init(spi_inst_t *spi_obj) {
   dmux.init_gpio((int)pinmap::Mux1A::AMUX_S3, true, true);
   dmux.init_gpio((int)pinmap::Mux1A::AMUX_EN, true, true);
   dmux.write_gpio((int)pinmap::Mux1A::AMUX_EN, true, 0);
-  comms::USB_CDC.printf("init dmux gpio\r\n");
+  debug::log("init dmux gpio\r\n");
 
   //init adc
   adc_init(); // initialise ADC
   adc_gpio_init((int)pinmap::Pico::AMUX1_COM);
   adc_gpio_init((int)pinmap::Pico::AMUX2_COM);
   adc_gpio_init((int)pinmap::Pico::AMUX3_COM);
-  comms::USB_CDC.printf("done intialising\r\n");
+  debug::log("done intialising\r\n");
 }
 
 void LineSensor::select_channel(uint8_t channel) {
@@ -43,7 +44,7 @@ void LineSensor::select_channel(uint8_t channel) {
 // id starts from 0 to 47
 uint16_t LineSensor::read_raw(uint8_t line_sensor_id) {
   if (line_sensor_id > 47) {
-    comms::USB_CDC.printf("Invalid line sensor ID\n");
+    debug::log("Invalid line sensor ID\n");
     return 0;
   }
 

@@ -3,8 +3,7 @@
 #include "projdefs.h"
 #include "types.hpp"
 #include "ALSPT19.hpp"
-
-// TODO: WEIRD SPI ERRORS
+#include "debug.hpp"
 
 using namespace types;
 
@@ -16,9 +15,9 @@ void line_sensor_poll_task(void *args) {
 
   // for mux
   if (!spi_init(spi0, 1000000)) {
-    comms::USB_CDC.printf("SPI Initialization Failed!\r\n");
+    debug::log("SPI Initialization Failed!\r\n");
   } else {
-    comms::USB_CDC.printf("SPI Initialization Successful!\r\n");
+    debug::log("SPI Initialization Successful!\r\n");
   }
   line_sensor.init(spi0);
 
@@ -26,7 +25,7 @@ void line_sensor_poll_task(void *args) {
     for (int i = 0; i < 48; i++) {
       uint16_t val = line_sensor.read_raw(i);
       if (val > 1000) {
-        comms::USB_CDC.printf("Line sensor %d: %d\r\n", i, val);
+        debug::log("Line sensor %d: %d\r\n", i, val);
       }
       busy_wait_us(1);
     }

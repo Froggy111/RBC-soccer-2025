@@ -15,7 +15,7 @@ void log(const char *format, ...) {
   vsnprintf(buffer, sizeof(buffer), format, args);
 
   // Use the CDC printf for debug mode
-  comms::USB_CDC.printf("%s", buffer);
+  debug::log"%s", buffer);
 
   va_end(args);
 }
@@ -30,7 +30,7 @@ void debug(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  comms::USB_CDC.printf("%s", buffer);
+  debug::log"%s", buffer);
 
   va_end(args);
 }
@@ -45,7 +45,7 @@ void info(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  comms::USB_CDC.printf("%s", buffer);
+  debug::log"%s", buffer);
 
   va_end(args);
 }
@@ -60,7 +60,7 @@ void warn(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  comms::USB_CDC.printf("%s", buffer);
+  debug::log"%s", buffer);
 
   va_end(args);
 }
@@ -75,7 +75,7 @@ void error(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  comms::USB_CDC.printf("%s", buffer);
+  debug::log"%s", buffer);
 
   va_end(args);
 }
@@ -90,7 +90,7 @@ void fatal(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  comms::USB_CDC.printf("%s", buffer);
+  debug::log"%s", buffer);
 
   va_end(args);
 }
@@ -98,51 +98,51 @@ void fatal(const char *format, ...) {
 #else
 
 void log(const char *format, ...) {
-  va_list args;
-  va_start(args, format);
+  // va_list args;
+  // va_start(args, format);
 
-  // Buffer for formatted string with prefix
-  char buffer[256];
-  const char *prefix = "[LOG - BOTTOM_PICO] ";
+  // // Buffer for formatted string with prefix
+  // char buffer[256];
+  // const char *prefix = "[LOG - BOTTOM_PICO] ";
 
-  // Copy prefix to buffer
-  int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
+  // // Copy prefix to buffer
+  // int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
 
-  // Format the message after the prefix
-  int msg_len =
-      vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
-  int total_len = prefix_len + msg_len;
+  // // Format the message after the prefix
+  // int msg_len =
+  //     vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
+  // int total_len = prefix_len + msg_len;
 
-  // Use CDC write with LOG identifier for non-debug mode
-  comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
-                  (const types::u8 *)buffer,
-                  static_cast<types::u16>(total_len));
+  // // Use CDC write with LOG identifier for non-debug mode
+  // comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
+  //                 (const types::u8 *)buffer,
+  //                 static_cast<types::u16>(total_len));
 
-  va_end(args);
+  // va_end(args);
 }
 
 void debug(const char *format, ...) {
-  va_list args;
-  va_start(args, format);
+  // va_list args;
+  // va_start(args, format);
 
-  // Buffer for formatted string with prefix
-  char buffer[256];
-  const char *prefix = "[DEBUG - BOTTOM_PICO] ";
+  // // Buffer for formatted string with prefix
+  // char buffer[256];
+  // const char *prefix = "[DEBUG - BOTTOM_PICO] ";
 
-  // Copy prefix to buffer
-  int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
+  // // Copy prefix to buffer
+  // int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
 
-  // Format the message after the prefix
-  int msg_len =
-      vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
-  int total_len = prefix_len + msg_len;
+  // // Format the message after the prefix
+  // int msg_len =
+  //     vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
+  // int total_len = prefix_len + msg_len;
 
-  // Use CDC write with LOG identifier for non-debug mode
-  comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
-                  (const types::u8 *)buffer,
-                  static_cast<types::u16>(total_len));
+  // // Use CDC write with LOG identifier for non-debug mode
+  // comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
+  //                 (const types::u8 *)buffer,
+  //                 static_cast<types::u16>(total_len));
 
-  va_end(args);
+  // va_end(args);
 }
 
 void info(const char *format, ...) {
@@ -163,8 +163,8 @@ void info(const char *format, ...) {
 
   // Use CDC write with LOG identifier for non-debug mode
   comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
-                  (const types::u8 *)buffer,
-                  static_cast<types::u16>(total_len));
+                       (const types::u8 *)buffer,
+                       static_cast<types::u16>(total_len));
 
   va_end(args);
 }
@@ -187,8 +187,8 @@ void warn(const char *format, ...) {
 
   // Use CDC write with LOG identifier for non-debug mode
   comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
-                  (const types::u8 *)buffer,
-                  static_cast<types::u16>(total_len));
+                       (const types::u8 *)buffer,
+                       static_cast<types::u16>(total_len));
 
   va_end(args);
 }
@@ -211,8 +211,8 @@ void error(const char *format, ...) {
 
   // Use CDC write with LOG identifier for non-debug mode
   comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
-                  (const types::u8 *)buffer,
-                  static_cast<types::u16>(total_len));
+                       (const types::u8 *)buffer,
+                       static_cast<types::u16>(total_len));
 
   va_end(args);
 }
@@ -235,8 +235,8 @@ void fatal(const char *format, ...) {
 
   // Use CDC write with LOG identifier for non-debug mode
   comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
-                  (const types::u8 *)buffer,
-                  static_cast<types::u16>(total_len));
+                       (const types::u8 *)buffer,
+                       static_cast<types::u16>(total_len));
 
   va_end(args);
 }

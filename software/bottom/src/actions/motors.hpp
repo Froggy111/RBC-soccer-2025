@@ -25,11 +25,11 @@ static u8 motor_task_buffer[sizeof(motor_task_data)];
 static SemaphoreHandle_t motor_data_mutex = nullptr;
 
 void motor_task(void *args) {
-  debug::info("Motor task started.\n");
-  
+  debug::log("Motor task started.\n");
+
   // initialize all motors
   if (driver1.init(1, spi0)) {
-    debug::info("Motor Driver 1 Initialized!\n");
+    debug::log("Motor Driver 1 Initialized!\n");
   } else {
     debug::error("Motor Driver 1 Initialization Failed!\n");
     while (true) {
@@ -38,7 +38,7 @@ void motor_task(void *args) {
   }
 
   if (driver2.init(2, spi0)) {
-    debug::info("Motor Driver 2 Initialized!\n");
+    debug::log("Motor Driver 2 Initialized!\n");
   } else {
     debug::error("Motor Driver 2 Initialization Failed!\n");
     while (true) {
@@ -47,7 +47,7 @@ void motor_task(void *args) {
   }
 
   if (driver3.init(3, spi0)) {
-    debug::info("Motor Driver 3 Initialized!\n");
+    debug::log("Motor Driver 3 Initialized!\n");
   } else {
     debug::error("Motor Driver 3 Initialization Failed!\n");
     while (true) {
@@ -56,7 +56,7 @@ void motor_task(void *args) {
   }
 
   if (driver4.init(4, spi0)) {
-    debug::info("Motor Driver 4 Initialized!\n");
+    debug::log("Motor Driver 4 Initialized!\n");
   } else {
     debug::error("Motor Driver 4 Initialization Failed!\n");
     while (true) {
@@ -64,7 +64,7 @@ void motor_task(void *args) {
     }
   }
 
-  debug::info("Motors initialized");
+  debug::log("Motors initialized");
 
   for (;;) {
     // * data transfer
@@ -75,23 +75,23 @@ void motor_task(void *args) {
     xSemaphoreGive(motor_data_mutex);
 
     switch (motor_task_data.id) {
-      case 1:
-        driver1.command(motor_task_data.duty_cycle);
-        break;
-      case 2:
-        driver2.command(motor_task_data.duty_cycle);
-        break;
-      case 3:
-        driver3.command(motor_task_data.duty_cycle);
-        break;
-      case 4:
-        driver4.command(motor_task_data.duty_cycle);
-        break;
-      default:
-        debug::error("Invalid motor ID: %d\n", motor_task_data.id);
-        break;
+    case 1:
+      driver1.command(motor_task_data.duty_cycle);
+      break;
+    case 2:
+      driver2.command(motor_task_data.duty_cycle);
+      break;
+    case 3:
+      driver3.command(motor_task_data.duty_cycle);
+      break;
+    case 4:
+      driver4.command(motor_task_data.duty_cycle);
+      break;
+    default:
+      debug::error("Invalid motor ID: %d\n", motor_task_data.id);
+      break;
     }
-    debug::info("Motor %d: %d\n", motor_task_data.id,
-                motor_task_data.duty_cycle);
+    debug::log("Motor %d: %d\n", motor_task_data.id,
+               motor_task_data.duty_cycle);
   }
 }

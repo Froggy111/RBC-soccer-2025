@@ -10,6 +10,7 @@ extern "C" {
 #include <hardware/i2c.h>
 }
 #include "comms.hpp"
+#include "debug.hpp"
 
 driver::MotorDriver motor_driver;
 
@@ -19,7 +20,7 @@ TickType_t xLastClearFaultTime = 0;
 void motor_driver_task(void *args) {
   comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
   if (!spi_init(spi0, 1000000)) {
-    comms::USB_CDC.printf("SPI Initialization Failed!\n");
+    debug::log("SPI Initialization Failed!\n");
     while (true) {
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
@@ -27,9 +28,9 @@ void motor_driver_task(void *args) {
 
   // init as debug
   if (motor_driver.init(1, spi0)) {
-    comms::USB_CDC.printf("Motor Driver Initialized!\n");
+    debug::log("Motor Driver Initialized!\n");
   } else {
-    comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
+    debug::log("Motor Driver Initialization Failed!\n");
     while (true) {
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
@@ -40,7 +41,7 @@ void motor_driver_task(void *args) {
       if (!motor_driver.command(i * 10))
         continue;
 
-      // comms::USB_CDC.printf("Motor Driver Current: %d\n",
+      // debug::log"Motor Driver Current: %d\n",
       //                       motor_driver.read_current());
       vTaskDelay(pdMS_TO_TICKS(10));
     }
@@ -49,7 +50,7 @@ void motor_driver_task(void *args) {
       if (!motor_driver.command(i * 10))
         continue;
 
-      // comms::USB_CDC.printf("Motor Driver Current: %d\n",
+      // debug::log"Motor Driver Current: %d\n",
       //                       motor_driver.read_current());
       vTaskDelay(pdMS_TO_TICKS(10));
     }
@@ -59,7 +60,7 @@ void motor_driver_task(void *args) {
       if (!motor_driver.command(i * 10))
         continue;
 
-      // comms::USB_CDC.printf("Motor Driver Current: %d\n",
+      // debug::log"Motor Driver Current: %d\n",
       //                       motor_driver.read_current());
       vTaskDelay(pdMS_TO_TICKS(10));
     }

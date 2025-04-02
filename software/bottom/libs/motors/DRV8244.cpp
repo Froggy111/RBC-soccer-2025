@@ -56,7 +56,7 @@ namespace driver {
 // ! init
 // use -1 as driver_id for debug pins
 bool MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
-  comms::USB_CDC.printf("---> Initializing DRV824\r\n");
+  debug::log("---> Initializing DRV824\r\n");
   duty_cycle_cache = 0;
 
   if (id == -1) {
@@ -68,20 +68,20 @@ bool MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
   outputControl.init(id == -1, spi_obj_touse);
   inputControl.init(id == -1, spi_obj_touse);
 
-  comms::USB_CDC.printf("-> Initializing SPI\r\n");
+  debug::log("-> Initializing SPI\r\n");
   spi_obj = spi_obj_touse;
   configure_spi();
 
-  comms::USB_CDC.printf("-> Initializing pins\r\n");
+  debug::log("-> Initializing pins\r\n");
   init_pins();
 
-  comms::USB_CDC.printf("-> Configuring registers\r\n");
+  debug::log("-> Configuring registers\r\n");
   if (!init_registers()) {
     debug::error("Error: Could not configure registers\r\n");
     return false;
   }
 
-  comms::USB_CDC.printf("---> DRV8244 initialized\r\n");
+  debug::log("---> DRV8244 initialized\r\n");
   return true;
 }
 
@@ -143,30 +143,30 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
 
   outputControl.write_digital(pins.get_pin(CS), 1, pins.get_pin_interface(CS));
 
-  // comms::USB_CDC.printf("SPI Write - Sent: 0x%04X, Received: 0x%04X\r\n",
+  // debug::log("SPI Write - Sent: 0x%04X, Received: 0x%04X\r\n",
   //                       reg_value, rx_data);
 
   //* Check for no errors in received bytes
   // First 2 MSBs bytes should be '1'
   if ((rx_data & 0xC000) != 0xC000) {
-    comms::USB_CDC.printf(
+    debug::log(
         "SPI Write - Error: Initial '1' MSB check bytes not found\r\n");
     return false;
   }
 
   // following 6 bytes are from fault summary
   if ((rx_data & 0x3F00) != 0x0000) {
-    comms::USB_CDC.printf(
+    debug::log(
         "SPI Write - Error: Fault summary bytes indicating error, %d\r\n",
         rx_data);
     // get fault register
     types::u8 fault = read8(FAULT_SUMMARY_REG);
 
     if (fault == 0) {
-      comms::USB_CDC.printf(
+      debug::log(
           "SPI Write - No fault found in fault register, moving on...\r\n");
     } else {
-      comms::USB_CDC.printf("SPI Write - %s\n",
+      debug::log("SPI Write - %s\n",
                             FAULT::get_fault_description(fault).c_str());
       return false;
     }
@@ -175,12 +175,12 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   // Check remaining 8 bytes to match the sent data or expected return
   if (expected == -1) {
     if ((rx_data & 0x00FF) != value) {
-      comms::USB_CDC.printf("SPI Write - Error: Data bytes do not match\r\n");
+      debug::log("SPI Write - Error: Data bytes do not match\r\n");
       return false;
     }
   } else {
     if ((rx_data & 0x00FF) != expected) {
-      comms::USB_CDC.printf(
+      debug::log(
           "SPI Write - Error: Data bytes do not match expected\r\n");
       return false;
     }
@@ -203,30 +203,30 @@ uint8_t MotorDriver::read8(uint8_t reg) {
 
   outputControl.write_digital(pins.get_pin(CS), 1, pins.get_pin_interface(CS));
 
-  // comms::USB_CDC.printf("SPI Read - Sent: 0x%04X, Received: 0x%04X\r\n",
+  // debug::log("SPI Read - Sent: 0x%04X, Received: 0x%04X\r\n",
   //                       reg_value, rx_data);
 
   //* Check for no errors in received bytes
   // First 2 MSBs bytes should be '1'
   if ((rx_data & 0xC000) != 0xC000) {
-    comms::USB_CDC.printf(
+    debug::log(
         "SPI Write - Error: Initial '1' MSB check bytes not found\r\n");
     return false;
   }
 
   // following 6 bytes are from fault summary
   if ((rx_data & 0x3F00) != 0x0000) {
-    comms::USB_CDC.printf(
+    debug::log(
         "SPI Write - Error: Fault summary bytes indicating error, %d\r\n",
         rx_data);
     // get fault register
     types::u8 fault = read8(FAULT_SUMMARY_REG);
 
     if (fault == 0) {
-      comms::USB_CDC.printf(
+      debug::log(
           "SPI Write - No fault found in fault register, moving on...\r\n");
     } else {
-      comms::USB_CDC.printf("SPI Write - %s\n",
+      debug::log("SPI Write - %s\n",
                             FAULT::get_fault_description(fault).c_str());
       return false;
     }
@@ -239,31 +239,31 @@ uint8_t MotorDriver::read8(uint8_t reg) {
 bool MotorDriver::init_registers() {
   //* COMMAND register
   if (!write8(COMMAND_REG, COMMAND_REG_RESET, COMMAND_REG_EXPECTED)) {
-    comms::USB_CDC.printf("Error: Could not write to COMMAND register\r\n");
+    debug::log("Error: Could not write to COMMAND register\r\n");
     return false;
   }
 
   //* CONFIG1 register
   if (!write8(CONFIG1_REG, CONFIG1_REG_RESET)) {
-    comms::USB_CDC.printf("Error: Could not write to CONFIG1 register\r\n");
+    debug::log("Error: Could not write to CONFIG1 register\r\n");
     return false;
   }
 
   //* CONFIG2 register
   if (!write8(CONFIG2_REG, CONFIG2_REG_RESET)) {
-    comms::USB_CDC.printf("Error: Could not write to CONFIG2 register\r\n");
+    debug::log("Error: Could not write to CONFIG2 register\r\n");
     return false;
   }
 
   //* CONFIG3 register
   if (!write8(CONFIG3_REG, CONFIG3_REG_RESET)) {
-    comms::USB_CDC.printf("Error: Could not write to CONFIG3 register\r\n");
+    debug::log("Error: Could not write to CONFIG3 register\r\n");
     return false;
   }
 
   //* CONFIG4 register
   if (!write8(CONFIG4_REG, CONFIG4_REG_RESET)) {
-    comms::USB_CDC.printf("Error: Could not write to CONFIG4 register\r\n");
+    debug::log("Error: Could not write to CONFIG4 register\r\n");
     return false;
   }
 
@@ -274,7 +274,7 @@ bool MotorDriver::check_registers() {
   //* FAULT_SUMMARY register
   types::u8 faultSummary = read8(FAULT_SUMMARY_REG);
   if (faultSummary != 0) {
-    comms::USB_CDC.printf("Error: FAULT_SUMMARY: %s\r\n",
+    debug::log("Error: FAULT_SUMMARY: %s\r\n",
                           FAULT::get_fault_description(faultSummary).c_str());
     return false;
   }
@@ -282,7 +282,7 @@ bool MotorDriver::check_registers() {
   //* STATUS1 register
   types::u8 status1 = read8(STATUS1_REG);
   if (status1 != STATUS1_REG_EXPECTED) {
-    comms::USB_CDC.printf("Error: STATUS1: %s\r\n",
+    debug::log("Error: STATUS1: %s\r\n",
                           STATUS::get_status1_description(status1).c_str());
     return false;
   }
@@ -290,7 +290,7 @@ bool MotorDriver::check_registers() {
   //* STATUS2 register
   types::u8 status2 = read8(STATUS2_REG);
   if (status2 != STATUS2_REG_EXPECTED) {
-    comms::USB_CDC.printf("Error: STATUS2: %s\r\n",
+    debug::log("Error: STATUS2: %s\r\n",
                           STATUS::get_status2_description(status2).c_str());
     return false;
   }
@@ -316,52 +316,52 @@ std::string MotorDriver::read_status2() {
 
 //! on error
 void MotorDriver::handle_error(MotorDriver *driver) {
-  comms::USB_CDC.printf("---> DRV8244 Fault Detected!\r\n");
+  debug::log("---> DRV8244 Fault Detected!\r\n");
 
   // Read registers that provide diagnostic data during active operation.
   std::string fault_summary = "FAULT_SUMMARY: " + driver->read_fault_summary();
   std::string status1 = "STATUS1: " + driver->read_status1();
   std::string status2 = "STATUS2: " + driver->read_status2();
-  comms::USB_CDC.printf("%s\n", fault_summary.c_str());
-  comms::USB_CDC.printf("%s\n", status1.c_str());
-  comms::USB_CDC.printf("%s\n", status2.c_str());
+  debug::log("%s\n", fault_summary.c_str());
+  debug::log("%s\n", status1.c_str());
+  debug::log("%s\n", status2.c_str());
 
   // * try to clear the fault
-  comms::USB_CDC.printf("Attempting to clear the fault...\n");
+  debug::log("Attempting to clear the fault...\n");
   driver->write8(COMMAND_REG, COMMAND_REG_RESET, COMMAND_REG_EXPECTED);
 
   // * check if the fault was cleared
   if (driver->read8(FAULT_SUMMARY_REG) == 0) {
-    comms::USB_CDC.printf("Fault cleared successfully.\r\n");
+    debug::log("Fault cleared successfully.\r\n");
   } else {
-    comms::USB_CDC.printf("Fault could not be cleared.\r\n");
+    debug::log("Fault could not be cleared.\r\n");
     std::string fault_summary =
         "FAULT_SUMMARY: " + driver->read_fault_summary();
-    comms::USB_CDC.printf("%s\n", fault_summary.c_str());
+    debug::log("%s\n", fault_summary.c_str());
   }
 }
 
 bool MotorDriver::check_config() {
   // check if the driver is active
   if (!outputControl.get_last_value_digital(pins.get_pin(NSLEEP))) {
-    comms::USB_CDC.printf("Driver is not active. Cannot command motor.\r\n");
+    debug::log("Driver is not active. Cannot command motor.\r\n");
     return false;
   }
 
   // check if the driver is off
   if (outputControl.get_last_value_digital(pins.get_pin(DRVOFF))) {
-    comms::USB_CDC.printf("Driver is off. Cannot command motor.\r\n");
+    debug::log("Driver is off. Cannot command motor.\r\n");
     return false;
   }
 
   // check if the driver is in fault
   if (!inputControl.read_digital(pins.get_pin(NFAULT),
                                  pins.get_pin_interface(NFAULT))) {
-    comms::USB_CDC.printf("Driver has faulted. Cannot command motor.\r\n");
+    debug::log("Driver has faulted. Cannot command motor.\r\n");
 
     types::u8 faultSummary = read8(FAULT_SUMMARY_REG);
     if (faultSummary != 0) {
-      comms::USB_CDC.printf("Error: FAULT_SUMMARY: %s\r\n",
+      debug::log("Error: FAULT_SUMMARY: %s\r\n",
                             FAULT::get_fault_description(faultSummary).c_str());
       return false;
     }
@@ -370,12 +370,12 @@ bool MotorDriver::check_config() {
 
   // check registers
   if (!check_registers()) {
-    comms::USB_CDC.printf(
+    debug::log(
         "Driver registers are not configured correctly. Cannot command "
         "motor.\r\n");
     return false;
   }
-  comms::USB_CDC.printf("Config OK\r\n");
+  debug::log("Config OK\r\n");
   return true;
 }
 
@@ -383,7 +383,7 @@ void MotorDriver::set_sleep(bool sleep) {
   // Set the sleep pinwrite_analog
   outputControl.write_digital(pins.get_pin(NSLEEP), !sleep,
                               pins.get_pin_interface(NSLEEP));
-  comms::USB_CDC.printf("Motor sleep set to %d\r\n", !sleep);
+  debug::log("Motor sleep set to %d\r\n", !sleep);
 }
 
 int16_t MotorDriver::read_current() {
@@ -397,12 +397,12 @@ bool MotorDriver::command(types::i16 duty_cycle) {
   // screw this shit
   // Verify if the driver can accept commands
   // if (!check_config()) {
-  //   comms::USB_CDC.printf(
+  //   debug::log(
   //       "Motor command aborted due to configuration error.\r\n");
   //   return false;
   // }
   if (duty_cycle < -1250 || duty_cycle > 1250) {
-    comms::USB_CDC.printf(
+    debug::log(
         "Invalid duty cycle. Must be between -12500 and 12500.\r\n");
     return false;
   }
@@ -416,7 +416,7 @@ bool MotorDriver::command(types::i16 duty_cycle) {
                               pins.get_pin_interface(IN2));
   outputControl.write_pwm(pins.get_pin(IN1), duty_cycle);
 
-  comms::USB_CDC.printf(
+  debug::log(
       "Motor command executed: Duty cycle = %d, Direction = %d\r\n", duty_cycle,
       direction);
   return true;

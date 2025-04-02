@@ -6,6 +6,7 @@ extern "C" {
 #include <hardware/spi.h>
 }
 #include "comms.hpp"
+#include "debug.hpp"
 
 driver::MotorDriver motor_driver;
 
@@ -14,7 +15,7 @@ const int LED_PIN = 25;
 void motor_driver_task(void *args) {
   comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
   if (!spi_init(spi0, 1000000)) {
-    comms::USB_CDC.printf("SPI Initialization Failed!\n");
+    debug::log("SPI Initialization Failed!\n");
   }
 
   // init as debug

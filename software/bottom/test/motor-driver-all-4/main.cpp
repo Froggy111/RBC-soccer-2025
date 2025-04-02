@@ -1,6 +1,5 @@
 #include "DRV8244.hpp"
 #include "comms/usb.hpp"
-#include "pins/digital_pins.hpp"
 #include "projdefs.h"
 
 extern "C" {
@@ -18,43 +17,43 @@ void motor_driver_task(void *args) {
   comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
 
   if (!spi_init(spi0, 1000000)) {
-    comms::USB_CDC.printf("SPI Initialization Failed!\n");
+    debug::log("SPI Initialization Failed!\n");
   } else {
-    comms::USB_CDC.printf("SPI Initialized!\n");
+    debug::log("SPI Initialized!\n");
   }
 
   // init as debug
   if (driver1.init(1, spi0)) {
-    comms::USB_CDC.printf("Motor Driver Initialized!\n");
+    debug::log("Motor Driver Initialized!\n");
   } else {
-    comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
+    debug::log("Motor Driver Initialization Failed!\n");
     while (true) {
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }
 
   if (driver3.init(3, spi0)) {
-    comms::USB_CDC.printf("Motor Driver Initialized!\n");
+    debug::log("Motor Driver Initialized!\n");
   } else {
-    comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
+    debug::log("Motor Driver Initialization Failed!\n");
     while (true) {
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }
 
   if (driver4.init(4, spi0)) {
-    comms::USB_CDC.printf("Motor Driver Initialized!\n");
+    debug::log("Motor Driver Initialized!\n");
   } else {
-    comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
+    debug::log("Motor Driver Initialization Failed!\n");
     while (true) {
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }
 
   if (driver2.init(2, spi0)) {
-    comms::USB_CDC.printf("Motor Driver Initialized!\n");
+    debug::log("Motor Driver Initialized!\n");
   } else {
-    comms::USB_CDC.printf("Motor Driver Initialization Failed!\n");
+    debug::log("Motor Driver Initialization Failed!\n");
     while (true) {
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
@@ -67,7 +66,7 @@ void motor_driver_task(void *args) {
       driver3.command(i * 10);
       driver4.command(i * 10);
 
-      // comms::USB_CDC.printf("Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
+      // debug::log"Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
       //        driver3.read_current(), driver4.read_current());
 
       vTaskDelay(pdMS_TO_TICKS(10));
@@ -80,7 +79,7 @@ void motor_driver_task(void *args) {
       driver3.command(i * 10);
       driver4.command(i * 10);
 
-      // comms::USB_CDC.printf("Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
+      // debug::log"Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
       //        driver3.read_current(), driver4.read_current());
 
       vTaskDelay(pdMS_TO_TICKS(10));

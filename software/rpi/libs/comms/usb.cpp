@@ -1,5 +1,7 @@
 #include "comms/usb.hpp"
+#include "comms.hpp"
 #include "debug.hpp"
+#include <chrono>
 #include <cstring>
 #include <dirent.h>
 #include <fcntl.h>
@@ -33,6 +35,9 @@ bool CDC::init() {
         return true;
     }
 
+    addDebugCallbacks();
+
+    debug::info("Initializing scan...");
     // Scan for Pico devices
     scanDevices();
 
@@ -71,7 +76,7 @@ void CDC::addDebugCallbacks() {
 }
 
 void CDC::handle_debug(const types::u8 *data, types::u16 data_len) {
-    printf("Bottom Pico Debug: %.*s", data_len, data);
+    printf("%.*s", data_len, data);
 }
 
 void CDC::scanDevices() {
@@ -90,6 +95,7 @@ void CDC::scanDevices() {
         std::string name(entry->d_name);
         if (name.find("ttyACM") != std::string::npos) {
             ttyACM_devices.push_back("/dev/" + name);
+            debug::info("Found device: %s", name.c_str());
         }
     }
     closedir(dir);
@@ -160,13 +166,20 @@ void CDC::scanDevices() {
         // Send board ID request to identify the board
         types::u8 id_cmd =
             static_cast<types::u8>(comms::SendBottomPicoIdentifiers::BOARD_ID);
+        debug::info("Sending BOARD_ID to %s", port.c_str());
         writeToPico(*device, &id_cmd, nullptr, 0);
 
-        // Wait a bit for the board to respond
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
         // If the board is identified, add it to our devices map
+        uint16_t timeout = 1000;
+        while (!device->identified && timeout > 0) {
+            // Wait for identification
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+            timeout -= 10;
+        }
+
         if (device->identified) {
+            // Add device to the map
             std::lock_guard<std::mutex> lock(_devices_mutex);
             _devices[device->board_id] = device;
             std::string identifier;
@@ -183,12 +196,6 @@ void CDC::scanDevices() {
                 default: identifier = "Unknown board"; break;
             }
             debug::info("Found %s on %s", identifier.c_str(), port.c_str());
-        } else {
-            device->running = false;
-            if (device->rx_thread.joinable()) {
-                device->rx_thread.join();
-            }
-            close(fd);
         }
     }
 }
@@ -224,6 +231,9 @@ void CDC::rxThreadFunc(PicoDevice &device) {
                     if (processed_pos + 2 + msg_len <= temp_buffer_pos) {
                         // Extract identifier
                         types::u8 identifier = temp_buffer[processed_pos + 2];
+                        debug::info(
+                            "Received message with identifier: %d, length: %d",
+                            identifier, msg_len);
 
                         // Handle board identification
                         if (identifier == static_cast<types::u8>(
@@ -237,15 +247,12 @@ void CDC::rxThreadFunc(PicoDevice &device) {
                             device.identified = true;
                         }
 
-                        // Process the message if the board is identified
-                        if (device.identified) {
-                            processMessage(
-                                device.board_id, identifier,
-                                temp_buffer + processed_pos +
-                                    3, // Data starts after length and identifier
-                                msg_len -
-                                    1); // Length includes identifier, so subtract 1
-                        }
+                        processMessage(
+                            device.board_id, identifier,
+                            temp_buffer + processed_pos +
+                                3, // Data starts after length and identifier
+                            msg_len -
+                                1); // Length includes identifier, so subtract 1
 
                         // Move to next message
                         processed_pos += 2 + msg_len;
@@ -267,13 +274,16 @@ void CDC::rxThreadFunc(PicoDevice &device) {
         }
 
         // Small delay to avoid hogging the CPU
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
 }
 
 void CDC::processMessage(comms::BoardIdentifiers board, types::u8 identifier,
                          const types::u8 *data, types::u16 data_len) {
     std::lock_guard<std::mutex> lock(_handlers_mutex);
+
+    debug::debug("Board ID: %d, Identifier: %d, Data Length: %d", board,
+                 identifier, data_len);
 
     switch (board) {
         case comms::BoardIdentifiers::BOTTOM_PICO: {

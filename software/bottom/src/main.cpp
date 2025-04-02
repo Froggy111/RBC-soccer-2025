@@ -23,14 +23,14 @@ void main_task(void *args) {
 
   comms::USB_CDC.wait_for_CDC_connection(0xFFFFFFFF);
 
-  debug::info("USB CDC connected.\n");
+  debug::log("USB CDC connected.\n");
 
   // * Init SPIs
   if (!spi_init(spi0, 1000000)) {
     comms::USB_CDC.write(comms::SendIdentifiers::SPI_INIT_FAIL, NULL, 0);
     vTaskDelete(main_task_handle);
   } else {
-    debug::info("SPI0 initialized.\n");
+    debug::log("SPI0 initialized.\n");
   }
 
   xTaskCreate(line_sensor_task, "line_sensor_task", 1024, NULL, 10, NULL);
