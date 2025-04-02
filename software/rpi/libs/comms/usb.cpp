@@ -331,7 +331,7 @@ bool CDC::writeToPico(PicoDevice &device, const types::u8 *identifier_ptr,
     }
 
     // Prepare packet
-    types::u8 tx_buffer[MAX_TX_BUF_SIZE];
+    types::u8 tx_buffer[MAX_TX_BUF_SIZE] = {0};
 
     // Write length (little endian)
     memcpy(tx_buffer, &reported_len, sizeof(reported_len));
@@ -339,10 +339,7 @@ bool CDC::writeToPico(PicoDevice &device, const types::u8 *identifier_ptr,
     // Write identifier
     tx_buffer[sizeof(reported_len)] = *identifier_ptr;
 
-    // Write data if present
-    if (data && data_len > 0) {
-        memcpy(&tx_buffer[3], data, data_len);
-    }
+    memcpy(&tx_buffer[3], data, data_len);
 
     // Send packet
     std::lock_guard<std::mutex> lock(device.tx_mutex);
