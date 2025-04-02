@@ -17,5 +17,6 @@ target_include_directories(particle_filter
 
 
 target_compile_features(particle_filter PUBLIC cxx_std_17)
+target_link_libraries(particle_filter IMU)
 target_link_globals(particle_filter)
 add_global_library(particle_filter)

@@ -13,6 +13,26 @@ typedef std::tuple<float, float> tuple_2;
 #define ROTATION_ERRORS_WINDOW_SIZE 100
 //using namespace std;
 
+namespace PID{
+struct {
+    float motor1;
+    float motor2;
+    float motor3;
+    float motor4;
+} motorSpeeds;
+
+struct {
+    float direction;
+    float speed;
+} movementVector;
+
+struct {
+    float x;
+    float y;
+} positionVector;
+}
+
+
 class MotionController {
   public:
     // Constructor (if not already defined)
