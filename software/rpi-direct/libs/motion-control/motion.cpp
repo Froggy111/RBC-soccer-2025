@@ -89,6 +89,17 @@ void MotionController::controlThreadWorker() {
 // Destructor - make sure to add this to your class implementation
 MotionController::~MotionController() { stopControlThread(); }
 
+void MotionController::update_position(std::tuple<float, float> ne_pos){
+    
+    if(current_position == std::make_tuple(-10000, -10000)){
+        current_position = ne_pos;
+        last_position = current_position;
+    } else {
+        last_position = current_position;
+        current_position = ne_pos;
+    }
+}
+
 float MotionController::normalize_angle(float angle) {
     while (angle > PI) {
         angle -= 2 * PI;
@@ -115,6 +126,12 @@ MotionController::rotation_matrix(std::tuple<float, float> vec, float angle) {
 std::tuple<float, float, float, float>
 MotionController::velocity_pid(float current_heading, float target_heading,
                                float target_direction, float speed) {
+
+    //Normalise all input angles to [-PI, PI] for consistency
+    current_heading = normalize_angle(current_heading);
+    target_heading = normalize_angle(target_heading);
+    target_direction = normalize_angle(target_direction);
+
     int rotation_error = normalize_angle(target_heading - current_heading);
 
     //Update the rotation integral sum, and derivate
@@ -156,15 +173,12 @@ MotionController::velocity_pid(float current_heading, float target_heading,
     average_y_velocities = sum_y_velocities / VELOCITY_WINDOW_SIZE;
 
     //Get current movement vector, target vector, error_change
-    std::tuple<float, float> position_vector =
-        form_vector(average_x_velocities * position_factor,
-                    average_y_velocities * position_factor);
     std::tuple<float, float> target_vector =
         std::make_tuple(target_direction - current_heading, speed);
     std::tuple<float, float> target_change = resolve_vector(target_vector);
     std::tuple<float, float> error_change =
-        std::make_tuple(average_x_velocities - std::get<0>(target_change),
-                        average_y_velocities - std::get<1>(target_change));
+        std::make_tuple(std::get<0>(target_change) - average_x_velocities,
+                        std::get<1>(target_change) - average_y_velocities);
 
     velocity_x_integral -= velocity_x_errors.front();
     velocity_x_errors.pop_front();
@@ -181,13 +195,15 @@ MotionController::velocity_pid(float current_heading, float target_heading,
     std::tuple<float, float> translation_vector =
         add_vectors(target_vector, error_vector);
 
+    //std::cout << "Translation Vector: " << velocity_x_integral << " " << velocity_y_integral << '\n';
+
     std::tuple<float, float, float, float> translation_motor_values =
         translate(translation_vector);
 
-    int motor1 = float(std::get<0>(translation_motor_values));
-    int motor2 = float(std::get<1>(translation_motor_values));
-    int motor3 = float(std::get<2>(translation_motor_values));
-    int motor4 = float(std::get<3>(translation_motor_values));
+    float motor1 = float(std::get<0>(translation_motor_values));
+    float motor2 = float(std::get<1>(translation_motor_values));
+    float motor3 = float(std::get<2>(translation_motor_values));
+    float motor4 = float(std::get<3>(translation_motor_values));
 
     motor1 = std::max(float(-1.0),
                       std::min(float(1.0), float(motor1 - rotation_pid)));
@@ -327,6 +343,8 @@ void MotionController::calculate_expected_vel_dir(
 std::tuple<float, float> MotionController::form_vector(float x_error_vel,
                                                        float y_error_vel) {
     float error_dir = std::atan2(y_error_vel, x_error_vel);
+    //std::cout << y_error_vel << " nn " << x_error_vel << " nn " << error_dir << '\n';
+    error_dir = (-error_dir) + (M_PI/2);
     error_dir       = normalize_angle(error_dir);
 
     float error_vel =

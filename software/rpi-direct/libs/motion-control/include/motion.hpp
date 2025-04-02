@@ -51,8 +51,8 @@ class MotionController {
     //      Implement a expected velocity predictor
 
     std::queue<std::tuple<float, float> > position_queue;
-    std::tuple<float, float> last_position;
-    std::tuple<float, float> current_position;
+    std::tuple<float, float> last_position = std::make_tuple(-10000, -10000);
+    std::tuple<float, float> current_position = std::make_tuple(-10000, -10000);
 
     float expected_velocity = 0.0;
     float expected_direction = 0.0;
@@ -60,6 +60,9 @@ class MotionController {
     
 
     void init(float rotation_kp, float rotation_ki, float rotation_kd, float velocity_kp, float velocity_ki, float velocity_kd);
+
+    //upadtes the new and last position
+    void update_position(std::tuple<float, float> ne_pos);
 
     //normalize -> map a given angle to a range [-PI, PI] in radians
     float normalize_angle(float angle);
@@ -75,7 +78,7 @@ class MotionController {
     float angle_to_motor_speed(float angle);
 
     //pid_output -> Given the current heading, target heading, target direction and speed
-    //              return the motor speeds to reach the target direction
+    //              return the motor speeds to reach the target direction while facing the target heading
     std::tuple<float, float, float, float> velocity_pid(float current_heading, float target_heading, float target_direction, float speed);
     
 
@@ -117,10 +120,10 @@ class MotionController {
     // Thread control
     std::thread controlThread;
     std::atomic<bool> controlThreadRunning{false};
-    camera::CamProcessor _processor;
+    //camera::CamProcessor _processor; #######UNCOMMENT LATER!!!!!!!
     
     // Thread worker function
-    void controlThreadWorker();
+    //void controlThreadWorker(); #####UNCOMMENT LATER!!!!!!
     
     //Velocity PID Values, used for controlling velocity
     float velocity_Kp = 2.0; //TODO: NEED TO TUNE
