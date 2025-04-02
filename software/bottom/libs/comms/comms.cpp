@@ -93,8 +93,7 @@ void blink_task(void *args) {
     memset(blink_task_buffer, 0, sizeof(blink_task_buffer));
     xSemaphoreGive(blink_task_mutex);
     gpio_put(LED_PIN, 1);
-    // vTaskDelay(pdMS_TO_TICKS(blink_task_data.blink_time_ms));
-    sleep_ms(blink_task_data.blink_time_ms);
+    vTaskDelay(pdMS_TO_TICKS(blink_task_data.blink_time_ms));
     gpio_put(LED_PIN, 0);
   }
 }
