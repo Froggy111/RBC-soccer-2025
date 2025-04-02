@@ -322,8 +322,9 @@ void CDC::processMessage(comms::BoardIdentifiers board, types::u8 identifier,
 
 bool CDC::writeToPico(PicoDevice &device, const types::u8 *identifier_ptr,
                       const types::u8 *data, types::u16 data_len) {
-    types::u16 reported_len = data_len + 1; // +1 for identifier
-    types::u16 packet_len   = sizeof(reported_len) + reported_len;
+    types::u16 reported_len =
+        data_len + sizeof(*identifier_ptr); // +1 for identifier
+    types::u16 packet_len = sizeof(reported_len) + reported_len;
 
     if (packet_len > MAX_TX_BUF_SIZE) {
         return false;
@@ -333,15 +334,14 @@ bool CDC::writeToPico(PicoDevice &device, const types::u8 *identifier_ptr,
     types::u8 tx_buffer[MAX_TX_BUF_SIZE];
 
     // Write length (little endian)
-    tx_buffer[0] = reported_len & 0xFF;
-    tx_buffer[1] = (reported_len >> 8) & 0xFF;
+    memcpy(tx_buffer, &reported_len, sizeof(reported_len));
 
     // Write identifier
-    tx_buffer[2] = *identifier_ptr;
+    tx_buffer[sizeof(reported_len)] = *identifier_ptr;
 
     // Write data if present
     if (data && data_len > 0) {
-        memcpy(tx_buffer + 3, data, data_len);
+        memcpy(&tx_buffer[3], data, data_len);
     }
 
     // Send packet
