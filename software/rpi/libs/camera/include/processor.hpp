@@ -45,8 +45,8 @@ class CamProcessor {
      */
     static std::pair<Pos, float>
     find_minima_particle_search(const cv::Mat &camera_image, Pos &initial_guess,
-                        int num_particles = 25, int num_generations = 12,
-                        int variance_per_generation = 3);
+                        int num_particles = PARTICLE_SEARCH_NUM, int num_generations = PARTICLE_SEARCH_GEN,
+                        int variance_per_generation = PARTICLE_SEARCH_VAR);
     /**
      * @brief Find the minima from an initial guess, using smart search
      * Aims to do grid search efficiently by searching middle first
@@ -60,9 +60,8 @@ class CamProcessor {
      * @return std::pair<Pos, float> 
      */
     static std::pair<Pos, float>
-    find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
-                             int radius = 30, int step = 5,
-                             int heading_step = 10);
+    find_minima_full_search(const cv::Mat &camera_image, Pos &center,
+                             int step = FULL_SEARCH_HEADING_STEP, int heading_step = FULL_SEARCH_STEP);
                              
     /**
      * @brief Find the minima using gradient descent regression

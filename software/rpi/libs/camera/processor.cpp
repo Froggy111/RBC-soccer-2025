@@ -130,8 +130,8 @@ std::pair<Pos, float> CamProcessor::find_minima_particle_search(
 }
 
 std::pair<Pos, float>
-CamProcessor::find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
-                                       int radius, int step, int heading_step) {
+CamProcessor::find_minima_full_search(const cv::Mat &camera_image, Pos &center,
+                                      int step, int heading_step) {
     Pos best_guess  = center;
     float best_loss = calculate_loss(camera_image, best_guess);
 
@@ -141,29 +141,18 @@ CamProcessor::find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
     int y_min = -IMG_HEIGHT / 2;
     int y_max = IMG_HEIGHT / 2;
 
-    // Do the dense search first
-    for (int x = center.x - radius; x <= center.x + radius; x += step) {
-        for (int y = center.y - radius; y <= center.y + radius; y += step) {
-            if (x < x_min || x >= x_max || y < y_min || y >= y_max) {
-                continue;
-            }
-
+    for (int x = x_min; x <= x_max; x += step) {
+        for (int y = y_min; y <= y_max; y += step) {
             for (int heading = 0; heading < 360; heading += heading_step) {
                 Pos guess  = {x, y, heading * (float)M_PI / 180.0f};
                 float loss = calculate_loss(camera_image, guess);
 
-                // Check if the new guess is better than the best guess
                 if (loss < best_loss) {
                     best_guess = guess;
                     best_loss  = loss;
                 }
             }
         }
-    }
-
-    // If the loss is already low, return the best guess
-    if (best_loss < 0.4f) {
-        return std::make_pair(best_guess, best_loss);
     }
 
     return std::make_pair(best_guess, best_loss);
@@ -265,24 +254,24 @@ int CamProcessor::_frame_count = 0;
 Pos CamProcessor::current_pos  = {0, 0, 0};
 
 void CamProcessor::process_frame(const cv::Mat &frame) {
-    debug::info("Frame %d", _frame_count);
-    if (_frame_count == 0) {
-        auto res = find_minima_smart_search(
-            frame, current_pos, GRID_SEARCH_RADIUS, GRID_SEARCH_STEP,
-            GRID_SEARCH_HEADING_STEP);
-        current_pos.x       = res.first.x;
-        current_pos.y       = res.first.y;
-        current_pos.heading = res.first.heading;
-    } else {
-        auto res = find_minima_particle_search(
-            frame, current_pos, PARTICLE_SEARCH_NUM, PARTICLE_SEARCH_GEN,
-            PARTICLE_SEARCH_VAR);
-        current_pos.x       = res.first.x;
-        current_pos.y       = res.first.y;
-        current_pos.heading = res.first.heading;
+    Pos estimate = current_pos;
+
+    if (_frame_count % FULL_SEARCH_INTERVAL == 0) {
+        // Perform a full search every FULL_SEARCH_INTERVAL frames
+        auto res = find_minima_full_search(frame, estimate, FULL_SEARCH_STEP,
+                                            FULL_SEARCH_HEADING_STEP);
+        current_pos = res.first;
+        debug::log("Full search: %d, %d, %f", current_pos.x,
+                   current_pos.y, current_pos.heading);
     }
-    debug::info("Current Position: x: %d, y: %d, heading: %.2f\n",
-        current_pos.x, current_pos.y, current_pos.heading * 180 / M_PI);
+
+    auto res =
+        find_minima_particle_search(frame, current_pos, PARTICLE_SEARCH_NUM,
+                                    PARTICLE_SEARCH_GEN, PARTICLE_SEARCH_VAR);
+    current_pos = res.first;
+    debug::log("Position: %d, %d, %f", current_pos.x,
+               current_pos.y, current_pos.heading);
+
     _frame_count += 1;
 }
 
