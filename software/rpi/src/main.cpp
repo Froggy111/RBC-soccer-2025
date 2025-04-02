@@ -69,10 +69,9 @@ int main() {
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
         for (int i = 1; i <= 4; i++) {
             MotorRecvData motor_data = {.id = (uint8_t)i, .duty_cycle = 1000};
-
             comms::USB_CDC.writeToBottomPico(
                 comms::SendBottomPicoIdentifiers::MOTOR_DRIVER_CMD,
-                reinterpret_cast<uint8_t *>(&motor_data), sizeof(motor_data));
+                reinterpret_cast<uint8_t *>(&motor_data), 3);
             // debug::info("Motor %d duty cycle: %d", i, motor_data.duty_cycle);
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
