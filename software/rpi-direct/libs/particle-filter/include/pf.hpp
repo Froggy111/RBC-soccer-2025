@@ -20,17 +20,12 @@ private:
     std::vector<double> theta_changes;
     std::vector<std::tuple<double, double> > position_changes;
     std::vector<std::tuple<double, double, double> > position_archive; 
-    
-    
     double provisional_x = 0.0, provisional_y = 0.0;
     
 public:
     std::vector<int> alias;
     std::vector<double> prob;
     bool added_new_input = false;
-    int next_updated_index = 0;
-
-    std::tuple<float, float> last_vel = std::make_tuple(0.0, 0.0);
 
     ParticleFilter(int num_particles, double x_min, double x_max, double y_min, double y_max);
 
@@ -42,7 +37,9 @@ public:
        
     void update(double meas_x, double meas_y, double std_dev);
 
-    void update_imu(double delta_vel_x, double delta_vel_y, double delta_theta);
+    void update_mouse(std::tuple<double, double> delta_position);
+
+    void update_imu(double delta_theta);
 
     void update_camera(std::tuple<double, double, double> new_position);
     void resample();

@@ -13,10 +13,10 @@ const int COLOR_B_THRES = 160;
 const int IMG_WIDTH = 480;
 const int IMG_HEIGHT = 640;
 
-// initial search
-const int GRID_SEARCH_RADIUS = 20;
-const int GRID_SEARCH_STEP = 2;
-const int GRID_SEARCH_HEADING_STEP = 2;
+// full search
+const int FULL_SEARCH_STEP = 4;
+const int FULL_SEARCH_HEADING_STEP = 2;
+const int FULL_SEARCH_INTERVAL = 60;
 
 // regression
 const int PARTICLE_SEARCH_NUM = 25;
