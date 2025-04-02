@@ -8,7 +8,15 @@ using namespace types;
 namespace IMU {
 static RawIMUData current_raw_data;
 static CorrectedIMUData current_corrected_data = {
-    {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+    {0, 0, 0},
+    {0, 0, 0},
+    {0, 0, 0},
+    {0, 0, 0},
+};
+static ProcessedIMUData current_processed_data = {
+    {0, 0, 0},
+    {0, 0, 0},
+};
 
 Vec3f32 correct_accel_bias(const Vec3f32 &accel_data,
                            const Vec3f32 &accel_bias);
@@ -26,5 +34,6 @@ void IMU_processor(const int *data, int data_len) {
         correct_gyro_bias(Vec3f32(current_raw_data.gyro_1), gyro_1_bias);
     current_corrected_data.gyro_2 =
         correct_gyro_bias(Vec3f32(current_raw_data.gyro_2), gyro_2_bias);
+    current_processed_data = fuse_IMU_data(current_corrected_data);
 }
 } // namespace IMU
