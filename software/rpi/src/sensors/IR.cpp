@@ -2,6 +2,7 @@
 #include "comms.hpp"
 #include "debug.hpp"
 #include "types.hpp"
+#include <cstring>
 
 using namespace types;
 
@@ -10,9 +11,7 @@ namespace IR {
 volatile ModulationData IR::modulation_data[SENSOR_COUNT] = {ModulationData()};
 
 void IR::init(void) {
-    comms::USB_CDC.register_callback(
-        usb::DeviceType::MIDDLE_PLATE,
-        (u8)comms::RecvMiddlePicoIdentifiers::IR_DATA, data_processor);
+    comms::USB_CDC.registerMiddlePicoHandler(comms::RecvMiddlePicoIdentifiers::IR_DATA, data_processor);
 }
 
 void IR::data_processor(const types::u8 *data, types::u16 data_len) {
