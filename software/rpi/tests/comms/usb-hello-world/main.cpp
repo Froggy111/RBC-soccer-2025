@@ -40,8 +40,8 @@ int main() {
     debug::info("Communication initialized");
 
     // Register callback for the debug message type from bottom plate
-    comms::USB_CDC.register_callback(usb::DeviceType::TOP_PLATE, 
-        (types::u8)comms::RecvBottomPicoIdentifiers::COMMS_DEBUG, 
+    comms::USB_CDC.registerBottomPicoHandler(
+        comms::RecvBottomPicoIdentifiers::COMMS_DEBUG, 
         debugCallback);
 
     debug::info("Listening for messages from bottom plate. Press Ctrl+C to exit...");

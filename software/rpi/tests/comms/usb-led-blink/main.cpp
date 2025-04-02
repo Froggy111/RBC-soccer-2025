@@ -33,15 +33,10 @@ int main() {
         "Listening for messages from top plate. Press Ctrl+C to exit...");
     debug::info("Will send test commands when device is connected...");
 
-    while (!comms::USB_CDC.is_connected(
-            usb::DeviceType::BOTTOM_PLATE)) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
 
     types::u8 testData[] = {10};
-    bool success         = comms::USB_CDC.write(
-        usb::DeviceType::BOTTOM_PLATE,
-        (types::u8)comms::SendTopPicoIdentifiers::DEBUG_TEST_BLINK, testData,
+    bool success         = comms::USB_CDC.writeToBottomPico(
+        comms::SendBottomPicoIdentifiers::DEBUG_TEST_BLINK, testData,
         sizeof(testData));
 
     if (success) {
