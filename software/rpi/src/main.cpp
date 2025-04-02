@@ -36,7 +36,7 @@ bool start() {
     motors::command_motor(2, 0);
     motors::command_motor(3, 0);
     motors::command_motor(4, 0);
-    motion_controller.startControlThread();
+    // motion_controller.startControlThread();
     debug::info("INITIALIZED MOTION CONTROL - SUCCESS\n");
 
     // ^ IR Sensors
@@ -49,7 +49,7 @@ bool start() {
 void stop() {
     // ^ Stop Motion
     debug::warn("STOPPING MOTION...\n");
-    motion_controller.stopControlThread();
+    // motion_controller.stopControlThread();
     motors::command_motor(1, 0);
     motors::command_motor(2, 0);
     motors::command_motor(3, 0);
@@ -72,6 +72,10 @@ int main() {
 
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
+        motors::command_motor(1, 1000);
+        motors::command_motor(2, 1000);
+        motors::command_motor(3, 1000);
+        motors::command_motor(4, 1000);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 

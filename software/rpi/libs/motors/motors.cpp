@@ -27,4 +27,7 @@ bool command_motor(uint8_t id, types::i16 duty_cycle) {
         reinterpret_cast<uint8_t *>(&motor_data), sizeof(motor_data));
 }
 
+bool command_motor_motion_controller(uint8_t id, types::i16 duty_cycle) {
+    return command_motor(MOTION_CONTROL_MOTOR_MAP[id - 1], duty_cycle);
+}
 } // namespace motors
