@@ -37,7 +37,6 @@ void change_mode(Mode new_mode) {
             digitalWrite((int) pinmap::RPI::BOTTOMPICO_TOGGLE_RUN, 0);
             digitalWrite((int) pinmap::RPI::MIDPICO_TOGGLE_RUN, 0);
             digitalWrite((int)pinmap::RPI::TOPPICO_TOGGLE_RUN, 0);
-            _exit(0);
             break;
 
         default:

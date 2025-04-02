@@ -9,6 +9,7 @@
 #include "wiringPi.h"
 #include <cstdio>
 #include <opencv2/opencv.hpp>
+#include <unistd.h>
 
 camera::Camera cam;
 camera::CamProcessor processor;
@@ -58,7 +59,6 @@ void stop() {
     // ^ Stop Camera
     debug::warn("STOPPING CAMERA...");
     cam.stopCapture();
-
 }
 
 int main() {
@@ -72,10 +72,7 @@ int main() {
 
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
-        motors::command_motor(1, 1000);
-        motors::command_motor(2, 1000);
-        motors::command_motor(3, 1000);
-        motors::command_motor(4, 1000);
+        motors::command_motor_motion_controller(1, 1000);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
