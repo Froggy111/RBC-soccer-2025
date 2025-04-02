@@ -13,7 +13,7 @@ using namespace types;
 struct MotorRecvData {
   uint8_t id;
   i16 duty_cycle;
-};
+} __attribute__((packed));
 
 static TaskHandle_t motor_task_handle = nullptr;
 static driver::MotorDriver driver1;

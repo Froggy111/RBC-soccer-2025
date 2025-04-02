@@ -54,7 +54,7 @@ void stop() {
 struct MotorRecvData {
     uint8_t id;
     types::i16 duty_cycle;
-};
+} __attribute__((packed));
 
 int main() {
     // * wiring PI setup
@@ -71,7 +71,7 @@ int main() {
             MotorRecvData motor_data = {.id = (uint8_t)i, .duty_cycle = 1000};
             comms::USB_CDC.writeToBottomPico(
                 comms::SendBottomPicoIdentifiers::MOTOR_DRIVER_CMD,
-                reinterpret_cast<uint8_t *>(&motor_data), 3);
+                reinterpret_cast<uint8_t *>(&motor_data), sizeof(motor_data));
             // debug::info("Motor %d duty cycle: %d", i, motor_data.duty_cycle);
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
