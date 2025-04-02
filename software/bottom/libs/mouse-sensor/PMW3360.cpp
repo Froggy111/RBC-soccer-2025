@@ -11,6 +11,7 @@ extern "C" {
 #include "types.hpp"
 #include "pin_selector.hpp"
 #include "srom_firmware.hpp"
+#include "debug.hpp"
 
 #define DEFAULT_CS 1 // CS high by default
 
@@ -146,19 +147,19 @@ bool MouseSensor::init_registers() {
 
   // read from registers 2 3 4 5 6
   res = read8(0x02);
-  comms::USB_CDC.printf("%d\r\n", res);
+  debug::log("%d\r\n", res);
   sleep_us(160);
   res = read8(0x03);
-  comms::USB_CDC.printf("%d\r\n", res);
+  debug::log("%d\r\n", res);
   sleep_us(160);
   res = read8(0x04);
-  comms::USB_CDC.printf("%d\r\n", res);
+  debug::log("%d\r\n", res);
   sleep_us(160);
   res = read8(0x05);
-  comms::USB_CDC.printf("%d\r\n", res);
+  debug::log("%d\r\n", res);
   sleep_us(160);
   res = read8(0x06);
-  comms::USB_CDC.printf("%d\r\n", res);
+  debug::log("%d\r\n", res);
   return true;
 }
 
@@ -199,8 +200,7 @@ bool MouseSensor::init_srom() {
   // read SROM register
   uint8_t srom_id = read8(SROM_ID);
   if (srom_id != firmware_ID) {
-    comms::USB_CDC.printf("SROM ID Mismatch: %d, expected: %d\r\n", srom_id,
-                          firmware_ID);
+    debug::log("SROM ID Mismatch: %d, expected: %d\r\n", srom_id, firmware_ID);
     return false;
   }
 
@@ -288,4 +288,4 @@ types::u8 MouseSensor::read_squal() {
   types::u8 squal = read8(SQUAL);
   return squal;
 }
-}
+} // namespace mouse

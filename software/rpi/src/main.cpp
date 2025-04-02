@@ -3,19 +3,20 @@
 #include "debug.hpp"
 #include "mode_controller.hpp"
 #include "motion.hpp"
-#include "pinmap.hpp"
+#include "motors.hpp"
 #include "processor.hpp"
 #include "sensors/IR.hpp"
 #include "wiringPi.h"
 #include <cstdio>
 #include <opencv2/opencv.hpp>
+#include <unistd.h>
 
 camera::Camera cam;
 camera::CamProcessor processor;
 MotionController motion_controller;
 
 bool start() {
-    // Initialize with desired resolution
+    // ^ Camera
     if (!cam.initialize(camera::RES_480P)) {
         debug::error("INITIALIZED CAMERA - FAILED");
         return false;
@@ -23,7 +24,6 @@ bool start() {
         debug::info("INITIALIZED CAMERA - SUCCESS");
     }
 
-    // Start capturing with our frame processor
     if (!cam.startCapture(processor.process_frame)) {
         debug::error("INITIALIZED CAMERA CAPTURE - FAILED");
         return false;
@@ -31,9 +31,16 @@ bool start() {
         debug::info("INITIALIZED CAMERA CAPTURE - SUCCESS");
     }
 
+    // ^ Motion
+    // Reset motors
+    motors::command_motor(1, 0);
+    motors::command_motor(2, 0);
+    motors::command_motor(3, 0);
+    motors::command_motor(4, 0);
     // motion_controller.startControlThread();
-    // debug::info("INITIALIZED MOTION CONTROL - SUCCESS\n");
+    debug::info("INITIALIZED MOTION CONTROL - SUCCESS\n");
 
+    // ^ IR Sensors
     IR::IR_sensors.init();
     debug::info("INITIALIZED IR SENSORS - SUCCESS");
 
@@ -41,20 +48,18 @@ bool start() {
 }
 
 void stop() {
-    debug::info("Stopping motion controller...");
-    motion_controller.stopControlThread();
-
-    debug::info("Stopping camera capture...");
-    cam.stopCapture();
-
-    // debug::info("Stopping motion control thread...\n");
+    // ^ Stop Motion
+    debug::warn("STOPPING MOTION...\n");
     // motion_controller.stopControlThread();
-}
+    motors::command_motor(1, 0);
+    motors::command_motor(2, 0);
+    motors::command_motor(3, 0);
+    motors::command_motor(4, 0);
 
-struct MotorRecvData {
-    uint8_t id;
-    types::i16 duty_cycle;
-};
+    // ^ Stop Camera
+    debug::warn("STOPPING CAMERA...");
+    cam.stopCapture();
+}
 
 int main() {
     // * wiring PI setup
@@ -67,15 +72,15 @@ int main() {
 
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
-        for (int i = 1; i <= 4; i++) {
-            MotorRecvData motor_data = {.id         = (uint8_t)i,
-                                        .duty_cycle = 1000};
+        auto commands = motion_controller.move_heading(0.0f, 0.0f, 0.2f);
+        motors::command_motor_motion_controller(1, std::get<0>(commands));
+        motors::command_motor_motion_controller(2, std::get<1>(commands));
+        motors::command_motor_motion_controller(3, std::get<2>(commands));
+        motors::command_motor_motion_controller(4, std::get<3>(commands));
+        debug::info("Motor commands: %d %d %d %d", std::get<0>(commands),
+                    std::get<1>(commands), std::get<2>(commands),
+                    std::get<3>(commands));
 
-            comms::USB_CDC.writeToBottomPico(
-                comms::SendBottomPicoIdentifiers::MOTOR_DRIVER_CMD,
-                reinterpret_cast<uint8_t *>(&motor_data), sizeof(motor_data));
-            // debug::info("Motor %d duty cycle: %d", i, motor_data.duty_cycle);
-        }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 

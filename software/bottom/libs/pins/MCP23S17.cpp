@@ -3,6 +3,7 @@
 #include "types.hpp"
 #include <pico/types.h>
 #include "comms.hpp"
+#include "debug.hpp"
 
 extern "C" {
 #include <hardware/spi.h>
@@ -51,7 +52,7 @@ bool MCP23S17::initialized[2] = {false, false};
 
 void MCP23S17::init(types::u8 device_id, spi_inst_t *spi_obj_touse) {
   if (device_id != 1 && device_id != 2) {
-    comms::USB_CDC.printf("Error: Invalid device ID\r\n");
+    debug::log("Error: Invalid device ID\r\n");
     return;
   }
 
@@ -63,17 +64,17 @@ void MCP23S17::init(types::u8 device_id, spi_inst_t *spi_obj_touse) {
   }
   initialized[device_id - 1] = true;
 
-  comms::USB_CDC.printf("-> Initializing MCP23S17\r\n");
+  debug::log("-> Initializing MCP23S17\r\n");
 
   // init gpio pins
-  comms::USB_CDC.printf("Initializing pins\r\n");
+  debug::log("Initializing pins\r\n");
   init_pins();
 
   // reset using the reset pin
   reset();
 
   // init spi
-  comms::USB_CDC.printf("Initializing SPI\r\n");
+  debug::log("Initializing SPI\r\n");
   init_spi();
 }
 
@@ -112,11 +113,11 @@ void MCP23S17::write8(uint8_t device_address, uint8_t reg_address, uint8_t data,
     // print tx_data in binary
     for (int i = 0; i < 3; i++) {
       for (int j = 7; j >= 0; j--) {
-        comms::USB_CDC.printf("%d", (tx_data[i] >> j) & 1);
+        debug::log("%d", (tx_data[i] >> j) & 1);
       }
-      comms::USB_CDC.printf(" ");
+      debug::log(" ");
     }
-    comms::USB_CDC.printf(
+    debug::log(
         "ERROR: MCP23S17 write8 to register failed. Expected %d, got %d\r\n",
         tx_data[2], res);
   }
@@ -160,7 +161,7 @@ void MCP23S17::reset() {
 
 void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
   if (pin < 0 || pin > 7) {
-    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
+    debug::log("Error: Invalid pin number: %d\r\n", pin);
     return;
   }
 
@@ -173,12 +174,12 @@ void MCP23S17::init_gpio(uint8_t pin, bool on_A, bool is_output) {
 
 void MCP23S17::write_gpio(uint8_t pin, bool on_A, bool value) {
   if (pin < 0 || pin > 7) {
-    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
+    debug::log("Error: Invalid pin number: %d\r\n", pin);
     return;
   }
 
   if (pin_state[pin + (on_A ? 0 : 8)] != 1) {
-    comms::USB_CDC.printf(
+    debug::log(
         "Error: Pin %d ID %d on_A %d is not configured as output\r\n", pin, id,
         on_A);
     return;
@@ -188,13 +189,13 @@ void MCP23S17::write_gpio(uint8_t pin, bool on_A, bool value) {
   write8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? GPIOA : GPIOB, value << pin,
          0b1 << pin);
 
-  // comms::USB_CDC.printf("Driver ID: %d, A: %d, Wrote to pin %d with value %d\r\n", id, on_A, pin, value);
+  // debug::log("Driver ID: %d, A: %d, Wrote to pin %d with value %d\r\n", id, on_A, pin, value);
 
   // check that OUTPUT_LATCH has the written bit
   uint8_t res = read8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? OLATA : OLATB);
 
   if ((res & (1 << pin)) != (value << pin)) {
-    comms::USB_CDC.printf(
+    debug::log(
         "ERROR: Write to MCP23S17 GPIO failed. Expected %d, got %d\r\n",
         value << pin, res);
   }
@@ -202,12 +203,12 @@ void MCP23S17::write_gpio(uint8_t pin, bool on_A, bool value) {
 
 bool MCP23S17::read_gpio(uint8_t pin, bool on_A) {
   if (pin < 0 || pin > 7) {
-    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
+    debug::log("Error: Invalid pin number: %d\r\n", pin);
     return false;
   }
 
   if (pin_state[pin + (on_A ? 0 : 8)] != 0) {
-    comms::USB_CDC.printf(
+    debug::log(
         "Error: Pin %d ID %d on_A %d is not configured as input\r\n", pin, id,
         on_A);
     return false;
@@ -220,7 +221,7 @@ bool MCP23S17::read_gpio(uint8_t pin, bool on_A) {
 
 void MCP23S17::pullup_gpio(uint8_t pin, bool on_A) {
   if (pin < 0 || pin > 7) {
-    comms::USB_CDC.printf("Error: Invalid pin number: %d\r\n", pin);
+    debug::log("Error: Invalid pin number: %d\r\n", pin);
   }
 
   write8(id == 1 ? ADDRESS_1 : ADDRESS_2, on_A ? GPPUA : GPPUB, 1 << pin,

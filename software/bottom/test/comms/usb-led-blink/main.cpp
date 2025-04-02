@@ -47,7 +47,7 @@ int main() {
     }
   }
   bool attached = comms::USB_CDC.attach_listener(
-      comms::RecvIdentifiers::DEBUG_TEST_BLINK, blink_on_cmd_handle,
+      comms::RecvIdentifiers::BLINK, blink_on_cmd_handle,
       blink_on_cmd_data_mutex, blink_on_cmd_data_buffer,
       sizeof(blink_on_cmd_data));
   if (!attached) {

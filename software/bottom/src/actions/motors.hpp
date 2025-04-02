@@ -13,20 +13,15 @@ using namespace types;
 struct MotorRecvData {
   uint8_t id;
   i16 duty_cycle;
-};
+} __attribute__((packed));
 
-static TaskHandle_t motor_task_handle = nullptr;
-static driver::MotorDriver driver1;
-static driver::MotorDriver driver2;
-static driver::MotorDriver driver3;
-static driver::MotorDriver driver4;
-static MotorRecvData motor_task_data = {};
-static u8 motor_task_buffer[sizeof(motor_task_data)];
-static SemaphoreHandle_t motor_data_mutex = nullptr;
+TaskHandle_t motor_task_handle = nullptr;
+driver::MotorDriver driver1, driver2, driver3, driver4;
+MotorRecvData motor_task_data = {};
+u8 motor_task_buffer[sizeof(motor_task_data)];
+SemaphoreHandle_t motor_data_mutex = nullptr;
 
 void motor_task(void *args) {
-  debug::info("Motor task started.\n");
-  
   // initialize all motors
   if (driver1.init(1, spi0)) {
     debug::info("Motor Driver 1 Initialized!\n");
@@ -75,21 +70,21 @@ void motor_task(void *args) {
     xSemaphoreGive(motor_data_mutex);
 
     switch (motor_task_data.id) {
-      case 1:
-        driver1.command(motor_task_data.duty_cycle);
-        break;
-      case 2:
-        driver2.command(motor_task_data.duty_cycle);
-        break;
-      case 3:
-        driver3.command(motor_task_data.duty_cycle);
-        break;
-      case 4:
-        driver4.command(motor_task_data.duty_cycle);
-        break;
-      default:
-        debug::error("Invalid motor ID: %d\n", motor_task_data.id);
-        break;
+    case 1:
+      driver1.command(motor_task_data.duty_cycle);
+      break;
+    case 2:
+      driver2.command(motor_task_data.duty_cycle);
+      break;
+    case 3:
+      driver3.command(motor_task_data.duty_cycle);
+      break;
+    case 4:
+      driver4.command(motor_task_data.duty_cycle);
+      break;
+    default:
+      debug::error("Invalid motor ID: %d\n", motor_task_data.id);
+      break;
     }
     debug::info("Motor %d: %d\n", motor_task_data.id,
                 motor_task_data.duty_cycle);

@@ -15,7 +15,7 @@ target_include_directories(motion-control
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
 
-target_link_libraries(motion-control bbw_camera)
+target_link_libraries(motion-control bbw_camera motors)
 target_compile_features(motion-control PUBLIC cxx_std_17)
 target_link_globals(motion-control)
 add_global_library(motion-control)

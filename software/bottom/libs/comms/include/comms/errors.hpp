@@ -11,6 +11,7 @@ enum class CommsErrors : types::u8 {
   CALLING_UNATTACHED_LISTENER,
   LISTENER_NO_BUFFER,
   LISTENER_NO_BUFFER_MUTEX,
+  PACKET_RECV_TOO_SMALL
 };
 
 enum class CommsWarnings : types::u8 {
