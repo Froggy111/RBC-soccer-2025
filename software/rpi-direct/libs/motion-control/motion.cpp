@@ -212,13 +212,12 @@ MotionController::velocity_pid(float current_heading, float target_heading,
 }
 
 std::tuple<float, float, float, float>
-MotionController::position_pid(std::tuple<float, float> current_position,
-                               std::tuple<float, float> target_position,
+MotionController::position_pid(std::tuple<float, float> target_position,
                                float current_heading, float target_heading,
                                float speed) {
     bool usingQueuePosition = false;
 
-    if (current_position == std::make_tuple(10000, 10000)) {
+    if (target_position == std::make_tuple(10000, 10000)) {
         usingQueuePosition = true;
         if (position_queue.empty()) {
             //Queue is empty, so no point running lmao
@@ -232,12 +231,12 @@ MotionController::position_pid(std::tuple<float, float> current_position,
     float delta_y =
         std::get<1>(target_position) - std::get<1>(current_position);
 
-    if (delta_x == 0)
-        delta_x += 0.1;
+    
 
     float target_direction = 0.0;
     target_direction       = std::atan2(delta_y, delta_x);
-
+    target_direction = (-target_direction) + (M_PI/2);
+    //std::cout << "Target DIrection" << target_direction << '\n';
     float distance_left = std::sqrt((delta_x * delta_x + delta_y * delta_y));
 
     if ((!usingQueuePosition) ||

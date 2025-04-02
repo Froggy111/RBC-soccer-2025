@@ -64,7 +64,7 @@ class MotionController {
 
     //position_pid -> Give the current position, target position, speed, do PID on it (using the pid_output function)
 
-    std::tuple<float, float, float, float> position_pid(std::tuple<float, float> current_position, std::tuple<float, float> target_position, float current_heading, float target_heading,  float speed);
+    std::tuple<float, float, float, float> position_pid(std::tuple<float, float> target_position, float current_heading, float target_heading,  float speed);
 
 
 
