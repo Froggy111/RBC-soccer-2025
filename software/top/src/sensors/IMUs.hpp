@@ -3,12 +3,16 @@
 #include "comms.hpp"
 #include "ICM20948.hpp"
 #include "config.hpp"
+#include "types.hpp"
 
 // Global IMU configurations and data
 icm20948::config_t imu_config1, imu_config2;
 icm20948::data_t imu_data;
 
 TaskHandle_t imu_poll_task_handle = nullptr;
+struct IMUSendData {
+  types::i16 accel_1[3], gyro_1[3], accel_2[3], gyro_2[3];
+};
 
 // Task to read and display IMU data
 void imu_poll_task(void *args) {
@@ -35,60 +39,21 @@ void imu_poll_task(void *args) {
     comms::USB_CDC.printf("Initialized IMU20948 1.\r\n");
   }
 
-  // Set magnetometer update rate (mode 0-4, where higher is faster)
-  icm20948::set_mag_rate(&imu_config1, 3);
-  icm20948::set_mag_rate(&imu_config2, 3);
-
-  int16_t accel[3], gyro[3];
-  types::u8 to_send[13];
-
-  int16_t accel_bias1[3] = {0}, gyro_bias1[3] = {0};
-  int16_t accel_bias2[3] = {0}, gyro_bias2[3] = {0};
-  int16_t raw_temp;
-  float temp_c;
-
-  // Calibrate sensors
-  comms::USB_CDC.printf("Calibrating ICM20948s...\r\n");
-  icm20948::cal_gyro(&imu_config1, gyro_bias1);
-  // comms::USB_CDC.printf("Gyro bias: [%d, %d, %d]\r\n", gyro_bias[0],
-  //                       gyro_bias[1], gyro_bias[2]);
-  icm20948::cal_accel(&imu_config1, accel_bias1);
-  // comms::USB_CDC.printf("Accel bias: [%d, %d, %d]\r\n", accel_bias[0],
-  //                       accel_bias[1], accel_bias[2]);
-
-  icm20948::cal_gyro(&imu_config2, gyro_bias2);
-  // comms::USB_CDC.printf("Gyro bias: [%d, %d, %d]\r\n", gyro_bias[0],
-  //                       gyro_bias[1], gyro_bias[2]);
-  icm20948::cal_accel(&imu_config2, accel_bias2);
-  // comms::USB_CDC.printf("Accel bias: [%d, %d, %d]\r\n", accel_bias[0],
-  //                       accel_bias[1], accel_bias[2]);
-
+  IMUSendData to_send = {0};
   comms::USB_CDC.printf("IMU Ready!\r\n");
 
-  while (true) {
+  for (;;) {
     TickType_t previous_wait_time = xTaskGetTickCount();
 
-    // read ICM20948 1
-    icm20948::read_cal_accel(&imu_config1, accel, accel_bias1);
-    icm20948::read_cal_gyro(&imu_config1, gyro, gyro_bias1);
+    // read both
+    icm20948::read_raw_accel(&imu_config1, to_send.accel_1);
+    icm20948::read_raw_gyro(&imu_config1, to_send.gyro_1);
+    icm20948::read_raw_accel(&imu_config2, to_send.accel_2);
+    icm20948::read_raw_gyro(&imu_config2, to_send.accel_2);
 
-    // send ICM20948 1
-    to_send[0] = imu_config1.id;
-    memcpy(&to_send[1], accel, sizeof(accel));
-    memcpy(&to_send[7], gyro, sizeof(gyro));
-    comms::USB_CDC.write(comms::SendIdentifiers::ICM29048, to_send,
-                       sizeof to_send);
-
-    // read ICM20948 2
-    icm20948::read_cal_accel(&imu_config2, accel, accel_bias2);
-    icm20948::read_cal_gyro(&imu_config2, gyro, gyro_bias2);
-
-    // send ICM20948 2
-    to_send[0] = imu_config2.id;
-    memcpy(&to_send[1], accel, sizeof(accel));
-    memcpy(&to_send[7], gyro, sizeof(gyro));
-    comms::USB_CDC.write(comms::SendIdentifiers::ICM29048, to_send,
-                       sizeof to_send);
+    // send both
+    comms::USB_CDC.write(comms::SendIdentifiers::IMU, (types::u8 *)&to_send,
+                         sizeof(to_send));
 
     vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(POLL_INTERVAL));
   }

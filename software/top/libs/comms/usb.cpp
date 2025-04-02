@@ -264,8 +264,8 @@ void CDC::_rx_cb(u8 interface, void *args) {
 
     // data bytes
     else {
-      debug::log("length recieved. expected length: %u\n",
-                 state.expected_length);
+      // debug::log("length recieved. expected length: %u\n",
+      //            state.expected_length);
       // wait until there are enough data bytes
       if (tud_cdc_available() < state.expected_length) {
         return;
@@ -275,7 +275,7 @@ void CDC::_rx_cb(u8 interface, void *args) {
       // NOTE: here we have a full command in CurrentRXState.
       // this needs to be quickly copied into a command buffer.
       u8 identifier = state.data_buffer[0];
-      debug::log("recieved identifier: %u\n", identifier);
+      // debug::log("recieved identifier: %u\n", identifier);
 
       // check handler
       if (!_command_task_handles[identifier]) {
@@ -333,7 +333,7 @@ void CDC::_rx_cb(u8 interface, void *args) {
         continue;
       }
 
-      debug::log("trying to grab attached mutex\n");
+      // debug::log("trying to grab attached mutex\n");
       // try to grab buffer mutex
       if (xSemaphoreTake(_command_task_buffer_mutexes[identifier], 0) !=
           pdTRUE) {
@@ -349,7 +349,7 @@ void CDC::_rx_cb(u8 interface, void *args) {
         state.reset();
         continue;
       }
-      debug::log("grabbed mutex\n");
+      // debug::log("grabbed mutex\n");
 
       // here we have the buffer mutex
       // clear the buffer first
