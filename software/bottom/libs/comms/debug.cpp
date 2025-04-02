@@ -15,7 +15,7 @@ void log(const char *format, ...) {
   vsnprintf(buffer, sizeof(buffer), format, args);
 
   // Use the CDC printf for debug mode
-  debug::log"%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -30,7 +30,7 @@ void debug(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  debug::log"%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -45,7 +45,7 @@ void info(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  debug::log"%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -60,7 +60,7 @@ void warn(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  debug::log"%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -75,7 +75,7 @@ void error(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  debug::log"%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -90,7 +90,7 @@ void fatal(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  debug::log"%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }

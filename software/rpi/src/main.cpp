@@ -72,9 +72,8 @@ int main() {
             comms::USB_CDC.writeToBottomPico(
                 comms::SendBottomPicoIdentifiers::MOTOR_DRIVER_CMD,
                 reinterpret_cast<uint8_t *>(&motor_data), sizeof(motor_data));
-            // debug::info("Motor %d duty cycle: %d", i, motor_data.duty_cycle);
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     stop();

@@ -15,14 +15,11 @@ struct MotorRecvData {
   i16 duty_cycle;
 } __attribute__((packed));
 
-static TaskHandle_t motor_task_handle = nullptr;
-static driver::MotorDriver driver1;
-static driver::MotorDriver driver2;
-static driver::MotorDriver driver3;
-static driver::MotorDriver driver4;
-static MotorRecvData motor_task_data = {};
-static u8 motor_task_buffer[sizeof(motor_task_data)];
-static SemaphoreHandle_t motor_data_mutex = nullptr;
+TaskHandle_t motor_task_handle = nullptr;
+driver::MotorDriver driver1, driver2, driver3, driver4;
+MotorRecvData motor_task_data = {};
+u8 motor_task_buffer[sizeof(motor_task_data)];
+SemaphoreHandle_t motor_data_mutex = nullptr;
 
 void motor_task(void *args) {
   // initialize all motors
