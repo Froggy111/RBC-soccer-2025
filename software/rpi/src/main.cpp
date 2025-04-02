@@ -73,13 +73,17 @@ int main() {
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
         auto commands = motion_controller.move_heading(0.0f, 0.0f, 0.2f);
-        motors::command_motor_motion_controller(1, std::get<0>(commands));
-        motors::command_motor_motion_controller(2, std::get<1>(commands));
-        motors::command_motor_motion_controller(3, std::get<2>(commands));
-        motors::command_motor_motion_controller(4, std::get<3>(commands));
-        debug::info("Motor commands: %d %d %d %d", std::get<0>(commands),
-                    std::get<1>(commands), std::get<2>(commands),
-                    std::get<3>(commands));
+        motors::command_motor_motion_controller(1,
+                                                std::get<0>(commands) * 1200);
+        motors::command_motor_motion_controller(2,
+                                                std::get<1>(commands) * 1200);
+        motors::command_motor_motion_controller(3,
+                                                std::get<2>(commands) * 1200);
+        motors::command_motor_motion_controller(4,
+                                                std::get<3>(commands) * 1200);
+        debug::info("Motor commands: %d %d %d %d", std::get<0>(commands) * 1200,
+                    std::get<1>(commands) * 1200, std::get<2>(commands) * 1200,
+                    std::get<3>(commands) * 1200); // 4.... (big number) 0 1 0
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }

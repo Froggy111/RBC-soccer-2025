@@ -373,13 +373,15 @@ MotionController::translate(std::tuple<float, float> vec) {
 std::tuple<float, float, float, float>
 MotionController::move_heading(float current_direction, float bearing,
                                float speed) {
-    int resultant_direction;
+    float resultant_direction;
 
     //Normalise the angle
     current_direction = normalize_angle(current_direction);
 
     //calculate resultant direction
     resultant_direction = normalize_angle(bearing - current_direction);
+    debug::log("Resultant Direction: %f", resultant_direction);
+    debug::log("Speed: %f", speed);
 
     return translate(std::make_tuple(resultant_direction, speed));
 }
