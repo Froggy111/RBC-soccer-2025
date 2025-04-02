@@ -1,3 +1,4 @@
+#include "delay.hpp"
 #include <cstdint>
 extern "C" {
 #include <hardware/spi.h>
@@ -136,6 +137,7 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   // Initialize CS pin as GPIO
 
   outputControl.write_digital(pins.get_pin(CS), 0, pins.get_pin_interface(CS));
+  utils::delay_ns<50>();
 
   configure_spi();
   int bytes_written =
@@ -197,6 +199,7 @@ uint8_t MotorDriver::read8(uint8_t reg) {
   reg_value |= SPI_RW_BIT_MASK;
 
   outputControl.write_digital(pins.get_pin(CS), 0, pins.get_pin_interface(CS));
+  utils::delay_ns<50>();
 
   configure_spi();
   spi_write16_read16_blocking(spi_obj, &reg_value, &rx_data, 1);
@@ -401,7 +404,7 @@ bool MotorDriver::command(types::i16 duty_cycle) {
   //       "Motor command aborted due to configuration error.\r\n");
   //   return false;
   // }
-  if (duty_cycle < -1250 || duty_cycle > 1250) {
+  if (abs(duty_cycle) > 2000) {
     debug::error(
         "Invalid duty cycle. Must be between -12500 and 12500.\r\n");
     return false;

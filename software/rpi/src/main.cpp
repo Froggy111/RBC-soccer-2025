@@ -41,20 +41,17 @@ bool start() {
 }
 
 void stop() {
-    debug::info("Stopping motion controller...");
+    debug::warn("STOPPING MOTION...\n");
     motion_controller.stopControlThread();
 
-    debug::info("Stopping camera capture...");
+    for (int i = 1; i <= 4; i++) {
+    }
+    
+
+    debug::warn("STOPPING CAMERA...");
     cam.stopCapture();
 
-    // debug::info("Stopping motion control thread...\n");
-    // motion_controller.stopControlThread();
 }
-
-struct MotorRecvData {
-    uint8_t id;
-    types::i16 duty_cycle;
-} __attribute__((packed));
 
 int main() {
     // * wiring PI setup
@@ -67,16 +64,12 @@ int main() {
 
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
-        for (int i = 1; i <= 4; i++) {
-            MotorRecvData motor_data = {.id = (uint8_t)i, .duty_cycle = 1000};
-            comms::USB_CDC.writeToBottomPico(
-                comms::SendBottomPicoIdentifiers::MOTOR_DRIVER_CMD,
-                reinterpret_cast<uint8_t *>(&motor_data), sizeof(motor_data));
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
+        
     }
 
     stop();
     debug::info("EMERGENCY STOP DONE.");
     return 0;
 }
+
+// 1 2 3

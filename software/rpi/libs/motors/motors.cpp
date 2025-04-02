@@ -1,0 +1,30 @@
+#include "motors.hpp"
+#include "comms.hpp"
+#include "config.hpp"
+#include "debug.hpp"
+
+namespace motors {
+
+bool command_motor(uint8_t id, types::i16 duty_cycle) {
+    if (duty_cycle > MOTOR_MAX_DUTY_CYCLE) {
+        debug::error("Motor duty cycle %d is too high, max is %d", duty_cycle, MOTOR_MAX_DUTY_CYCLE);
+        return false;
+    }
+
+    if (id < 1 || id >= 5) {
+        debug::error("Motor ID %d is out of range", id);
+        return false;
+    }
+
+    MotorRecvData motor_data = {.id = id, .duty_cycle = duty_cycle};
+
+    if (!DIRECTIONS[id - 1]) {
+        motor_data.duty_cycle = -motor_data.duty_cycle;
+    }
+    
+    return comms::USB_CDC.writeToBottomPico(
+        comms::SendBottomPicoIdentifiers::MOTOR_DRIVER_CMD,
+        reinterpret_cast<uint8_t *>(&motor_data), sizeof(motor_data));
+}
+
+} // namespace motors
