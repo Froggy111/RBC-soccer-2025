@@ -27,7 +27,6 @@ struct Vec3i16 {
 
 struct Vec3f32 {
     Vec3f32(f32 x, f32 y, f32 z) : x(x), y(y), z(z) {}
-    Vec3f32(Vec3i16 i16_vec) : x(i16_vec.x), y(i16_vec.y), z(i16_vec.z) {}
     f32 x, y, z;
 };
 
