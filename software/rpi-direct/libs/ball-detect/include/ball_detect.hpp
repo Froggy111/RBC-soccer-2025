@@ -3,6 +3,7 @@
 #include "comms.hpp"
 #include "debug.hpp"
 #include "types.hpp"
+#include <string>
 #include <cmath>
 #include <tuple>
 #include <vector>
@@ -11,7 +12,7 @@ namespace IR {
 
 const types::u8 SENSOR_COUNT = 24;
 struct ModulationData {
-    int uptime = 0;
+    types::u32 uptime = 0;
     inline void reset(void) volatile { uptime = 0; }
 };
 const double MODULATION_FREQ = 1200; // 833.333us per cycle
@@ -33,6 +34,8 @@ class IR {
     std::tuple<float, float> find_ball();
 
     float normalize_angle(float angle);
+
+    void map_data();
 
   private:
     static volatile ModulationData modulation_buffer[SENSOR_COUNT];

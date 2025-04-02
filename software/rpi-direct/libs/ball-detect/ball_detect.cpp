@@ -1,4 +1,5 @@
-#include "include/IR.hpp"
+#include "include/ball_detect.hpp"
+#include "IR.hpp"
 //#include "comms.hpp"
 //#include "debug.hpp"
 #include "types.hpp"
@@ -24,14 +25,28 @@ void IR::init(void) {
 
 }
 
-void IR::data_processor(const int *data, int data_len) {
+void IR::data_processor(const types::u32 *data, int data_len) {
     for (int i = 0; i < SENSOR_COUNT; i++) modulation_data[i] = data[i];
     for (int i = 0; i < SENSOR_COUNT; i++) {
-        //debug::debug("IR sensor %u uptime: %u", i, modulation_data[i].uptime);
-        //std::cout << "IR sensor "  << i << " uptime: " << modulation_data[i] << '\n';
+        debug::debug("IR sensor %u uptime: %u", i, modulation_data[i]);
+        std::cout << "IR sensor "  << i << " uptime: " << modulation_data[i] << '\n';
         continue;
     }
     return;
+}
+
+void IR::map_data(){
+    for(int i = 0; i < SENSOR_COUNT; i++){
+        if(modulation_data[i] >= 200){
+            modulation_data[i] = 200;
+        } else if (modulation_data[i] >= 150){
+            modulation_data[i] = 150;
+        } else if (modulation_data[i] >= 100){
+            modulation_data[i] = 100;
+        } else {
+            modulation_data[i] = 0;
+        }
+    }
 }
 
 float IR::normalize_angle(float angle){
