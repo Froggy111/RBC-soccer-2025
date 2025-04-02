@@ -1,8 +1,6 @@
 #include "include/motion.hpp"
-#include "comms.hpp"
-#include "comms/identifiers.hpp"
-#include "comms/usb.hpp"
 #include "debug.hpp"
+#include "motors.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -70,15 +68,10 @@ void MotionController::controlThreadWorker() {
         auto res = translate(std::make_tuple(0, 0.1f));
 
         // send motor values to the motors
-        for (int i = 1; i <= 4; i++) {
-            MotorRecvData motor_data = {
-                .id         = (uint8_t)i,
-                .duty_cycle = (uint16_t)(std::get<0>(res) * 12500)};
-
-            comms::USB_CDC.writeToBottomPico(
-                comms::SendBottomPicoIdentifiers::MOTOR_DRIVER_CMD,
-                reinterpret_cast<uint8_t *>(&motor_data), sizeof(motor_data));
-        }
+        motors::command_motor(1, std::get<0>(res));
+        motors::command_motor(2, std::get<1>(res));
+        motors::command_motor(3, std::get<2>(res));
+        motors::command_motor(4, std::get<3>(res));
 
         // Prevent CPU thrashing with a small sleep
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -380,13 +373,15 @@ MotionController::translate(std::tuple<float, float> vec) {
 std::tuple<float, float, float, float>
 MotionController::move_heading(float current_direction, float bearing,
                                float speed) {
-    int resultant_direction;
+    float resultant_direction;
 
     //Normalise the angle
     current_direction = normalize_angle(current_direction);
 
     //calculate resultant direction
     resultant_direction = normalize_angle(bearing - current_direction);
+    debug::log("Resultant Direction: %f", resultant_direction);
+    debug::log("Speed: %f", speed);
 
     return translate(std::make_tuple(resultant_direction, speed));
 }

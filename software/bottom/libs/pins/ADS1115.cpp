@@ -8,6 +8,7 @@
 #include "pins/ADS1115.hpp"
 #include <hardware/i2c.h>
 #include <hardware/gpio.h>
+#include "debug.hpp"
 
 
  /*! @brief Constructor ADS1015 sub class */
@@ -60,8 +61,8 @@
 	 if (ReturnCode < 1)
 	 { // no bytes read back from device or error issued
  #ifdef ADS_SERIAL_DEBUG
-		 printf("1201  PICO_ADS1X15::begin: \r\n");
-		 printf("Check Connection, Return code :: %d ,RX data :: %u \r\n", ReturnCode, rxdata);
+		 debug::log("1201  PICO_ADS1X15::begin: \r\n");
+		 debug::log("Check Connection, Return code :: %d ,RX data :: %u \r\n", ReturnCode, rxdata);
  #endif
 		 return false;
 	 }
@@ -369,9 +370,9 @@
 	 if (ReturnCode < 1)
 	 {
  #ifdef ADS_SERIAL_DEBUG
-		 printf("1203 data: \r\n");
-		 printf("I2C error :: writeRegister \r\n");
-		 printf("Tranmission code : %d \r\n", ReturnCode);
+		 debug::log("1203 data: \r\n");
+		 debug::log("I2C error :: writeRegister \r\n");
+		 debug::log("Tranmission code : %d \r\n", ReturnCode);
 		 busy_wait_ms(100);
  #endif
 	 }
@@ -391,8 +392,8 @@
 	 if (ReturnCode < 1)
 	 {
  #ifdef ADS_SERIAL_DEBUG
-		 printf("1201 error I2C readRegister A: \r\n");
-		 printf("Tranmission code : %d \r\n", ReturnCode);
+		 debug::log("1201 error I2C readRegister A: \r\n");
+		 debug::log("Tranmission code : %d \r\n", ReturnCode);
 		 busy_wait_ms(100);
  #endif
 	 }
@@ -402,8 +403,8 @@
 	 if (ReturnCode < 1)
 	 { // no bytes read back from device or error issued
  #ifdef ADS_SERIAL_DEBUG
-		 printf("1202 I2C Error readRegister B: \r\n");
-		 printf("Tranmission Code :: %d\r\n", ReturnCode);
+		 debug::log("1202 I2C Error readRegister B: \r\n");
+		 debug::log("Tranmission Code :: %d\r\n", ReturnCode);
 		 busy_wait_ms(100);
  #endif
 	 }

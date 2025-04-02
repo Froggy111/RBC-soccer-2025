@@ -5,3 +5,4 @@ add_subdirectory(comms)
 
 add_subdirectory(camera)
 add_subdirectory(motion-control)
+add_subdirectory(motors)

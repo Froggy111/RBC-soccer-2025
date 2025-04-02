@@ -281,7 +281,7 @@ void CamProcessor::process_frame(const cv::Mat &frame) {
         current_pos.y       = res.first.y;
         current_pos.heading = res.first.heading;
     }
-    std::printf("Current Position: x: %d, y: %d, heading: %.2f\n",
+    debug::info("Current Position: x: %d, y: %d, heading: %.2f\n",
         current_pos.x, current_pos.y, current_pos.heading * 180 / M_PI);
     _frame_count += 1;
 }
