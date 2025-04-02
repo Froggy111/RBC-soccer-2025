@@ -1,12 +1,14 @@
 #pragma once
 
 #include "comms.hpp"
+#include "debug.hpp"
 #include "ICM20948.hpp"
 #include "config.hpp"
 #include "types.hpp"
 
 // Global IMU configurations and data
-icm20948::config_t imu_config1, imu_config2;
+icm20948::config_t imu_config1 = {1, spi0};
+icm20948::config_t imu_config2 = {2, spi0};
 icm20948::data_t imu_data;
 
 TaskHandle_t imu_poll_task_handle = nullptr;
@@ -16,31 +18,35 @@ struct IMUSendData {
 
 // Task to read and display IMU data
 void imu_poll_task(void *args) {
-  comms::USB_CDC.printf("Initializing IMU...\r\n");
+  debug::log("Initializing IMU...\r\n");
 
   // Set IMU Config
-  imu_config1.spi = spi0;
-  imu_config1.id = 1;
-  imu_config2.spi = spi0;
-  imu_config2.id = 2;
+  icm20948::set_accel_config(&imu_config1, 1000.0f / IMU_POLL_INTERVAL, 2,
+                             IMU_FSR, false);
+  icm20948::set_accel_config(&imu_config1, 1000.0f / IMU_POLL_INTERVAL, 2,
+                             IMU_FSR, false);
+  icm20948::set_gyro_config(&imu_config1, 1000.0f / IMU_POLL_INTERVAL, 2,
+                            false);
+  icm20948::set_gyro_config(&imu_config1, 1000.0f / IMU_POLL_INTERVAL, 2,
+                            false);
 
   // Initialize Both
   if (icm20948::init(&imu_config1) == -1) {
-    comms::USB_CDC.printf("Error initializing ICM20948 1.\r\n");
+    debug::log("Error initializing ICM20948 1.\r\n");
     vTaskDelete(imu_poll_task_handle);
   } else {
-    comms::USB_CDC.printf("Initialized IMU20948 1.\r\n");
+    debug::log("Initialized IMU20948 1.\r\n");
   }
 
   if (icm20948::init(&imu_config2) == -1) {
-    comms::USB_CDC.printf("Error initializing ICM20948 1.\r\n");
+    debug::log("Error initializing ICM20948 1.\r\n");
     vTaskDelete(imu_poll_task_handle);
   } else {
-    comms::USB_CDC.printf("Initialized IMU20948 1.\r\n");
+    debug::log("Initialized IMU20948 1.\r\n");
   }
 
   IMUSendData to_send = {0};
-  comms::USB_CDC.printf("IMU Ready!\r\n");
+  debug::log("IMU Ready!\r\n");
 
   for (;;) {
     TickType_t previous_wait_time = xTaskGetTickCount();
@@ -55,6 +61,6 @@ void imu_poll_task(void *args) {
     comms::USB_CDC.write(comms::SendIdentifiers::IMU, (types::u8 *)&to_send,
                          sizeof(to_send));
 
-    vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(POLL_INTERVAL));
+    vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(IMU_POLL_INTERVAL));
   }
 }

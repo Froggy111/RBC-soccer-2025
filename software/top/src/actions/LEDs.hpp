@@ -25,8 +25,8 @@ struct LEDBLinkerData {
   uint8_t BLUE = 0;
 };
 
-WS2812 led_strip((uint)pinmap::Pico::LED_SIG_3V3, LED_COUNT, pio0,
-                 0, WS2812::DataFormat::FORMAT_GRB);
+WS2812 led_strip((uint)pinmap::Pico::LED_SIG_3V3, LED_COUNT, pio0, 0,
+                 WS2812::DataFormat::FORMAT_GRB);
 
 TaskHandle_t led_blinker_handle = nullptr;
 LEDData led_states[LED_COUNT];
@@ -69,12 +69,9 @@ void led_blinker_task(void *args) {
     // * based on the id, set the color
 
     if (led_blinker_task_data.id >= 0 && led_blinker_task_data.id < LED_COUNT) {
-      led_states[led_blinker_task_data.id].RED =
-          led_blinker_task_data.RED;
-      led_states[led_blinker_task_data.id].GREEN =
-          led_blinker_task_data.GREEN;
-      led_states[led_blinker_task_data.id].BLUE =
-          led_blinker_task_data.BLUE;
+      led_states[led_blinker_task_data.id].RED = led_blinker_task_data.RED;
+      led_states[led_blinker_task_data.id].GREEN = led_blinker_task_data.GREEN;
+      led_states[led_blinker_task_data.id].BLUE = led_blinker_task_data.BLUE;
     }
   }
 }
