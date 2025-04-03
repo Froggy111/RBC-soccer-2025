@@ -9,8 +9,9 @@ typedef std::tuple<float, float, float, float> tuple_4;
 typedef std::tuple<float, float> tuple_2;
 
 #define PI 3.14159265358979323846
-#define VELOCITY_WINDOW_SIZE 10
-#define ROTATION_ERRORS_WINDOW_SIZE 100
+#define VELOCITY_WINDOW_SIZE 1
+#define ERROR_WINDOW_SIZE 10
+#define ROTATION_ERRORS_WINDOW_SIZE 20
 //using namespace std;
 
 class MotionController {
@@ -116,8 +117,8 @@ class MotionController {
     float rotation_Kd = 0.0; //TODO: NEED TO TUNE
 
     //Sliding Window of errors in the x and y components of velocity
-    std::deque<float> velocity_x_errors = std::deque<float>(50, 0.0);
-    std::deque<float> velocity_y_errors = std::deque<float>(50, 0.0);
+    std::deque<float> velocity_x_errors = std::deque<float>(ERROR_WINDOW_SIZE, 0.0);
+    std::deque<float> velocity_y_errors = std::deque<float>(ERROR_WINDOW_SIZE, 0.0);
 
     //Sliding Window of errors in rotation
     std::deque<float> rotation_errors = std::deque<float>(ROTATION_ERRORS_WINDOW_SIZE, 0.0);
