@@ -378,6 +378,22 @@ std::pair<Pos, float> CamProcessor::find_minima_local_grid_search(
     float h_min = estimate.heading - heading_variance;
     float h_max = estimate.heading + heading_variance;
 
+    // Constrain to field boundaries
+    x_min = std::max(x_min, -field::FIELD_X_SIZE / 2);
+    x_max = std::min(x_max, field::FIELD_X_SIZE / 2);
+    y_min = std::max(y_min, -field::FIELD_Y_SIZE / 2);
+    y_max = std::min(y_max, field::FIELD_Y_SIZE / 2);
+
+    // Normalize heading range
+    while (h_min < 0)
+        h_min += 2 * M_PI;
+    while (h_min >= 2 * M_PI)
+        h_min -= 2 * M_PI;
+    while (h_max < 0)
+        h_max += 2 * M_PI;
+    while (h_max >= 2 * M_PI)
+        h_max -= 2 * M_PI;
+
     // Grid search
     for (int x = x_min; x <= x_max; x += x_step) {
         for (int y = y_min; y <= y_max; y += y_step) {
@@ -419,10 +435,11 @@ void CamProcessor::process_frame(const cv::Mat &frame) {
     // }
 
     auto estimate = find_minima_local_grid_search(
-        frame, current_pos, 20, 20, 20 * M_PI / 180, 5, 5, 5 * M_PI / 180);
+        frame, current_pos, 30, 30, 20 * M_PI / 180, 5, 5, 5 * M_PI / 180);
 
-    auto res = find_minima_local_grid_search(frame, estimate.first, 5, 5, 5 * M_PI / 180, 1, 1, 1 * M_PI / 180);
-    
+    auto res = find_minima_local_grid_search(
+        frame, estimate.first, 5, 5, 5 * M_PI / 180, 1, 1, 1 * M_PI / 180);
+
     current_pos = res.first;
     debug::log("POSITION: %d, %d, %f (Loss: %f)", current_pos.x, current_pos.y,
                current_pos.heading / M_PI * 180, res.second);
