@@ -10,9 +10,29 @@ typedef std::tuple<float, float> tuple_2;
 
 #define PI 3.14159265358979323846
 #define VELOCITY_WINDOW_SIZE 1
-#define ERROR_WINDOW_SIZE 10
+#define ERROR_WINDOW_SIZE 25
 #define ROTATION_ERRORS_WINDOW_SIZE 20
 //using namespace std;
+
+namespace PID{
+struct {
+    float motor1;
+    float motor2;
+    float motor3;
+    float motor4;
+} motorSpeeds;
+
+struct {
+    float direction;
+    float speed;
+} movementVector;
+
+struct {
+    float x;
+    float y;
+} positionVector;
+}
+
 
 class MotionController {
   public:
@@ -37,10 +57,10 @@ class MotionController {
 
     float expected_velocity = 0.0;
     float expected_direction = 0.0;
-
+    float position_factor = 1.0; //TODO: NEED TO TUNE
     
 
-    void init(float rotation_kp, float rotation_ki, float rotation_kd, float velocity_kp, float velocity_ki, float velocity_kd);
+    void init(float rotation_kp, float rotation_ki, float rotation_kd, float velocity_kp, float velocity_ki, float velocity_kd, float pf);
 
     //upadtes the new and last position
     void update_position(std::tuple<float, float> ne_pos);
@@ -101,10 +121,10 @@ class MotionController {
     // Thread control
     std::thread controlThread;
     std::atomic<bool> controlThreadRunning{false};
-    //camera::CamProcessor _processor; #######UNCOMMENT LATER!!!!!!!
+    camera::CamProcessor _processor;
     
     // Thread worker function
-    //void controlThreadWorker(); #####UNCOMMENT LATER!!!!!!
+    void controlThreadWorker(); 
     
     //Velocity PID Values, used for controlling velocity
     float velocity_Kp = 2.0; //TODO: NEED TO TUNE
@@ -150,5 +170,5 @@ class MotionController {
 
     //Factor to multiply position values by, so that at max speed, the change between last
     //and first is approx. 1
-    float position_factor = 1.0; //TODO: NEED TO TUNE
+    
 };

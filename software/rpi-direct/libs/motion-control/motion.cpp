@@ -21,8 +21,8 @@ float MotionController::angle_to_motor_speed(float angle) {
 }
 
 void MotionController::init(float rotation_kp, float rotation_ki,
-                            float rotation_kd, float velocity_kp,
-                            float velocity_ki, float velocity_kd) {
+    float rotation_kd, float velocity_kp,
+    float velocity_ki, float velocity_kd, float pf) {
 
     rotation_integral   = 0;
     last_rotation_error = 0;
@@ -34,6 +34,8 @@ void MotionController::init(float rotation_kp, float rotation_ki,
     velocity_Kp = velocity_kp;
     velocity_Ki = velocity_ki;
     velocity_Kd = velocity_kd;
+
+    position_factor = pf;
 }
 
 // Start a thread for continuous motion control
@@ -167,7 +169,7 @@ MotionController::velocity_pid(float current_heading, float target_heading,
 
     //Get current movement vector, target vector, error_change
     std::tuple<float, float> target_vector =
-        std::make_tuple(target_direction - current_heading, speed);
+        std::make_tuple(target_direction, speed);
     std::tuple<float, float> target_change = resolve_vector(target_vector);
     std::tuple<float, float> error_change =
         std::make_tuple(std::get<0>(target_change) - average_x_velocities,
@@ -195,15 +197,16 @@ MotionController::velocity_pid(float current_heading, float target_heading,
     // }
 
     std::tuple<float, float> error_vector = form_vector(
-        velocity_x_integral*velocity_Ki , velocity_y_integral*velocity_Ki);
-    std::tuple<float, float> p_vector = form_vector(std::get<0>(error_change)*velocity_Kp, std::get<1>(error_change)*velocity_Kp);
+        velocity_x_integral/position_factor*velocity_Ki , velocity_y_integral/position_factor*velocity_Ki);
+    std::tuple<float, float> p_vector = form_vector(std::get<0>(error_change)/position_factor*velocity_Kp, std::get<1>(error_change)/position_factor*velocity_Kp);
     std::tuple<float, float> translation_vector =
         add_vectors(target_vector, error_vector);
 
     translation_vector = std::make_tuple(normalize_angle(std::get<0>(translation_vector) - current_heading), std::get<1>(translation_vector));
 
     std::cout << "Target Vector: " << std::get<0>(target_vector) << " " << std::get<1>(target_vector) << '\n';
-    std::cout << "Integrals:  " << velocity_x_integral << " " << velocity_y_integral << '\n';
+    std::cout << "P Vector: " << std::get<0>(p_vector) << " " << std::get<1>(p_vector) << '\n';
+    //std::cout << "Integrals:  " << velocity_x_integral << " " << velocity_y_integral << '\n';
     //std::cout << "Integrals: " << velocity_x_integral << " " << velocity_y_integral << '\n';
     std::cout << "Error Vector: " << std::get<0>(error_vector) << " " << std::get<1>(error_vector) << '\n';
     std::cout << "Resultant Vector: " << std::get<0>(translation_vector) << " " << std::get<1>(translation_vector) << '\n';
@@ -260,7 +263,7 @@ MotionController::position_pid(std::tuple<float, float> target_position,
 
     if ((!usingQueuePosition) ||
         (usingQueuePosition && position_queue.size() <= 1)) {
-        speed = std::min(double(speed), speed * (std::min(1.0, std::abs(distance_left / 10.0))));
+        speed = std::min(double(speed), speed * (std::min(1.0, std::abs(distance_left/ 20.0*position_factor ))));
     }
 
     
@@ -285,7 +288,7 @@ MotionController::resolve_vector(std::tuple<float, float> vec) {
     x_delta += std::get<1>(vec) * std::cos(-(std::get<0>(vec) - PI / 2));
     y_delta += std::get<1>(vec) * std::sin(-(std::get<0>(vec) - PI / 2));
 
-    return std::make_tuple(x_delta, y_delta);
+    return std::make_tuple(x_delta*position_factor, y_delta*position_factor);
 }
 
 std::tuple<float, float>
@@ -347,7 +350,7 @@ void MotionController::calculate_expected_vel_dir(
     expected_direction = std::atan2(y_delta, x_delta);
     expected_direction = normalize_angle(expected_direction);
 
-    expected_velocity = std::sqrt(x_delta * x_delta + y_delta * y_delta);
+    expected_velocity = std::sqrt((x_delta/position_factor) * (x_delta/position_factor) + (y_delta/position_factor) * (y_delta/position_factor));
 }
 
 std::tuple<float, float> MotionController::form_vector(float x_error_vel,
@@ -358,7 +361,7 @@ std::tuple<float, float> MotionController::form_vector(float x_error_vel,
     error_dir       = normalize_angle(error_dir);
 
     float error_vel =
-        std::sqrt(x_error_vel * x_error_vel + y_error_vel * y_error_vel);
+        std::sqrt((x_error_vel/position_factor) * (x_error_vel/position_factor) + (y_error_vel/position_factor) * (y_error_vel/position_factor));
 
     return std::tuple(error_dir, std::max(0.0f, std::min(1.0f, error_vel)));
 }
