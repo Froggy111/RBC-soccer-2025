@@ -7,3 +7,4 @@
 // #define IS_MIDDLE_PICO
 // #define IS_TOP_PICO
 #define PING_PACKET_MAX_SIZE 128
+#define MOTOR_MIN_ZERO_TO_FULL_SPEED_TIME 10000; // seconds
