@@ -424,29 +424,47 @@ std::pair<Pos, float> CamProcessor::find_minima_local_grid_search(
 }
 
 int CamProcessor::_frame_count = 0;
-Pos CamProcessor::current_pos  = {0, 0, M_PI};
-types::Vec3f32 CamProcessor::last_pos_imu = {0, 0, 0};
+Pos CamProcessor::current_pos(-field::FIELD_X_SIZE / 2, 0, M_PI);
+types::Vec3f32 CamProcessor::last_pos_imu    = {-field::FIELD_X_SIZE / 4,
+                                                -field::FIELD_Y_SIZE / 4, 0};
 types::Vec3f32 CamProcessor::last_orient_imu = {0, 0, 0};
 
 void CamProcessor::process_frame(const cv::Mat &frame) {
-    types::Vec3f32 cur_pos_imu = IMU::position();
-    types::Vec3f32 cur_orientation_imu = IMU::orientation();
+    // types::Vec3f32 cur_pos_imu         = IMU::position();
+    // types::Vec3f32 cur_orientation_imu = IMU::orientation();
 
-    Pos estimated(current_pos.heading - (cur_orientation_imu.z - last_orient_imu.z),
-                  current_pos.x + (cur_pos_imu.x - last_pos_imu.x) / field::FIELD_X_SIZE * 132 * 100,
-                  current_pos.y + (cur_pos_imu.y - last_pos_imu.y) / field::FIELD_Y_SIZE * 193 * 100);
+    // debug::error("IMU: %f, %f, %f", cur_pos_imu.x, cur_pos_imu.y,
+    //              cur_orientation_imu.z / M_PI * 180);
 
-    debug::info("Estimated: %d, %d, %f", estimated.x, estimated.y,
-                estimated.heading / M_PI * 180);
-    
-    last_pos_imu = cur_pos_imu;
+    // Pos estimated(current_pos.heading +
+    //                   (cur_orientation_imu.z - last_orient_imu.z),
+    //               current_pos.x + (cur_pos_imu.x - last_pos_imu.x) /
+    //                                   field::FIELD_X_SIZE * 132 * 100,
+    //               current_pos.y + (cur_pos_imu.y - last_pos_imu.y) /
+    //                                   field::FIELD_Y_SIZE * 193 * 100);
+
+    // // clamp
+    // estimated.x = std::max(std::min(estimated.x, field::FIELD_X_SIZE / 2),
+    //                        -field::FIELD_X_SIZE / 2);
+    // estimated.y = std::max(std::min(estimated.y, field::FIELD_Y_SIZE / 2),
+    //                        -field::FIELD_Y_SIZE / 2);
+    // estimated.heading =
+    //     std::max(std::min(estimated.heading, 2 * (float)M_PI), 0.0f);
+
+    // debug::info("ESTIMATED: %d, %d, %f", estimated.x, estimated.y,
+    //             estimated.heading / M_PI * 180);
+
+    // last_pos_imu    = cur_pos_imu;
+    // last_orient_imu = cur_orientation_imu;
 
     auto res = find_minima_local_grid_search(
-        frame, estimated, 8, 10, 14 * M_PI / 180, 3, 3, 2 * M_PI / 180);
+        frame, current_pos, 12, 12, 14 * M_PI / 180, 3, 3, 2 * M_PI / 180);
 
-    current_pos = res.first;
-    debug::log("POSITION: %d, %d, %f (Loss: %f)", current_pos.x, current_pos.y,
-               current_pos.heading / M_PI * 180, res.second);
+    current_pos.x       = res.first.x;
+    current_pos.y       = res.first.y;
+    current_pos.heading = res.first.heading;
+    debug::warn("POSITION: %d, %d, %f (Loss: %f)", current_pos.x, current_pos.y,
+                current_pos.heading / M_PI * 180, res.second);
 
     _frame_count += 1;
 }

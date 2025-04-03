@@ -110,7 +110,7 @@ ProcessedIMUData fuse_IMU_data(const CorrectedIMUData &data) {
                             2;
     // centrifugal acceleration is (angular velocity)^2/r, thus:
     f32 accel_x_angular_velocity =
-        fsqrt(centrifugal_accel * accel_distance_from_middle);
+        krt(centrifugal_accel * accel_distance_from_middle);
 
     // take angular acceleration
     f32 angular_acceleration = ((previous_corrected_data.accel_1.y -
