@@ -4,6 +4,7 @@ target_sources(utils
     PUBLIC
     include/position.hpp
     include/types.hpp
+    include/timer.hpp
     PRIVATE
     position.cpp
 )
