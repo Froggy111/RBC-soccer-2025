@@ -89,7 +89,7 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
 
 float CamProcessor::calculate_loss_chunks(const cv::Mat &camera_image,
                                           Pos &guess) {
-    uint32_t count = 0, white = 0;
+    uint32_t count = 0, non_white = 0;
 
     // Fixed-point scaling factor (Q16.16 format)
     constexpr int FP_SHIFT = 16;
@@ -121,41 +121,25 @@ float CamProcessor::calculate_loss_chunks(const cv::Mat &camera_image,
             rotated_y_fp + (IMG_HEIGHT / 2) / field_chunked::CHUNK_SIZE;
 
         // Check if the point is within IMAGE boundaries
-        if (final_x < 0 || final_x >= IMG_WIDTH || final_y < 0 ||
-            final_y >= IMG_HEIGHT) {
+        if (final_x < 0 || final_x >= IMG_WIDTH / field_chunked::CHUNK_SIZE ||
+            final_y < 0 || final_y >= IMG_HEIGHT / field_chunked::CHUNK_SIZE) {
             continue;
         }
 
-        bool found = false;
-        for (int j = 0; j < field_chunked::CHUNK_SIZE; j++) {
-            for (int k = 0; k < field_chunked::CHUNK_SIZE; k++) {
-                int32_t adjusted_x = final_x * field_chunked::CHUNK_SIZE + j;
-                int32_t adjusted_y = final_y * field_chunked::CHUNK_SIZE + k;
-                if (adjusted_x < 0 || adjusted_x > 480 || adjusted_x < 0 ||
-                    adjusted_x > 640) {
-                    continue;
-                }
+        const cv::Vec3b *row   = camera_image.ptr<cv::Vec3b>(final_x);
+        const cv::Vec3b &pixel = row[IMG_HEIGHT - final_y];
 
-                const cv::Vec3b *row = camera_image.ptr<cv::Vec3b>(adjusted_x);
-                const cv::Vec3b &pixel = row[IMG_HEIGHT - adjusted_y];
-
-                if (!(pixel[0] > COLOR_R_THRES && pixel[1] > COLOR_G_THRES &&
-                      pixel[2] > COLOR_B_THRES)) {
-                    found = true;
-                    break;
-                    // debug::log("White pixel at (%d, %d): (%d, %d, %d)",
-                    //            IMG_HEIGHT - final_y, final_x, pixel[0], pixel[1],
-                    //            pixel[2]);
-                } else {
-                    // debug::log("Non-white pixel at (%d, %d): (%d, %d, %d)",
-                    //            IMG_HEIGHT - final_y, final_x, pixel[0], pixel[1],
-                    //            pixel[2]);
-                }
-            }
-            if (found)
-                break;
+        if (!(pixel[0] > COLOR_R_THRES && pixel[1] > COLOR_G_THRES &&
+              pixel[2] > COLOR_B_THRES)) {
+            non_white++;
+            // debug::log("White pixel at (%d, %d): (%d, %d, %d)",
+            //            IMG_HEIGHT - final_y, final_x, pixel[0], pixel[1],
+            //            pixel[2]);
+        } else {
+            // debug::log("Non-white pixel at (%d, %d): (%d, %d, %d)",
+            //            IMG_HEIGHT - final_y, final_x, pixel[0], pixel[1],
+            //            pixel[2]);
         }
-        white += found;
         count++;
     }
 
@@ -164,13 +148,14 @@ float CamProcessor::calculate_loss_chunks(const cv::Mat &camera_image,
     }
 
     // Use integer division if possible, or at least avoid double casting
-    float loss = static_cast<float>(count - white) / count;
+    float loss = static_cast<float>(non_white) / count;
     return loss;
 }
 
 std::pair<Pos, float> CamProcessor::find_minima_particle_search(
     const cv::Mat &camera_image, Pos &initial_guess, int num_particles,
-    int num_generations, int variance_per_generation, int heading_varience_per_generation) {
+    int num_generations, int variance_per_generation,
+    int heading_varience_per_generation) {
     Pos best_guess  = initial_guess;
     float best_loss = calculate_loss(camera_image, best_guess);
 
@@ -191,7 +176,8 @@ std::pair<Pos, float> CamProcessor::find_minima_particle_search(
                 field::FIELD_Y_SIZE / 2);
             new_guess.heading =
                 generate_random_number(
-                    (int)(new_guess.heading * (float)180 / M_PI), heading_varience_per_generation, 0, 360) *
+                    (int)(new_guess.heading * (float)180 / M_PI),
+                    heading_varience_per_generation, 0, 360) *
                 (float)M_PI / 180.0f;
 
             // calculate loss
@@ -213,22 +199,66 @@ std::pair<Pos, float> CamProcessor::find_minima_particle_search(
 }
 
 std::pair<Pos, float>
-CamProcessor::find_minima_full_search(const cv::Mat &camera_image, Pos &center,
-                                      int step, int heading_step) {
-    Pos best_guess  = center;
-    float best_loss = calculate_loss(camera_image, best_guess);
+CamProcessor::find_minima_full_search(const cv::Mat &camera_image, int step,
+                                      int heading_step) {
+    // * shrink the image to speed up the search
+    cv::Mat shrunk_img =
+        cv::Mat(IMG_WIDTH / field_chunked::CHUNK_SIZE,
+                IMG_HEIGHT / field_chunked::CHUNK_SIZE, CV_8UC1);
+
+    int whiteness[IMG_WIDTH / field_chunked::CHUNK_SIZE]
+                 [IMG_HEIGHT / field_chunked::CHUNK_SIZE] = {0};
+    for (int i = 0; i < IMG_WIDTH / field_chunked::CHUNK_SIZE; i++) {
+        for (int j = 0; j < IMG_HEIGHT / field_chunked::CHUNK_SIZE; j++) {
+            for (int k = 0; k < field_chunked::CHUNK_SIZE; k++) {
+                for (int l = 0; l < field_chunked::CHUNK_SIZE; l++) {
+                    int corrected_x = i * field_chunked::CHUNK_SIZE + k;
+                    int corrected_y =
+                        IMG_HEIGHT - (j * field_chunked::CHUNK_SIZE + l);
+
+                    if (corrected_x < 0 || corrected_x >= IMG_WIDTH ||
+                        corrected_y < 0 || corrected_y >= IMG_HEIGHT) {
+                        continue;
+                    }
+
+                    const cv::Vec3b *row =
+                        camera_image.ptr<cv::Vec3b>(corrected_x);
+                    const cv::Vec3b &pixel = row[corrected_y];
+                    if (pixel[0] > COLOR_R_THRES && pixel[1] > COLOR_G_THRES &&
+                        pixel[2] > COLOR_B_THRES) {
+                        whiteness[i][j]++;
+                    }
+                }
+            }
+        }
+    }
+
+    // Create a new image with the whiteness values
+    for (int i = 0; i < IMG_WIDTH / field_chunked::CHUNK_SIZE; i++) {
+        for (int j = 0; j < IMG_HEIGHT / field_chunked::CHUNK_SIZE; j++) {
+            // white if above threshold
+            if (whiteness[i][j] > FULL_SEARCH_WHITE_COUNT_THRESHOLD) {
+                shrunk_img.at<uint8_t>(i, j) = 255;
+            } else {
+                shrunk_img.at<uint8_t>(i, j) = 0;
+            }
+        }
+    }
+
+    Pos best_guess  = {0, 0, 0};
+    float best_loss = 1;
 
     // Search boundaries
-    int x_min = -field::FIELD_X_SIZE / 2;
+    int x_min = 0;
     int x_max = field::FIELD_Y_SIZE / 2;
-    int y_min = -field::FIELD_X_SIZE / 2;
+    int y_min = 0; // TODO: CHANGE
     int y_max = field::FIELD_Y_SIZE / 2;
 
     for (int x = x_min; x <= x_max; x += step) {
         for (int y = y_min; y <= y_max; y += step) {
             for (int heading = 0; heading < 360; heading += heading_step) {
                 Pos guess  = {x, y, heading * (float)M_PI / 180.0f};
-                float loss = calculate_loss_chunks(camera_image, guess);
+                float loss = calculate_loss_chunks(shrunk_img, guess);
 
                 if (loss < best_loss) {
                     best_guess = guess;
@@ -342,16 +372,14 @@ void CamProcessor::process_frame(const cv::Mat &frame) {
 
     // if (_frame_count % FULL_SEARCH_INTERVAL == 0) {
     //     // Perform a full search every FULL_SEARCH_INTERVAL frames
-    //     auto res = find_minima_full_search(frame, estimate, FULL_SEARCH_STEP,
+    //     auto res = find_minima_full_search(frame, FULL_SEARCH_STEP,
     //                                        FULL_SEARCH_HEADING_STEP);
     //     estimate = res.first;
     //     debug::log("Full search: %d, %d, %f", estimate.x, estimate.y,
     //                estimate.heading);
     // }
 
-    auto res =
-        find_minima_particle_search(frame, estimate, PARTICLE_SEARCH_NUM,
-                                    PARTICLE_SEARCH_GEN, PARTICLE_SEARCH_VAR);
+    auto res    = find_minima_regression(frame, estimate);
     current_pos = res.first;
     debug::log("Position: %d, %d, %f (Loss: %f)", current_pos.x, current_pos.y,
                current_pos.heading / M_PI * 180, res.second);

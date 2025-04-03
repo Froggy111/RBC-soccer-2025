@@ -67,7 +67,7 @@ class CamProcessor {
      * @return std::pair<Pos, float> 
      */
     static std::pair<Pos, float>
-    find_minima_full_search(const cv::Mat &camera_image, Pos &center,
+    find_minima_full_search(const cv::Mat &camera_image,
                             int step         = FULL_SEARCH_HEADING_STEP,
                             int heading_step = FULL_SEARCH_STEP);
 

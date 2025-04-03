@@ -51,10 +51,13 @@ void stop() {
     // ^ Stop Motion
     debug::warn("STOPPING MOTION...\n");
     // motion_controller.stopControlThread();
-    motors::command_motor(1, 0);
-    motors::command_motor(2, 0);
-    motors::command_motor(3, 0);
-    motors::command_motor(4, 0);
+
+    for (int i = 0; i < 10; i++) {
+        motors::command_motor(1, 0);
+        motors::command_motor(2, 0);
+        motors::command_motor(3, 0);
+        motors::command_motor(4, 0);
+    }
 
     // ^ Stop Camera
     debug::warn("STOPPING CAMERA...");
@@ -87,7 +90,18 @@ int main() {
         // motors::command_motor_motion_controller(4,
         //                                         std::get<3>(commands) * 1200);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        // motors::command_motor_motion_controller(1, -1000);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        // motors::command_motor_motion_controller(3, 1000);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        // motors::command_motor_motion_controller(2, -1000);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        // motors::command_motor_motion_controller(4, 1000);
+
+        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     stop();
