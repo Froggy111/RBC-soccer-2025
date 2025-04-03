@@ -1,5 +1,6 @@
 #include "camera.hpp"
 #include "config.hpp"
+#include "debug.hpp"
 #include <chrono>
 #include <iostream>
 #include <sys/mman.h>
@@ -120,8 +121,7 @@ bool Camera::initialize(camera::Resolutions resolution) {
         requests_.push_back(std::move(request));
     }
 
-    std::cout << "Camera initialized with resolution " << width_ << "x"
-              << height_ << std::endl;
+    debug::info("Camera initialized with resolution %dx%d", width_, height_);
     return true;
 }
 
@@ -167,7 +167,7 @@ bool Camera::startCapture(FrameProcessor processor) {
     // Start capture thread
     captureThread_ = std::thread(&Camera::captureThreadFunc, this);
 
-    std::cout << "Camera started capturing" << std::endl;
+    debug::info("Camera started capturing");
     return true;
 }
 
@@ -187,7 +187,7 @@ void Camera::stopCapture() {
         camera_->stop();
     }
 
-    std::cout << "Camera stopped capturing" << std::endl;
+    debug::info("Camera stopped capturing");
 }
 
 bool Camera::isRunning() const { return running_; }

@@ -29,19 +29,8 @@ int main(int argc, char *argv[]) {
     Pos position(x_pos, y_pos, heading_rad);
     std::cout << x_pos << " " << y_pos << " " << heading_rad << std::endl;
 
-    // Read the first frame from video
-    cv::VideoCapture cap("480p.mp4");
-    if (!cap.isOpened()) {
-        std::cerr << "Error: Could not open video file." << std::endl;
-        return -1;
-    }
-
-    cv::Mat frame;
-    cap >> frame;
-    if (frame.empty()) {
-        std::cerr << "Error: Could not read the first frame." << std::endl;
-        return -1;
-    }
+    // Read the photo
+    cv::Mat frame = cv::imread("ideal_image.jpg");
 
     // Create processor
     camera::CamProcessor processor;

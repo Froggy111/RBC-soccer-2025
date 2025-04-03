@@ -15,7 +15,7 @@ void log(const char *format, ...) {
   vsnprintf(buffer, sizeof(buffer), format, args);
 
   // Use the CDC printf for debug mode
-  usb::CDC::printf("%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -30,7 +30,7 @@ void debug(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  usb::CDC::printf("%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -45,7 +45,7 @@ void info(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  usb::CDC::printf("%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -60,7 +60,7 @@ void warn(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  usb::CDC::printf("%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -75,7 +75,7 @@ void error(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  usb::CDC::printf("%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -90,7 +90,7 @@ void fatal(const char *format, ...) {
   vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
 
   // Use the CDC printf for debug mode
-  usb::CDC::printf("%s", buffer);
+  comms::USB_CDC.printf("%s", buffer);
 
   va_end(args);
 }
@@ -98,51 +98,51 @@ void fatal(const char *format, ...) {
 #else
 
 void log(const char *format, ...) {
-  va_list args;
-  va_start(args, format);
+  // va_list args;
+  // va_start(args, format);
 
-  // Buffer for formatted string with prefix
-  char buffer[256];
-  const char *prefix = "[LOG - MIDDLE_PICO] ";
+  // // Buffer for formatted string with prefix
+  // char buffer[256];
+  // const char *prefix = "[LOG - BOTTOM_PICO] ";
 
-  // Copy prefix to buffer
-  int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
+  // // Copy prefix to buffer
+  // int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
 
-  // Format the message after the prefix
-  int msg_len =
-      vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
-  int total_len = prefix_len + msg_len;
+  // // Format the message after the prefix
+  // int msg_len =
+  //     vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
+  // int total_len = prefix_len + msg_len;
 
-  // Use CDC write with LOG identifier for non-debug mode
-  usb::CDC::write(comms::SendIdentifiers::COMMS_DEBUG,
-                  (const types::u8 *)buffer,
-                  static_cast<types::u16>(total_len));
+  // // Use CDC write with LOG identifier for non-debug mode
+  // comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
+  //                 (const types::u8 *)buffer,
+  //                 static_cast<types::u16>(total_len));
 
-  va_end(args);
+  // va_end(args);
 }
 
 void debug(const char *format, ...) {
-  va_list args;
-  va_start(args, format);
+  // va_list args;
+  // va_start(args, format);
 
-  // Buffer for formatted string with prefix
-  char buffer[256];
-  const char *prefix = "[DEBUG - MIDDLE_PICO] ";
+  // // Buffer for formatted string with prefix
+  // char buffer[256];
+  // const char *prefix = "[DEBUG - BOTTOM_PICO] ";
 
-  // Copy prefix to buffer
-  int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
+  // // Copy prefix to buffer
+  // int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
 
-  // Format the message after the prefix
-  int msg_len =
-      vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
-  int total_len = prefix_len + msg_len;
+  // // Format the message after the prefix
+  // int msg_len =
+  //     vsnprintf(buffer + prefix_len, sizeof(buffer) - prefix_len, format, args);
+  // int total_len = prefix_len + msg_len;
 
-  // Use CDC write with LOG identifier for non-debug mode
-  usb::CDC::write(comms::SendIdentifiers::COMMS_DEBUG,
-                  (const types::u8 *)buffer,
-                  static_cast<types::u16>(total_len));
+  // // Use CDC write with LOG identifier for non-debug mode
+  // comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
+  //                 (const types::u8 *)buffer,
+  //                 static_cast<types::u16>(total_len));
 
-  va_end(args);
+  // va_end(args);
 }
 
 void info(const char *format, ...) {
@@ -151,7 +151,7 @@ void info(const char *format, ...) {
 
   // Buffer for formatted string with prefix
   char buffer[256];
-  const char *prefix = "[INFO - MIDDLE_PICO] ";
+  const char *prefix = "[INFO - BOTTOM_PICO] ";
 
   // Copy prefix to buffer
   int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
@@ -162,9 +162,9 @@ void info(const char *format, ...) {
   int total_len = prefix_len + msg_len;
 
   // Use CDC write with LOG identifier for non-debug mode
-  usb::CDC::write(comms::SendIdentifiers::COMMS_DEBUG,
-                  (const types::u8 *)buffer,
-                  static_cast<types::u16>(total_len));
+  comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
+                       (const types::u8 *)buffer,
+                       static_cast<types::u16>(total_len));
 
   va_end(args);
 }
@@ -175,7 +175,7 @@ void warn(const char *format, ...) {
 
   // Buffer for formatted string with prefix
   char buffer[256];
-  const char *prefix = "[WARN - MIDDLE_PICO] ";
+  const char *prefix = "[WARN - BOTTOM_PICO] ";
 
   // Copy prefix to buffer
   int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
@@ -186,9 +186,9 @@ void warn(const char *format, ...) {
   int total_len = prefix_len + msg_len;
 
   // Use CDC write with LOG identifier for non-debug mode
-  usb::CDC::write(comms::SendIdentifiers::COMMS_DEBUG,
-                  (const types::u8 *)buffer,
-                  static_cast<types::u16>(total_len));
+  comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
+                       (const types::u8 *)buffer,
+                       static_cast<types::u16>(total_len));
 
   va_end(args);
 }
@@ -199,7 +199,7 @@ void error(const char *format, ...) {
 
   // Buffer for formatted string with prefix
   char buffer[256];
-  const char *prefix = "[ERROR - MIDDLE_PICO] ";
+  const char *prefix = "[ERROR - BOTTOM_PICO] ";
 
   // Copy prefix to buffer
   int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
@@ -210,9 +210,9 @@ void error(const char *format, ...) {
   int total_len = prefix_len + msg_len;
 
   // Use CDC write with LOG identifier for non-debug mode
-  usb::CDC::write(comms::SendIdentifiers::COMMS_DEBUG,
-                  (const types::u8 *)buffer,
-                  static_cast<types::u16>(total_len));
+  comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
+                       (const types::u8 *)buffer,
+                       static_cast<types::u16>(total_len));
 
   va_end(args);
 }
@@ -223,7 +223,7 @@ void fatal(const char *format, ...) {
 
   // Buffer for formatted string with prefix
   char buffer[256];
-  const char *prefix = "[FATAL - MIDDLE_PICO] ";
+  const char *prefix = "[FATAL - BOTTOM_PICO] ";
 
   // Copy prefix to buffer
   int prefix_len = snprintf(buffer, sizeof(buffer), "%s", prefix);
@@ -234,9 +234,9 @@ void fatal(const char *format, ...) {
   int total_len = prefix_len + msg_len;
 
   // Use CDC write with LOG identifier for non-debug mode
-  usb::CDC::write(comms::SendIdentifiers::COMMS_DEBUG,
-                  (const types::u8 *)buffer,
-                  static_cast<types::u16>(total_len));
+  comms::USB_CDC.write(comms::SendIdentifiers::COMMS_DEBUG,
+                       (const types::u8 *)buffer,
+                       static_cast<types::u16>(total_len));
 
   va_end(args);
 }

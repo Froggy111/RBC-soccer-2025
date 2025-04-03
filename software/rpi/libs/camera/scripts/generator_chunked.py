@@ -120,7 +120,8 @@ def generate_field_coordinates_chunked(
 			f.write(f"// Coordinates represent the indices (cx, cy) of chunks containing white.\n")
 			f.write("#pragma once\n\n")
 
-			f.write("namespace field_model {\n\n")
+			f.write("namespace camera {\n\n")
+			f.write("namespace field_chunked {\n\n")
 			f.write(f"constexpr int CHUNK_SIZE = {chunk_size};\n")
 			f.write(f"constexpr int FIELD_CHUNKS_WIDTH = {output_width};\n")
 			f.write(f"constexpr int FIELD_CHUNKS_HEIGHT = {output_height};\n")
@@ -139,7 +140,8 @@ def generate_field_coordinates_chunked(
 				f.write("// No white chunks found.\n")
 				f.write("constexpr int WHITE_CHUNK_INDICES[1][2] = {{ {0, 0} }}; // Placeholder or handle empty array\n")
 
-			f.write("\n} // namespace field_model\n")
+			f.write("\n}")
+			f.write("\n}\n")
 		print(f"C++ header file with chunk indices written to {output_path}")
 
 	except Exception as e:
@@ -156,8 +158,8 @@ if __name__ == "__main__":
 	# --- Configuration ---
 	image_name = "field.png"
 	# Relative path needs careful handling, ensure '../include' exists relative to script_dir
-	output_header_relative_path = "../include/field_model_chunks.hpp"
-	output_image_name = "field_chunks_visualization.png"
+	output_header_relative_path = "../include/field_coordinates_chunked.hpp"
+	output_image_name = "field_chunked.png"
 	chunk_processing_size = 10  # Pixels per chunk (e.g., 10x10)
 	# --- End Configuration ---
 
