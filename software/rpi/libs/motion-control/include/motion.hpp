@@ -101,10 +101,10 @@ class MotionController {
     // Thread control
     std::thread controlThread;
     std::atomic<bool> controlThreadRunning{false};
-    //camera::CamProcessor _processor; #######UNCOMMENT LATER!!!!!!!
+    camera::CamProcessor _processor;
     
     // Thread worker function
-    //void controlThreadWorker(); #####UNCOMMENT LATER!!!!!!
+    void controlThreadWorker();
     
     //Velocity PID Values, used for controlling velocity
     float velocity_Kp = 2.0; //TODO: NEED TO TUNE

@@ -6,8 +6,9 @@
 namespace motors {
 
 bool command_motor(uint8_t id, types::i16 duty_cycle) {
-    if (duty_cycle > MOTOR_MAX_DUTY_CYCLE) {
-        debug::error("Motor duty cycle %d is too high, max is %d", duty_cycle, MOTOR_MAX_DUTY_CYCLE);
+    if (abs(duty_cycle) > MOTOR_MAX_DUTY_CYCLE) {
+        debug::error("Motor duty cycle %d is too high, max is %d", duty_cycle,
+                     MOTOR_MAX_DUTY_CYCLE);
         return false;
     }
 
@@ -21,7 +22,9 @@ bool command_motor(uint8_t id, types::i16 duty_cycle) {
     if (!DIRECTIONS[id - 1]) {
         motor_data.duty_cycle = -motor_data.duty_cycle;
     }
-    
+
+    // debug::info("Motor %d duty cycle %d", id, motor_data.duty_cycle);
+
     return comms::USB_CDC.writeToBottomPico(
         comms::SendBottomPicoIdentifiers::MOTOR_DRIVER_CMD,
         reinterpret_cast<uint8_t *>(&motor_data), sizeof(motor_data));

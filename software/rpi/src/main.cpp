@@ -80,28 +80,21 @@ int main() {
 
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
-        // auto commands = motion_controller.move_heading(0.0f, 0.0f, 0.2f);
-        // motors::command_motor_motion_controller(1,
-        //                                         std::get<0>(commands) * 1200);
-        // motors::command_motor_motion_controller(2,
-        //                                         std::get<1>(commands) * 1200);
-        // motors::command_motor_motion_controller(3,
-        //                                         std::get<2>(commands) * 1200);
-        // motors::command_motor_motion_controller(4,
-        //                                         std::get<3>(commands) * 1200);
+        auto commands = motion_controller.velocity_pid(
+            processor.current_pos.heading, 0.0f, -(M_PI), 0.2f);
 
-        // motors::command_motor_motion_controller(1, -1000);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-        // motors::command_motor_motion_controller(3, 1000);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-        // motors::command_motor_motion_controller(2, -1000);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-        // motors::command_motor_motion_controller(4, 1000);
-
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        motors::command_motor_motion_controller(1,
+                                                std::get<0>(commands) * 1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        motors::command_motor_motion_controller(2,
+                                                std::get<1>(commands) * 1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        motors::command_motor_motion_controller(3,
+                                                std::get<2>(commands) * 1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        motors::command_motor_motion_controller(4,
+                                                std::get<3>(commands) * 1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
 
     stop();
