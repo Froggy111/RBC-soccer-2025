@@ -409,8 +409,6 @@ Pos CamProcessor::current_pos  = {-field::FIELD_X_SIZE / 2,
                                   -field::FIELD_Y_SIZE / 2, 0};
 
 void CamProcessor::process_frame(const cv::Mat &frame) {
-    Pos estimate = current_pos;
-
     // if (_frame_count % FULL_SEARCH_INTERVAL == 0) {
     //     // Perform a full search every FULL_SEARCH_INTERVAL frames
     //     auto res = find_minima_full_search(frame, FULL_SEARCH_STEP,
@@ -420,8 +418,11 @@ void CamProcessor::process_frame(const cv::Mat &frame) {
     //                estimate.heading);
     // }
 
-    auto res = find_minima_local_grid_search(
-        frame, estimate, 4, 4, 10 * M_PI / 180, 1, 1, 2 * M_PI / 180);
+    auto estimate = find_minima_local_grid_search(
+        frame, current_pos, 20, 20, 20 * M_PI / 180, 5, 5, 5 * M_PI / 180);
+
+    auto res = find_minima_local_grid_search(frame, estimate.first, 5, 5, 5 * M_PI / 180, 1, 1, 1 * M_PI / 180);
+    
     current_pos = res.first;
     debug::log("POSITION: %d, %d, %f (Loss: %f)", current_pos.x, current_pos.y,
                current_pos.heading / M_PI * 180, res.second);
