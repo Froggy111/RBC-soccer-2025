@@ -118,8 +118,8 @@ int main() {
         // motors::command_motor_motion_controller(4,
         //                                         std::get<3>(commands) * 5000);
 
-        kicker::send_kick();
-        std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+        // kicker::send_kick();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     stop();
