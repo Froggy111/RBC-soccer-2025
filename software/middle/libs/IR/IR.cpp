@@ -20,13 +20,15 @@ void init(void) {
     u8 pin = SENSOR_PINS[i];
     gpio_init(pin);
     gpio_set_dir(pin, GPIO_IN);
-    gpio_set_irq_enabled(pin, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true);
+    gpio_pull_up(pin);
+    gpio_set_irq_enabled_with_callback(
+        pin, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, pulse_handler);
   }
   xTaskCreate(modulation_handler_task, "modulation handler",
               MODULATION_HANLDER_TASK_STACK_SIZE, nullptr,
               MODULATION_HANLDER_TASK_PRIORITY,
               &modulation_handler_task_handle);
-  gpio_set_irq_callback(pulse_handler);
+  irq_set_enabled(IO_IRQ_BANK0, true);
 
   // setup modulation timer
   hw_set_bits(&timer_hw->inte, 0b1 << MODULATION_ALARM_IDX);
