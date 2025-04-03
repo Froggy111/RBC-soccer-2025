@@ -28,6 +28,80 @@ struct Vec3i16 {
 struct Vec3f32 {
     Vec3f32(f32 x, f32 y, f32 z) : x(x), y(y), z(z) {}
     f32 x, y, z;
+
+    // Addition
+    Vec3f32 operator+(const Vec3f32 &other) const {
+        return Vec3f32(x + other.x, y + other.y, z + other.z);
+    }
+
+    // Subtraction
+    Vec3f32 operator-(const Vec3f32 &other) const {
+        return Vec3f32(x - other.x, y - other.y, z - other.z);
+    }
+
+    // Scalar multiplication
+    Vec3f32 operator*(f32 scalar) const {
+        return Vec3f32(x * scalar, y * scalar, z * scalar);
+    }
+
+    // Scalar division
+    Vec3f32 operator/(f32 scalar) const {
+        return Vec3f32(x / scalar, y / scalar, z / scalar);
+    }
+
+    // multiply member by member
+    Vec3f32 operator*(const Vec3f32 &other) const {
+        return Vec3f32(x * other.x, y * other.y, z * other.z);
+    }
+
+    f32 dot(const Vec3f32 &other) const {
+        return x * other.x + y * other.y + z * other.z;
+    }
+
+    // Cross product
+    Vec3f32 cross(const Vec3f32 &other) const {
+        return Vec3f32(y * other.z - z * other.y, z * other.x - x * other.z,
+                       x * other.y - y * other.x);
+    }
+
+    // Compound assignment operators
+    Vec3f32 &operator+=(const Vec3f32 &other) {
+        x += other.x;
+        y += other.y;
+        z += other.z;
+        return *this;
+    }
+
+    Vec3f32 &operator-=(const Vec3f32 &other) {
+        x -= other.x;
+        y -= other.y;
+        z -= other.z;
+        return *this;
+    }
+
+    Vec3f32 &operator*=(f32 scalar) {
+        x *= scalar;
+        y *= scalar;
+        z *= scalar;
+        return *this;
+    }
+
+    Vec3f32 &operator/=(f32 scalar) {
+        x /= scalar;
+        y /= scalar;
+        z /= scalar;
+        return *this;
+    }
+
+    // Equality operators
+    bool operator==(const Vec3f32 &other) const {
+        return x == other.x && y == other.y && z == other.z;
+    }
+
+    bool operator!=(const Vec3f32 &other) const { return !(*this == other); }
+
+    // Negation
+    Vec3f32 operator-() const { return Vec3f32(-x, -y, -z); }
 };
 
 } // namespace types
