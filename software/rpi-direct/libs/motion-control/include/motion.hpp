@@ -131,6 +131,10 @@ class MotionController {
     float velocity_x_integral = 0.0;
     float velocity_y_integral = 0.0;
 
+    //The total change in integral (to determine if it plataeus)
+    float velocity_x_change = 0.0;
+    float velocity_y_change = 0.0;
+
     //Sum of velocites (in x and y components)
     float sum_x_velocities = 0.0;
     float sum_y_velocities = 0.0;

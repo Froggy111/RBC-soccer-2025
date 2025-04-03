@@ -155,10 +155,11 @@ MotionController::velocity_pid(float current_heading, float target_heading,
     std::tuple<float, float> position_change = std::make_tuple(
         std::get<0>(current_position) - std::get<0>(last_position),
         std::get<1>(current_position) - std::get<1>(last_position));
-    position_change = rotation_matrix(position_change, current_heading);
+    //position_change = rotation_matrix(position_change, current_heading);
 
     sum_x_velocities += std::get<0>(position_change);
     sum_y_velocities += std::get<1>(position_change);
+    
     x_velocities.push_back(std::get<0>(position_change));
     y_velocities.push_back(std::get<1>(position_change));
     average_x_velocities = sum_x_velocities / VELOCITY_WINDOW_SIZE;
@@ -172,20 +173,34 @@ MotionController::velocity_pid(float current_heading, float target_heading,
         std::make_tuple(std::get<0>(target_change) - average_x_velocities,
                         std::get<1>(target_change) - average_y_velocities);
 
-    velocity_x_integral -= velocity_x_errors.front();
+    velocity_x_change -= velocity_x_errors.front();
     velocity_x_errors.pop_front();
-    velocity_y_integral -= velocity_y_errors.front();
+    velocity_y_change -= velocity_y_errors.front();
     velocity_y_errors.pop_front();
 
-    velocity_x_integral += std::get<0>(error_change)*velocity_Ki;
-    velocity_x_errors.push_back(std::get<0>(error_change)*velocity_Ki);
-    velocity_y_integral += std::get<1>(error_change)*velocity_Ki;
-    velocity_y_errors.push_back(std::get<1>(error_change)*velocity_Ki);
+    velocity_x_integral += std::get<0>(error_change);
+    velocity_x_change += std::get<0>(error_change);
+    velocity_x_errors.push_back(std::get<0>(error_change));
+    velocity_y_integral += std::get<1>(error_change);
+    velocity_y_change += std::get<1>(error_change);
+    velocity_y_errors.push_back(std::get<1>(error_change));
+
+    // if(velocity_x_change < 1e-2 and velocity_y_change < 1e-2){
+    //     velocity_x_integral = 0.0;
+    //     velocity_y_integral = 0.0;
+    //     velocity_x_change = 0.0;
+    //     velocity_y_change = 0.0;
+    //     std::fill(velocity_x_errors.begin(), velocity_x_errors.end(), 0.0);
+    //     std::fill(velocity_y_errors.begin(), velocity_y_errors.end(), 0.0);
+    // }
 
     std::tuple<float, float> error_vector = form_vector(
-        velocity_x_integral , velocity_y_integral );
+        velocity_x_integral*velocity_Ki , velocity_y_integral*velocity_Ki);
+    std::tuple<float, float> p_vector = form_vector(std::get<0>(error_change)*velocity_Kp, std::get<1>(error_change)*velocity_Kp);
     std::tuple<float, float> translation_vector =
         add_vectors(target_vector, error_vector);
+
+    translation_vector = std::make_tuple(normalize_angle(std::get<0>(translation_vector) - current_heading), std::get<1>(translation_vector));
 
     std::cout << "Target Vector: " << std::get<0>(target_vector) << " " << std::get<1>(target_vector) << '\n';
     std::cout << "Integrals:  " << velocity_x_integral << " " << velocity_y_integral << '\n';
