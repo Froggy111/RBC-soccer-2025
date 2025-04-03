@@ -4,12 +4,13 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
 #include <queue>
 #include <tuple>
 
 #define PI 3.14159265358979323846
-#define SLIDING_WINDOW_SIZE 10
+#define SLIDING_WINDOW_SIZE 12
 
 struct MotorRecvData {
     uint8_t id;
@@ -81,6 +82,17 @@ void MotionController::controlThreadWorker() {
 // Destructor - make sure to add this to your class implementation
 MotionController::~MotionController() { stopControlThread(); }
 
+void MotionController::update_position(std::tuple<float, float> ne_pos) {
+
+    if (current_position == std::make_tuple(-10000, -10000)) {
+        current_position = ne_pos;
+        last_position    = current_position;
+    } else {
+        last_position    = current_position;
+        current_position = ne_pos;
+    }
+}
+
 float MotionController::normalize_angle(float angle) {
     while (angle > PI) {
         angle -= 2 * PI;
@@ -107,7 +119,13 @@ MotionController::rotation_matrix(std::tuple<float, float> vec, float angle) {
 std::tuple<float, float, float, float>
 MotionController::velocity_pid(float current_heading, float target_heading,
                                float target_direction, float speed) {
-    int rotation_error = normalize_angle(target_heading - current_heading);
+
+    //Normalise all input angles to [-PI, PI] for consistency
+    current_heading  = normalize_angle(current_heading);
+    target_heading   = normalize_angle(target_heading);
+    target_direction = normalize_angle(target_direction);
+
+    float rotation_error = normalize_angle(target_heading - current_heading);
 
     //Update the rotation integral sum, and derivate
     rotation_integral += rotation_error;
@@ -115,14 +133,14 @@ MotionController::velocity_pid(float current_heading, float target_heading,
     rotation_errors.pop_front();
     rotation_errors.push_back(rotation_error);
 
-    int rotation_derivate = rotation_error - last_rotation_error;
+    float rotation_derivate = rotation_error - last_rotation_error;
 
     //std::tuple<float, float, float, float> translation_motor_values = move_heading(current_heading, target_direction, speed);
 
     //Calculate rotation PID Value
-    int rotation_pid = rotation_error * rotation_Kp +
-                       rotation_integral * rotation_Ki +
-                       rotation_derivate * rotation_Kd;
+    float rotation_pid = rotation_error * rotation_Kp +
+                         rotation_integral * rotation_Ki +
+                         rotation_derivate * rotation_Kd;
 
     //Update last rotation error
     last_rotation_error = rotation_error;
@@ -148,38 +166,45 @@ MotionController::velocity_pid(float current_heading, float target_heading,
     average_y_velocities = sum_y_velocities / VELOCITY_WINDOW_SIZE;
 
     //Get current movement vector, target vector, error_change
-    std::tuple<float, float> position_vector =
-        form_vector(average_x_velocities * position_factor,
-                    average_y_velocities * position_factor);
     std::tuple<float, float> target_vector =
         std::make_tuple(target_direction - current_heading, speed);
     std::tuple<float, float> target_change = resolve_vector(target_vector);
     std::tuple<float, float> error_change =
-        std::make_tuple(average_x_velocities - std::get<0>(target_change),
-                        average_y_velocities - std::get<1>(target_change));
+        std::make_tuple(std::get<0>(target_change) - average_x_velocities,
+                        std::get<1>(target_change) - average_y_velocities);
 
     velocity_x_integral -= velocity_x_errors.front();
     velocity_x_errors.pop_front();
     velocity_y_integral -= velocity_y_errors.front();
     velocity_y_errors.pop_front();
 
-    velocity_x_integral += std::get<0>(error_change);
-    velocity_x_errors.push_back(std::get<0>(error_change));
-    velocity_y_integral += std::get<1>(error_change);
-    velocity_y_errors.push_back(std::get<1>(error_change));
+    velocity_x_integral += std::get<0>(error_change) * velocity_Ki;
+    velocity_x_errors.push_back(std::get<0>(error_change) * velocity_Ki);
+    velocity_y_integral += std::get<1>(error_change) * velocity_Ki;
+    velocity_y_errors.push_back(std::get<1>(error_change) * velocity_Ki);
 
-    std::tuple<float, float> error_vector = form_vector(
-        velocity_x_integral * velocity_Ki, velocity_y_integral * velocity_Ki);
+    std::tuple<float, float> error_vector =
+        form_vector(velocity_x_integral, velocity_y_integral);
     std::tuple<float, float> translation_vector =
         add_vectors(target_vector, error_vector);
+
+    debug::debug("Target Vector: %f %f\n", std::get<0>(target_vector),
+                 std::get<1>(target_vector));
+    debug::debug("Integrals: %f %f\n", velocity_x_integral,
+                 velocity_y_integral);
+    //debug::debug("Integrals: %f %f\n", velocity_x_integral, velocity_y_integral);
+    debug::debug("Error Vector: %f %f\n", std::get<0>(error_vector),
+                 std::get<1>(error_vector));
+    debug::debug("Resultant Vector: %f %f\n", std::get<0>(translation_vector),
+                 std::get<1>(translation_vector));
 
     std::tuple<float, float, float, float> translation_motor_values =
         translate(translation_vector);
 
-    int motor1 = float(std::get<0>(translation_motor_values));
-    int motor2 = float(std::get<1>(translation_motor_values));
-    int motor3 = float(std::get<2>(translation_motor_values));
-    int motor4 = float(std::get<3>(translation_motor_values));
+    float motor1 = float(std::get<0>(translation_motor_values));
+    float motor2 = float(std::get<1>(translation_motor_values));
+    float motor3 = float(std::get<2>(translation_motor_values));
+    float motor4 = float(std::get<3>(translation_motor_values));
 
     motor1 = std::max(float(-1.0),
                       std::min(float(1.0), float(motor1 - rotation_pid)));
@@ -196,13 +221,12 @@ MotionController::velocity_pid(float current_heading, float target_heading,
 }
 
 std::tuple<float, float, float, float>
-MotionController::position_pid(std::tuple<float, float> current_position,
-                               std::tuple<float, float> target_position,
+MotionController::position_pid(std::tuple<float, float> target_position,
                                float current_heading, float target_heading,
                                float speed) {
     bool usingQueuePosition = false;
 
-    if (current_position == std::make_tuple(10000, 10000)) {
+    if (target_position == std::make_tuple(10000, 10000)) {
         usingQueuePosition = true;
         if (position_queue.empty()) {
             //Queue is empty, so no point running lmao
@@ -216,25 +240,24 @@ MotionController::position_pid(std::tuple<float, float> current_position,
     float delta_y =
         std::get<1>(target_position) - std::get<1>(current_position);
 
-    if (delta_x == 0)
-        delta_x += 0.1;
-
     float target_direction = 0.0;
     target_direction       = std::atan2(delta_y, delta_x);
-
+    target_direction       = (-target_direction) + (M_PI / 2);
+    //debug::debug("Target Direction: %f\n", target_direction);
     float distance_left = std::sqrt((delta_x * delta_x + delta_y * delta_y));
 
     if ((!usingQueuePosition) ||
         (usingQueuePosition && position_queue.size() <= 1)) {
         speed =
-            speed * (std::max(1.0, std::abs((300.0 - distance_left)) / 300.0));
+            std::min(double(speed),
+                     speed * (std::min(1.0, std::abs(distance_left / 10.0))));
     }
 
     if (usingQueuePosition && !position_queue.empty()) {
         if (distance_left < 30)
             position_queue.pop();
     }
-
+    //debug::debug("Command: %f %f %f %f\n", current_heading, target_heading, target_direction, speed);
     return velocity_pid(current_heading, target_heading, target_direction,
                         speed);
 }
@@ -319,12 +342,14 @@ void MotionController::calculate_expected_vel_dir(
 std::tuple<float, float> MotionController::form_vector(float x_error_vel,
                                                        float y_error_vel) {
     float error_dir = std::atan2(y_error_vel, x_error_vel);
-    error_dir       = normalize_angle(error_dir);
+    //debug::debug("%f nn %f nn %f\n", y_error_vel, x_error_vel, error_dir);
+    error_dir = (-error_dir) + (M_PI / 2);
+    error_dir = normalize_angle(error_dir);
 
     float error_vel =
         std::sqrt(x_error_vel * x_error_vel + y_error_vel * y_error_vel);
 
-    return std::tuple(error_dir, std::max(0.0f, std::min(1.0f, error_vel / 3)));
+    return std::tuple(error_dir, std::max(0.0f, std::min(1.0f, error_vel)));
 }
 
 std::tuple<float, float, float, float>
@@ -332,20 +357,20 @@ MotionController::translate(std::tuple<float, float> vec) {
     float direction = std::get<0>(vec), speed = std::get<1>(vec);
     //Normalize angle to a range [-PI, PI] in radians.
     direction = normalize_angle(direction);
-    //std::cout << "Normalised Direction: " << (direction*180.0/PI) << std::endl;
+    //debug::debug("Normalised Direction: %f\n", (direction*180.0/PI));
 
     //1 is top left, 2 is bottom left, 3 is top right, 4 is bottom right
     float motor1 = 0.0, motor2 = 0.0, motor3 = 0.0, motor4 = 0.0;
     if (direction >= 0.0 and direction <= PI * 0.5) { //000 to 090
-        //std::cout << "IF 1" << std::endl;
+        //debug::debug("IF 1\n");
         motor1 = -1.0;
         motor2 = angle_to_motor_speed(direction);
         motor3 = -angle_to_motor_speed(direction);
-        //std::cout << "Motor 2: " << direction*2 << " " << -std::cos(direction*2) << std::endl;
-        //std::cout << "Motor 3: " << direction*2 << " " << std::cos(direction*2) << std::endl;
+        //debug::debug("Motor 2: %f %f\n", direction*2, -std::cos(direction*2));
+        //debug::debug("Motor 3: %f %f\n", direction*2, std::cos(direction*2));
         motor4 = 1.0;
     } else if (direction > PI * 0.5) { //090 to 180
-        //std::cout << "IF 2" << std::endl;
+        //debug::debug("IF 2\n");
         motor1 = angle_to_motor_speed((direction - PI * 0.5));
         motor2 = 1.0;
         motor3 = -1.0;
@@ -353,13 +378,13 @@ MotionController::translate(std::tuple<float, float> vec) {
 
     } else if (direction <= 0 and
                direction >= -(PI * 0.5)) { //-090 to 000 (270 to 000)
-        //std::cout << "IF 3" << std::endl;
+        //debug::debug("IF 3\n");
         motor1 = -angle_to_motor_speed(PI * 0.5 + (direction));
         motor2 = -1.0;
         motor3 = 1.0;
         motor4 = angle_to_motor_speed(PI * 0.5 + (direction));
     } else { //-180 to -090 (180 to 270)
-        //std::cout << "IF 4" << std::endl;
+        //debug::debug("IF 4\n");
         motor1 = 1.0;
         motor2 = angle_to_motor_speed(std::abs(direction) - PI * 0.5);
         motor3 = -angle_to_motor_speed(std::abs(direction) - PI * 0.5);

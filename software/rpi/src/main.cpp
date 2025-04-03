@@ -7,6 +7,7 @@
 #include "processor.hpp"
 #include "sensors/IR.hpp"
 #include "wiringPi.h"
+#include <cmath>
 #include <cstdio>
 #include <opencv2/opencv.hpp>
 #include <unistd.h>
@@ -34,9 +35,13 @@ bool start() {
     // ^ Motion
     // Reset motors
     motors::command_motor(1, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
     motors::command_motor(2, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
     motors::command_motor(3, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
     motors::command_motor(4, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
     // motion_controller.startControlThread();
     debug::info("INITIALIZED MOTION CONTROL - SUCCESS");
 
@@ -48,16 +53,24 @@ bool start() {
 }
 
 void stop() {
+    // set a timeout for _exit in 2 seconds
+    std::thread([]() {
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        _exit(0);
+    }).detach();
+
     // ^ Stop Motion
     debug::warn("STOPPING MOTION...\n");
     // motion_controller.stopControlThread();
 
-    for (int i = 0; i < 10; i++) {
-        motors::command_motor(1, 0);
-        motors::command_motor(2, 0);
-        motors::command_motor(3, 0);
-        motors::command_motor(4, 0);
-    }
+    motors::command_motor(1, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    motors::command_motor(2, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    motors::command_motor(3, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    motors::command_motor(4, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
 
     // ^ Stop Camera
     debug::warn("STOPPING CAMERA...");
@@ -80,28 +93,31 @@ int main() {
 
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
-        // auto commands = motion_controller.move_heading(0.0f, 0.0f, 0.2f);
-        // motors::command_motor_motion_controller(1,
-        //                                         std::get<0>(commands) * 1200);
-        // motors::command_motor_motion_controller(2,
-        //                                         std::get<1>(commands) * 1200);
-        // motors::command_motor_motion_controller(3,
-        //                                         std::get<2>(commands) * 1200);
-        // motors::command_motor_motion_controller(4,
-        //                                         std::get<3>(commands) * 1200);
+        auto commands = motion_controller.velocity_pid(
+            processor.current_pos.heading, M_PI, M_PI, 0.1f);
 
-        // motors::command_motor_motion_controller(1, -1000);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        motors::command_motor_motion_controller(1,
+                                                std::get<0>(commands) * 1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        motors::command_motor_motion_controller(2,
+                                                std::get<1>(commands) * 1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        motors::command_motor_motion_controller(3,
+                                                std::get<2>(commands) * 1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        motors::command_motor_motion_controller(4,
+                                                std::get<3>(commands) * 1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-        // motors::command_motor_motion_controller(3, 1000);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-        // motors::command_motor_motion_controller(2, -1000);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-        // motors::command_motor_motion_controller(4, 1000);
-
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        motors::command_motor_motion_controller(1, 0);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        motors::command_motor_motion_controller(2, 0);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        motors::command_motor_motion_controller(3, 0);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        motors::command_motor_motion_controller(4, 0);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     }
 
     stop();

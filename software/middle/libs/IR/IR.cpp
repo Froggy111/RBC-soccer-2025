@@ -13,7 +13,7 @@ using namespace types;
 namespace IR {
 
 void init(void) {
-  debug::log("initialising IR sensors");
+  debug::info("Initializing IR sensors");
   for (u8 i = 0; i < SENSOR_COUNT; i++) {
     pulse_data[i].reset();
     modulation_data[i].reset();
