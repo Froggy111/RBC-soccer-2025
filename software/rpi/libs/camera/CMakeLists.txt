@@ -27,6 +27,6 @@ target_include_directories(bbw_camera
 )
 
 # Link against OpenCV libraries
-target_link_libraries(bbw_camera PUBLIC ${OpenCV_LIBS} ${LIBCAMERA_LIBRARIES} utils debug_)
+target_link_libraries(bbw_camera PUBLIC ${OpenCV_LIBS} ${LIBCAMERA_LIBRARIES} utils IMU debug_)
 
 target_compile_features(bbw_camera PUBLIC cxx_std_17)
