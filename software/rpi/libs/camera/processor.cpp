@@ -6,6 +6,7 @@
 #include "position.hpp"
 #include <cstdio>
 #include <cstdlib>
+#include <opencv2/core/cvdef.h>
 #include <unistd.h>
 #include <utility>
 
@@ -421,21 +422,49 @@ std::pair<Pos, float> CamProcessor::find_minima_local_grid_search(
 }
 
 int CamProcessor::_frame_count = 0;
-Pos CamProcessor::current_pos  = {-field::FIELD_X_SIZE / 2,
-                                  -field::FIELD_Y_SIZE / 2, M_PI};
+Pos CamProcessor::current_pos  = {-field::FIELD_X_SIZE, 0, M_PI};
 
 void CamProcessor::process_frame(const cv::Mat &frame) {
-    // if (_frame_count % FULL_SEARCH_INTERVAL == 0) {
-    //     // Perform a full search every FULL_SEARCH_INTERVAL frames
-    //     auto res = find_minima_full_search(frame, FULL_SEARCH_STEP,
-    //                                        FULL_SEARCH_HEADING_STEP);
-    //     estimate = res.first;
-    //     debug::log("Full search: %d, %d, %f", estimate.x, estimate.y,
-    //                estimate.heading);
-    // }
+    if (_frame_count % FULL_SEARCH_INTERVAL == 0) {
+        // Perform a full search every FULL_SEARCH_INTERVAL frames
+        auto res    = find_minima_full_search(frame, FULL_SEARCH_STEP,
+                                              FULL_SEARCH_HEADING_STEP);
+        current_pos = res.first;
+        debug::log("Full search: %d, %d, %f", current_pos.x, current_pos.y,
+                   current_pos.heading);
+    }
 
     auto res = find_minima_local_grid_search(
         frame, current_pos, 8, 10, 14 * M_PI / 180, 3, 3, 2 * M_PI / 180);
+
+    // calculate loss for all 3 other angles at 90deg
+    // Pos ninety_offset = current_pos;
+    // ninety_offset.heading = ((int) ((ninety_offset.heading + M_PI / 2) * 180 / M_PI) % 360) / 180 * M_PI;
+    // int ninety_loss = calculate_loss(frame, res.first);
+    // if (ninety_loss < res.second) {
+    //     res.first = ninety_offset;
+    //     res.second = ninety_loss;
+    // }
+
+    // Pos one_eighty_offset = current_pos;
+    // one_eighty_offset.heading =
+    //     ((int)((one_eighty_offset.heading + M_PI) * 180 / M_PI) % 360) / 180 *
+    //     M_PI;
+    // int one_eighty_loss = calculate_loss(frame, res.first);
+    // if (one_eighty_loss < res.second) {
+    //     res.first = one_eighty_offset;
+    //     res.second = one_eighty_loss;
+    // }
+
+    // Pos two_seventy_offset = current_pos;
+    // two_seventy_offset.heading =
+    //     ((int)((two_seventy_offset.heading - M_PI / 2) * 180 / M_PI) % 360) /
+    //     180 * M_PI;
+    // int two_seventy_loss = calculate_loss(frame, res.first);
+    // if (two_seventy_loss < res.second) {
+    //     res.first = two_seventy_offset;
+    //     res.second = two_seventy_loss;
+    // }
 
     current_pos = res.first;
     debug::log("POSITION: %d, %d, %f (Loss: %f)", current_pos.x, current_pos.y,

@@ -151,8 +151,7 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   //* Check for no errors in received bytes
   // First 2 MSBs bytes should be '1'
   if ((rx_data & 0xC000) != 0xC000) {
-    debug::info(
-        "SPI Write - Error: Initial '1' MSB check bytes not found\r\n");
+    debug::info("SPI Write - Error: Initial '1' MSB check bytes not found\r\n");
     return false;
   }
 
@@ -169,7 +168,7 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
           "SPI Write - No fault found in fault register, moving on...\r\n");
     } else {
       debug::info("SPI Write - %s\n",
-                            FAULT::get_fault_description(fault).c_str());
+                  FAULT::get_fault_description(fault).c_str());
       return false;
     }
   }
@@ -182,8 +181,7 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
     }
   } else {
     if ((rx_data & 0x00FF) != expected) {
-      debug::info(
-          "SPI Write - Error: Data bytes do not match expected\r\n");
+      debug::info("SPI Write - Error: Data bytes do not match expected\r\n");
       return false;
     }
   }
@@ -212,8 +210,7 @@ uint8_t MotorDriver::read8(uint8_t reg) {
   //* Check for no errors in received bytes
   // First 2 MSBs bytes should be '1'
   if ((rx_data & 0xC000) != 0xC000) {
-    debug::info(
-        "SPI Write - Error: Initial '1' MSB check bytes not found\r\n");
+    debug::info("SPI Write - Error: Initial '1' MSB check bytes not found\r\n");
     return false;
   }
 
@@ -230,7 +227,7 @@ uint8_t MotorDriver::read8(uint8_t reg) {
           "SPI Write - No fault found in fault register, moving on...\r\n");
     } else {
       debug::info("SPI Write - %s\n",
-                            FAULT::get_fault_description(fault).c_str());
+                  FAULT::get_fault_description(fault).c_str());
       return false;
     }
   }
@@ -278,7 +275,7 @@ bool MotorDriver::check_registers() {
   types::u8 faultSummary = read8(FAULT_SUMMARY_REG);
   if (faultSummary != 0) {
     debug::info("Error: FAULT_SUMMARY: %s\r\n",
-                          FAULT::get_fault_description(faultSummary).c_str());
+                FAULT::get_fault_description(faultSummary).c_str());
     return false;
   }
 
@@ -286,7 +283,7 @@ bool MotorDriver::check_registers() {
   types::u8 status1 = read8(STATUS1_REG);
   if (status1 != STATUS1_REG_EXPECTED) {
     debug::info("Error: STATUS1: %s\r\n",
-                          STATUS::get_status1_description(status1).c_str());
+                STATUS::get_status1_description(status1).c_str());
     return false;
   }
 
@@ -294,7 +291,7 @@ bool MotorDriver::check_registers() {
   types::u8 status2 = read8(STATUS2_REG);
   if (status2 != STATUS2_REG_EXPECTED) {
     debug::info("Error: STATUS2: %s\r\n",
-                          STATUS::get_status2_description(status2).c_str());
+                STATUS::get_status2_description(status2).c_str());
     return false;
   }
 
@@ -365,7 +362,7 @@ bool MotorDriver::check_config() {
     types::u8 faultSummary = read8(FAULT_SUMMARY_REG);
     if (faultSummary != 0) {
       debug::error("Error: FAULT_SUMMARY: %s\r\n",
-                            FAULT::get_fault_description(faultSummary).c_str());
+                   FAULT::get_fault_description(faultSummary).c_str());
       return false;
     }
     return false;
@@ -404,9 +401,8 @@ bool MotorDriver::command(types::i16 duty_cycle) {
   //       "Motor command aborted due to configuration error.\r\n");
   //   return false;
   // }
-  if (abs(duty_cycle) > 2000) {
-    debug::error(
-        "Invalid duty cycle. Must be between -12500 and 12500.\r\n");
+  if (abs(duty_cycle) > 3000) {
+    debug::error("Invalid duty cycle. Must be between -12500 and 12500.\r\n");
     return false;
   }
 
@@ -419,9 +415,8 @@ bool MotorDriver::command(types::i16 duty_cycle) {
                               pins.get_pin_interface(IN2));
   outputControl.write_pwm(pins.get_pin(IN1), duty_cycle);
 
-  debug::log(
-      "Motor command executed: Duty cycle = %d, Direction = %d\r\n", duty_cycle,
-      direction);
+  debug::log("Motor command executed: Duty cycle = %d, Direction = %d\r\n",
+             duty_cycle, direction);
   return true;
 }
 
