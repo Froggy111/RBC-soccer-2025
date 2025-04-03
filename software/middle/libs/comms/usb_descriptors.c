@@ -1,10 +1,7 @@
 #include "pico/unique_id.h"
 #include "tusb.h"
 #include <pico/usb_reset_interface.h>
-
-// Private constants for USB descriptors
-#define USB_VID 0x2E8A // Raspberry Pi
-#define USB_PID 0x000a // Pico SDK CDC
+#include "config.hpp"
 
 // Interface numbers
 #define USB_CDC_INTERFACE 0    // CDC interfaces start at 0
@@ -34,8 +31,8 @@ static const tusb_desc_device_t device_descriptor = {
     .bDeviceSubClass = MISC_SUBCLASS_COMMON,
     .bDeviceProtocol = MISC_PROTOCOL_IAD,
     .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
-    .idVendor = USB_VID,
-    .idProduct = USB_PID,
+    .idVendor = TUSB_VID,
+    .idProduct = TUSB_PID,
     .bcdDevice = 0x0100,
     .iManufacturer = USB_STR_MANUF,
     .iProduct = USB_STR_PRODUCT,
