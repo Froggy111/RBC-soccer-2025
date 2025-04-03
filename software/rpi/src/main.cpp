@@ -107,17 +107,6 @@ int main() {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         motors::command_motor_motion_controller(4,
                                                 std::get<3>(commands) * 1000);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-        motors::command_motor_motion_controller(1, 0);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor_motion_controller(2, 0);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor_motion_controller(3, 0);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor_motion_controller(4, 0);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     }
 
     stop();
