@@ -363,6 +363,47 @@ std::pair<Pos, float> CamProcessor::find_minima_regression(
     return std::make_pair(current_pos, current_loss);
 }
 
+std::pair<Pos, float> CamProcessor::find_minima_local_grid_search(
+    const cv::Mat &camera_image, Pos &estimate, int x_variance, int y_variance,
+    float heading_variance, int x_step, int y_step, float heading_step) {
+
+    Pos best_guess  = estimate;
+    float best_loss = calculate_loss(camera_image, best_guess);
+
+    // Calculate search boundaries
+    int x_min   = estimate.x - x_variance;
+    int x_max   = estimate.x + x_variance;
+    int y_min   = estimate.y - y_variance;
+    int y_max   = estimate.y + y_variance;
+    float h_min = estimate.heading - heading_variance;
+    float h_max = estimate.heading + heading_variance;
+
+    // Grid search
+    for (int x = x_min; x <= x_max; x += x_step) {
+        for (int y = y_min; y <= y_max; y += y_step) {
+            // Handle wrap-around case for heading
+            float h = h_min;
+            while ((h_min < h_max && h <= h_max) ||
+                   (h_min > h_max && (h <= h_max || h >= h_min))) {
+
+                Pos guess  = {x, y, h};
+                float loss = calculate_loss(camera_image, guess);
+
+                if (loss < best_loss) {
+                    best_guess = guess;
+                    best_loss  = loss;
+                }
+
+                h += heading_step;
+                if (h >= 2 * M_PI)
+                    h -= 2 * M_PI;
+            }
+        }
+    }
+
+    return std::make_pair(best_guess, best_loss);
+}
+
 int CamProcessor::_frame_count = 0;
 Pos CamProcessor::current_pos  = {-field::FIELD_X_SIZE / 2,
                                   -field::FIELD_Y_SIZE / 2, 0};
@@ -379,9 +420,10 @@ void CamProcessor::process_frame(const cv::Mat &frame) {
     //                estimate.heading);
     // }
 
-    auto res    = find_minima_regression(frame, estimate);
+    auto res = find_minima_local_grid_search(
+        frame, estimate, 4, 4, 10 * M_PI / 180, 1, 1, 2 * M_PI / 180);
     current_pos = res.first;
-    debug::log("Position: %d, %d, %f (Loss: %f)", current_pos.x, current_pos.y,
+    debug::log("POSITION: %d, %d, %f (Loss: %f)", current_pos.x, current_pos.y,
                current_pos.heading / M_PI * 180, res.second);
 
     _frame_count += 1;

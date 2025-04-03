@@ -94,5 +94,12 @@ class CamProcessor {
         float initial_step_heading  = REGRESSION_INITIAL_STEP_HEADING,
         float step_decay            = REGRESSION_STEP_DECAY,
         float convergence_threshold = REGRESSION_CONVERGENCE_THRESHOLD);
+
+    // Add to the CamProcessor class declaration
+    static std::pair<Pos, float>
+    find_minima_local_grid_search(const cv::Mat &camera_image, Pos &estimate,
+                                  int x_variance, int y_variance,
+                                  float heading_variance, int x_step,
+                                  int y_step, float heading_step);
 };
 } // namespace camera
