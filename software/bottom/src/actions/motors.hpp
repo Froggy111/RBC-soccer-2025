@@ -86,7 +86,7 @@ void motor_task(void *args) {
       debug::error("Invalid motor ID: %d\n", motor_task_data.id);
       break;
     }
-    debug::info("Motor %d: %d\n", motor_task_data.id,
-                motor_task_data.duty_cycle);
+    // debug::info("Motor %d: %d\n", motor_task_data.id,
+    // motor_task_data.duty_cycle);
   }
 }
