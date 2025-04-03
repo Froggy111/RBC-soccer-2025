@@ -4,6 +4,7 @@ add_subdirectory(hardware-descriptors)
 add_subdirectory(comms)
 
 add_subdirectory(camera)
+add_subdirectory(motors)
 add_subdirectory(motion-control)
 add_subdirectory(IMU)
 

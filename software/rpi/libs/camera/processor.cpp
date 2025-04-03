@@ -2,9 +2,11 @@
 #include "config.hpp"
 #include "debug.hpp"
 #include "field.hpp"
+#include "field_chunked.hpp"
 #include "position.hpp"
 #include <cstdio>
 #include <cstdlib>
+#include <unistd.h>
 #include <utility>
 
 namespace camera {
@@ -33,13 +35,13 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     int32_t cos_theta_fp = static_cast<int32_t>(cos(guess.heading) * FP_ONE);
 
     // Transform & rotate white line coords
-    for (int i = 0; i < WHITE_LINES_LENGTH; i++) {
-        int16_t x = WHITE_LINES[i][0];
-        int16_t y = WHITE_LINES[i][1];
+    for (int i = 0; i < field::WHITE_LINES_LENGTH; i++) {
+        int16_t x = field::WHITE_LINES[i][0];
+        int16_t y = field::WHITE_LINES[i][1];
 
         // Transform to relative coordinates
-        int32_t rel_x = x + guess.x / GRID_SIZE;
-        int32_t rel_y = y + guess.y / GRID_SIZE;
+        int32_t rel_x = x + guess.x;
+        int32_t rel_y = y + guess.y;
 
         // Rotate using fixed-point arithmetic
         int32_t rotated_x_fp =
@@ -85,9 +87,75 @@ float CamProcessor::calculate_loss(const cv::Mat &camera_image, Pos &guess) {
     return loss;
 }
 
+float CamProcessor::calculate_loss_chunks(const cv::Mat &camera_image,
+                                          Pos &guess) {
+    uint32_t count = 0, non_white = 0;
+
+    // Fixed-point scaling factor (Q16.16 format)
+    constexpr int FP_SHIFT = 16;
+    constexpr int FP_ONE   = 1 << FP_SHIFT;
+
+    // Convert angles to fixed point representation
+    int32_t sin_theta_fp = static_cast<int32_t>(sin(guess.heading) * FP_ONE);
+    int32_t cos_theta_fp = static_cast<int32_t>(cos(guess.heading) * FP_ONE);
+
+    // Transform & rotate white line coords
+    for (int i = 0; i < field_chunked::WHITE_CHUNK_COUNT; i++) {
+        int16_t x = field_chunked::WHITE_CHUNK_INDICES[i][0];
+        int16_t y = field_chunked::WHITE_CHUNK_INDICES[i][1];
+
+        // Transform to relative coordinates
+        int32_t rel_x = x + guess.x / field_chunked::CHUNK_SIZE;
+        int32_t rel_y = y + guess.y / field_chunked::CHUNK_SIZE;
+
+        // Rotate using fixed-point arithmetic
+        int32_t rotated_x_fp =
+            (rel_x * cos_theta_fp - rel_y * sin_theta_fp) >> FP_SHIFT;
+        int32_t rotated_y_fp =
+            (rel_x * sin_theta_fp + rel_y * cos_theta_fp) >> FP_SHIFT;
+
+        // Convert back to integer coordinate space with offset
+        int32_t final_x =
+            rotated_x_fp + (IMG_WIDTH / 2) / field_chunked::CHUNK_SIZE;
+        int32_t final_y =
+            rotated_y_fp + (IMG_HEIGHT / 2) / field_chunked::CHUNK_SIZE;
+
+        // Check if the point is within IMAGE boundaries
+        if (final_x < 0 || final_x >= IMG_WIDTH / field_chunked::CHUNK_SIZE ||
+            final_y < 0 || final_y >= IMG_HEIGHT / field_chunked::CHUNK_SIZE) {
+            continue;
+        }
+
+        const cv::Vec3b *row   = camera_image.ptr<cv::Vec3b>(final_x);
+        const cv::Vec3b &pixel = row[IMG_HEIGHT - final_y];
+
+        if (!(pixel[0] > COLOR_R_THRES && pixel[1] > COLOR_G_THRES &&
+              pixel[2] > COLOR_B_THRES)) {
+            non_white++;
+            // debug::log("White pixel at (%d, %d): (%d, %d, %d)",
+            //            IMG_HEIGHT - final_y, final_x, pixel[0], pixel[1],
+            //            pixel[2]);
+        } else {
+            // debug::log("Non-white pixel at (%d, %d): (%d, %d, %d)",
+            //            IMG_HEIGHT - final_y, final_x, pixel[0], pixel[1],
+            //            pixel[2]);
+        }
+        count++;
+    }
+
+    if (count == 0) {
+        return 1.0f;
+    }
+
+    // Use integer division if possible, or at least avoid double casting
+    float loss = static_cast<float>(non_white) / count;
+    return loss;
+}
+
 std::pair<Pos, float> CamProcessor::find_minima_particle_search(
     const cv::Mat &camera_image, Pos &initial_guess, int num_particles,
-    int num_generations, int variance_per_generation) {
+    int num_generations, int variance_per_generation,
+    int heading_varience_per_generation) {
     Pos best_guess  = initial_guess;
     float best_loss = calculate_loss(camera_image, best_guess);
 
@@ -101,14 +169,15 @@ std::pair<Pos, float> CamProcessor::find_minima_particle_search(
 
             // randomize new guess properties, with the randomness proportional to the best_loss
             new_guess.x = (int)generate_random_number(
-                new_guess.x, variance_per_generation, -FIELD_X_SIZE / 2,
-                FIELD_X_SIZE / 2);
+                new_guess.x, variance_per_generation, -field::FIELD_X_SIZE / 2,
+                field::FIELD_X_SIZE / 2);
             new_guess.y = (int)generate_random_number(
-                new_guess.y, variance_per_generation, -FIELD_Y_SIZE / 2,
-                FIELD_Y_SIZE / 2);
+                new_guess.y, variance_per_generation, -field::FIELD_Y_SIZE / 2,
+                field::FIELD_Y_SIZE / 2);
             new_guess.heading =
                 generate_random_number(
-                    (int)(new_guess.heading * (float)180 / M_PI), 10, 0, 360) *
+                    (int)(new_guess.heading * (float)180 / M_PI),
+                    heading_varience_per_generation, 0, 360) *
                 (float)M_PI / 180.0f;
 
             // calculate loss
@@ -130,40 +199,73 @@ std::pair<Pos, float> CamProcessor::find_minima_particle_search(
 }
 
 std::pair<Pos, float>
-CamProcessor::find_minima_smart_search(const cv::Mat &camera_image, Pos &center,
-                                       int radius, int step, int heading_step) {
-    Pos best_guess  = center;
-    float best_loss = calculate_loss(camera_image, best_guess);
+CamProcessor::find_minima_full_search(const cv::Mat &camera_image, int step,
+                                      int heading_step) {
+    // * shrink the image to speed up the search
+    cv::Mat shrunk_img =
+        cv::Mat(IMG_WIDTH / field_chunked::CHUNK_SIZE,
+                IMG_HEIGHT / field_chunked::CHUNK_SIZE, CV_8UC1);
+
+    int whiteness[IMG_WIDTH / field_chunked::CHUNK_SIZE]
+                 [IMG_HEIGHT / field_chunked::CHUNK_SIZE] = {0};
+    for (int i = 0; i < IMG_WIDTH / field_chunked::CHUNK_SIZE; i++) {
+        for (int j = 0; j < IMG_HEIGHT / field_chunked::CHUNK_SIZE; j++) {
+            for (int k = 0; k < field_chunked::CHUNK_SIZE; k++) {
+                for (int l = 0; l < field_chunked::CHUNK_SIZE; l++) {
+                    int corrected_x = i * field_chunked::CHUNK_SIZE + k;
+                    int corrected_y =
+                        IMG_HEIGHT - (j * field_chunked::CHUNK_SIZE + l);
+
+                    if (corrected_x < 0 || corrected_x >= IMG_WIDTH ||
+                        corrected_y < 0 || corrected_y >= IMG_HEIGHT) {
+                        continue;
+                    }
+
+                    const cv::Vec3b *row =
+                        camera_image.ptr<cv::Vec3b>(corrected_x);
+                    const cv::Vec3b &pixel = row[corrected_y];
+                    if (pixel[0] > COLOR_R_THRES && pixel[1] > COLOR_G_THRES &&
+                        pixel[2] > COLOR_B_THRES) {
+                        whiteness[i][j]++;
+                    }
+                }
+            }
+        }
+    }
+
+    // Create a new image with the whiteness values
+    for (int i = 0; i < IMG_WIDTH / field_chunked::CHUNK_SIZE; i++) {
+        for (int j = 0; j < IMG_HEIGHT / field_chunked::CHUNK_SIZE; j++) {
+            // white if above threshold
+            if (whiteness[i][j] > FULL_SEARCH_WHITE_COUNT_THRESHOLD) {
+                shrunk_img.at<uint8_t>(i, j) = 255;
+            } else {
+                shrunk_img.at<uint8_t>(i, j) = 0;
+            }
+        }
+    }
+
+    Pos best_guess  = {0, 0, 0};
+    float best_loss = 1;
 
     // Search boundaries
-    int x_min = -IMG_WIDTH / 2;
-    int x_max = IMG_WIDTH / 2;
-    int y_min = -IMG_HEIGHT / 2;
-    int y_max = IMG_HEIGHT / 2;
+    int x_min = 0;
+    int x_max = field::FIELD_Y_SIZE / 2;
+    int y_min = 0; // TODO: CHANGE
+    int y_max = field::FIELD_Y_SIZE / 2;
 
-    // Do the dense search first
-    for (int x = center.x - radius; x <= center.x + radius; x += step) {
-        for (int y = center.y - radius; y <= center.y + radius; y += step) {
-            if (x < x_min || x >= x_max || y < y_min || y >= y_max) {
-                continue;
-            }
-
+    for (int x = x_min; x <= x_max; x += step) {
+        for (int y = y_min; y <= y_max; y += step) {
             for (int heading = 0; heading < 360; heading += heading_step) {
                 Pos guess  = {x, y, heading * (float)M_PI / 180.0f};
-                float loss = calculate_loss(camera_image, guess);
+                float loss = calculate_loss_chunks(shrunk_img, guess);
 
-                // Check if the new guess is better than the best guess
                 if (loss < best_loss) {
                     best_guess = guess;
                     best_loss  = loss;
                 }
             }
         }
-    }
-
-    // If the loss is already low, return the best guess
-    if (best_loss < 0.4f) {
-        return std::make_pair(best_guess, best_loss);
     }
 
     return std::make_pair(best_guess, best_loss);
@@ -225,10 +327,10 @@ std::pair<Pos, float> CamProcessor::find_minima_regression(
                 test_pos.heading -= 2 * M_PI;
 
             // Keep position within field bounds
-            test_pos.x = std::max(std::min(test_pos.x, FIELD_X_SIZE / 2),
-                                  -FIELD_X_SIZE / 2);
-            test_pos.y = std::max(std::min(test_pos.y, FIELD_Y_SIZE / 2),
-                                  -FIELD_Y_SIZE / 2);
+            test_pos.x = std::max(std::min(test_pos.x, field::FIELD_X_SIZE / 2),
+                                  -field::FIELD_X_SIZE / 2);
+            test_pos.y = std::max(std::min(test_pos.y, field::FIELD_Y_SIZE / 2),
+                                  -field::FIELD_Y_SIZE / 2);
 
             movements[i].loss = calculate_loss(camera_image, test_pos);
             movements[i].pos  = test_pos;
@@ -261,28 +363,87 @@ std::pair<Pos, float> CamProcessor::find_minima_regression(
     return std::make_pair(current_pos, current_loss);
 }
 
+std::pair<Pos, float> CamProcessor::find_minima_local_grid_search(
+    const cv::Mat &camera_image, Pos &estimate, int x_variance, int y_variance,
+    float heading_variance, int x_step, int y_step, float heading_step) {
+
+    Pos best_guess  = estimate;
+    float best_loss = calculate_loss(camera_image, best_guess);
+
+    // Calculate search boundaries
+    int x_min   = estimate.x - x_variance;
+    int x_max   = estimate.x + x_variance;
+    int y_min   = estimate.y - y_variance;
+    int y_max   = estimate.y + y_variance;
+    float h_min = estimate.heading - heading_variance;
+    float h_max = estimate.heading + heading_variance;
+
+    // Constrain to field boundaries
+    x_min = std::max(x_min, -field::FIELD_X_SIZE / 2);
+    x_max = std::min(x_max, field::FIELD_X_SIZE / 2);
+    y_min = std::max(y_min, -field::FIELD_Y_SIZE / 2);
+    y_max = std::min(y_max, field::FIELD_Y_SIZE / 2);
+
+    // Normalize heading range
+    while (h_min < 0)
+        h_min += 2 * M_PI;
+    while (h_min >= 2 * M_PI)
+        h_min -= 2 * M_PI;
+    while (h_max < 0)
+        h_max += 2 * M_PI;
+    while (h_max >= 2 * M_PI)
+        h_max -= 2 * M_PI;
+
+    // Grid search
+    for (int x = x_min; x <= x_max; x += x_step) {
+        for (int y = y_min; y <= y_max; y += y_step) {
+            // Handle wrap-around case for heading
+            float h = h_min;
+            while ((h_min < h_max && h <= h_max) ||
+                   (h_min > h_max && (h <= h_max || h >= h_min))) {
+
+                Pos guess  = {x, y, h};
+                float loss = calculate_loss(camera_image, guess);
+
+                if (loss < best_loss) {
+                    best_guess = guess;
+                    best_loss  = loss;
+                }
+
+                h += heading_step;
+                if (h >= 2 * M_PI)
+                    h -= 2 * M_PI;
+            }
+        }
+    }
+
+    return std::make_pair(best_guess, best_loss);
+}
+
 int CamProcessor::_frame_count = 0;
-Pos CamProcessor::current_pos  = {0, 0, 0};
+Pos CamProcessor::current_pos  = {-field::FIELD_X_SIZE / 2,
+                                  -field::FIELD_Y_SIZE / 2, M_PI};
 
 void CamProcessor::process_frame(const cv::Mat &frame) {
-    debug::info("Frame %d", _frame_count);
-    if (_frame_count == 0) {
-        auto res = find_minima_smart_search(
-            frame, current_pos, GRID_SEARCH_RADIUS, GRID_SEARCH_STEP,
-            GRID_SEARCH_HEADING_STEP);
-        current_pos.x       = res.first.x;
-        current_pos.y       = res.first.y;
-        current_pos.heading = res.first.heading;
-    } else {
-        auto res = find_minima_particle_search(
-            frame, current_pos, PARTICLE_SEARCH_NUM, PARTICLE_SEARCH_GEN,
-            PARTICLE_SEARCH_VAR);
-        current_pos.x       = res.first.x;
-        current_pos.y       = res.first.y;
-        current_pos.heading = res.first.heading;
-    }
-    debug::info("Current Position: x: %d, y: %d, heading: %.2f\n",
-        current_pos.x, current_pos.y, current_pos.heading * 180 / M_PI);
+    // if (_frame_count % FULL_SEARCH_INTERVAL == 0) {
+    //     // Perform a full search every FULL_SEARCH_INTERVAL frames
+    //     auto res = find_minima_full_search(frame, FULL_SEARCH_STEP,
+    //                                        FULL_SEARCH_HEADING_STEP);
+    //     estimate = res.first;
+    //     debug::log("Full search: %d, %d, %f", estimate.x, estimate.y,
+    //                estimate.heading);
+    // }
+
+    auto estimate = find_minima_local_grid_search(
+        frame, current_pos, 8, 10, 8 * M_PI / 180, 3, 3, 2 * M_PI / 180);
+
+    auto res = find_minima_local_grid_search(
+        frame, estimate.first, 3, 3, 2 * M_PI / 180, 1, 1, 1 * M_PI / 180);
+
+    current_pos = res.first;
+    debug::log("POSITION: %d, %d, %f (Loss: %f)", current_pos.x, current_pos.y,
+               current_pos.heading / M_PI * 180, res.second);
+
     _frame_count += 1;
 }
 

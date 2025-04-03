@@ -78,6 +78,8 @@ void board_id_task(void *params) {
     BoardIdentifiers board_id = BoardIdentifiers::TOP_PICO;
 #endif
 
+    gpio_put(25, 0);
+
     USB_CDC.write(SendIdentifiers::BOARD_ID, (u8 *)&board_id, sizeof(board_id));
   }
 }
@@ -91,8 +93,7 @@ void blink_task(void *args) {
     memset(blink_task_buffer, 0, sizeof(blink_task_buffer));
     xSemaphoreGive(blink_task_mutex);
     gpio_put(LED_PIN, 1);
-    // vTaskDelay(pdMS_TO_TICKS(blink_task_data.blink_time_ms));
-    sleep_ms(blink_task_data.blink_time_ms);
+    vTaskDelay(pdMS_TO_TICKS(blink_task_data.blink_time_ms));
     gpio_put(LED_PIN, 0);
   }
 }

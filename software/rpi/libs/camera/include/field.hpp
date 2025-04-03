@@ -1,7 +1,9 @@
 // Auto-generated field coordinates (320px = 200cm scale)
 // Generated with fuzzy radius and random selection
 #pragma once
+
 namespace camera {
+namespace field {
 const int WHITE_LINES_LENGTH = 1000;
 const int FIELD_X_SIZE = 312;
 const int FIELD_Y_SIZE = 253;
@@ -1010,4 +1012,5 @@ constexpr int WHITE_LINES[1000][2] = {
     {153, 80}
 };
 
+}
 }

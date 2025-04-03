@@ -9,8 +9,9 @@ typedef std::tuple<float, float, float, float> tuple_4;
 typedef std::tuple<float, float> tuple_2;
 
 #define PI 3.14159265358979323846
-#define VELOCITY_WINDOW_SIZE 10
-#define ROTATION_ERRORS_WINDOW_SIZE 100
+#define VELOCITY_WINDOW_SIZE 1
+#define ERROR_WINDOW_SIZE 10
+#define ROTATION_ERRORS_WINDOW_SIZE 20
 //using namespace std;
 
 class MotionController {
@@ -31,8 +32,8 @@ class MotionController {
     //      Implement a expected velocity predictor
 
     std::queue<std::tuple<float, float> > position_queue;
-    std::tuple<float, float> last_position;
-    std::tuple<float, float> current_position;
+    std::tuple<float, float> last_position = std::make_tuple(-10000, -10000);
+    std::tuple<float, float> current_position = std::make_tuple(-10000, -10000);
 
     float expected_velocity = 0.0;
     float expected_direction = 0.0;
@@ -40,6 +41,9 @@ class MotionController {
     
 
     void init(float rotation_kp, float rotation_ki, float rotation_kd, float velocity_kp, float velocity_ki, float velocity_kd);
+
+    //upadtes the new and last position
+    void update_position(std::tuple<float, float> ne_pos);
 
     //normalize -> map a given angle to a range [-PI, PI] in radians
     float normalize_angle(float angle);
@@ -55,13 +59,13 @@ class MotionController {
     float angle_to_motor_speed(float angle);
 
     //pid_output -> Given the current heading, target heading, target direction and speed
-    //              return the motor speeds to reach the target direction
+    //              return the motor speeds to reach the target direction while facing the target heading
     std::tuple<float, float, float, float> velocity_pid(float current_heading, float target_heading, float target_direction, float speed);
     
 
     //position_pid -> Give the current position, target position, speed, do PID on it (using the pid_output function)
 
-    std::tuple<float, float, float, float> position_pid(std::tuple<float, float> current_position, std::tuple<float, float> target_position, float current_heading, float target_heading,  float speed);
+    std::tuple<float, float, float, float> position_pid(std::tuple<float, float> target_position, float current_heading, float target_heading,  float speed);
 
 
 
@@ -113,8 +117,8 @@ class MotionController {
     float rotation_Kd = 0.0; //TODO: NEED TO TUNE
 
     //Sliding Window of errors in the x and y components of velocity
-    std::deque<float> velocity_x_errors = std::deque<float>(50, 0.0);
-    std::deque<float> velocity_y_errors = std::deque<float>(50, 0.0);
+    std::deque<float> velocity_x_errors = std::deque<float>(ERROR_WINDOW_SIZE, 0.0);
+    std::deque<float> velocity_y_errors = std::deque<float>(ERROR_WINDOW_SIZE, 0.0);
 
     //Sliding Window of errors in rotation
     std::deque<float> rotation_errors = std::deque<float>(ROTATION_ERRORS_WINDOW_SIZE, 0.0);
