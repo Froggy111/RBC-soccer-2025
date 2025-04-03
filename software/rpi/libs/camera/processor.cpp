@@ -434,11 +434,8 @@ void CamProcessor::process_frame(const cv::Mat &frame) {
     //                estimate.heading);
     // }
 
-    auto estimate = find_minima_local_grid_search(
-        frame, current_pos, 8, 10, 8 * M_PI / 180, 3, 3, 2 * M_PI / 180);
-
     auto res = find_minima_local_grid_search(
-        frame, estimate.first, 3, 3, 2 * M_PI / 180, 1, 1, 1 * M_PI / 180);
+        frame, current_pos, 8, 10, 14 * M_PI / 180, 3, 3, 2 * M_PI / 180);
 
     current_pos = res.first;
     debug::log("POSITION: %d, %d, %f (Loss: %f)", current_pos.x, current_pos.y,

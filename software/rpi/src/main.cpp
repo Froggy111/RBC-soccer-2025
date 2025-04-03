@@ -7,6 +7,7 @@
 #include "processor.hpp"
 #include "sensors/IR.hpp"
 #include "wiringPi.h"
+#include <cmath>
 #include <cstdio>
 #include <opencv2/opencv.hpp>
 #include <unistd.h>
@@ -92,16 +93,31 @@ int main() {
 
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
-        auto commands = motion_controller.move_heading(0.0f, 0.0f, 0.15f);
+        auto commands = motion_controller.velocity_pid(
+            processor.current_pos.heading, M_PI, M_PI, 0.1f);
 
-        motors::command_motor_motion_controller(1, 500);
+        motors::command_motor_motion_controller(1,
+                                                std::get<0>(commands) * 1000);
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor_motion_controller(2, 500);
+        motors::command_motor_motion_controller(2,
+                                                std::get<1>(commands) * 1000);
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor_motion_controller(3, 500);
+        motors::command_motor_motion_controller(3,
+                                                std::get<2>(commands) * 1000);
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor_motion_controller(4, 500);
+        motors::command_motor_motion_controller(4,
+                                                std::get<3>(commands) * 1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+        motors::command_motor_motion_controller(1, 0);
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        motors::command_motor_motion_controller(2, 0);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        motors::command_motor_motion_controller(3, 0);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        motors::command_motor_motion_controller(4, 0);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     }
 
     stop();
