@@ -11,19 +11,7 @@ extern "C" {
 #include <cstring>
 }
 
-// Flag for program termination
-volatile bool running = true;
-
-// Signal handler for Ctrl+C
-void signalHandler(int signum) {
-    std::cout << "Interrupt received, terminating..." << std::endl;
-    running = false;
-}
-
 int main() {
-    // Register signal handler for clean termination
-    signal(SIGINT, signalHandler);
-
     debug::info("Starting USB communication with top plate...");
 
     // Initialize the communication library

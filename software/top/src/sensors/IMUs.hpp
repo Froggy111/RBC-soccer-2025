@@ -20,30 +20,31 @@ struct IMUSendData {
 void imu_poll_task(void *args) {
   debug::log("Initializing IMU...\r\n");
 
-  // Set IMU Config
-  icm20948::set_accel_config(&imu_config1, 1000.0f / IMU_POLL_INTERVAL, 2,
-                             IMU_FSR, false);
-  icm20948::set_accel_config(&imu_config1, 1000.0f / IMU_POLL_INTERVAL, 2,
-                             IMU_FSR, false);
-  icm20948::set_gyro_config(&imu_config1, 1000.0f / IMU_POLL_INTERVAL, 2,
-                            false);
-  icm20948::set_gyro_config(&imu_config1, 1000.0f / IMU_POLL_INTERVAL, 2,
-                            false);
-
   // Initialize Both
   if (icm20948::init(&imu_config1) == -1) {
-    debug::log("Error initializing ICM20948 1.\r\n");
+    debug::log("Error initializing IMU 1.\r\n");
     vTaskDelete(imu_poll_task_handle);
   } else {
-    debug::log("Initialized IMU20948 1.\r\n");
+    debug::log("Initialized IMU 1.\r\n");
   }
 
   if (icm20948::init(&imu_config2) == -1) {
-    debug::log("Error initializing ICM20948 1.\r\n");
+    debug::log("Error initializing IMU 2.\r\n");
     vTaskDelete(imu_poll_task_handle);
   } else {
-    debug::log("Initialized IMU20948 1.\r\n");
+    debug::log("Initialized IMU 2.\r\n");
   }
+
+  // Set IMU Config
+  debug::log("set IMU1 config\r\n");
+  icm20948::set_accel_config(&imu_config1, 1000.0f / IMU_POLL_INTERVAL, 2,
+                             IMU_FSR, false);
+  icm20948::set_accel_config(&imu_config1, 1000.0f / IMU_POLL_INTERVAL, 2,
+                             IMU_FSR, false);
+  icm20948::set_gyro_config(&imu_config1, 1000.0f / IMU_POLL_INTERVAL, 2,
+                            false);
+  icm20948::set_gyro_config(&imu_config1, 1000.0f / IMU_POLL_INTERVAL, 2,
+                            false);
 
   IMUSendData to_send = {0};
   debug::log("IMU Ready!\r\n");

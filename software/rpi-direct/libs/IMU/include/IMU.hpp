@@ -54,11 +54,11 @@ const types::f32 gyro = gyro_unnormalised / total_orientation;
 const types::f32 grav = 9.81 * 1000; // units in mm and seconds
 
 // NOTE: bias means how much they initially read (when supposed to be zero)
-const types::Vec3f32 accel_1_bias(0, 0, 9.81);    // calibrate
-const types::Vec3f32 gyro_1_bias(0, 0, 0);        // calibrate also
-const types::Vec3f32 accel_2_bias(0, 0, 9.81);    // calibrate
-const types::Vec3f32 gyro_2_bias(0, 0, 0);        // calibrate also
-const types::f32 accel_distance_from_middle = 25; // approximate, calibrate
+const types::Vec3f32 accel_1_bias(131, 380, -9600); // calibrate
+const types::Vec3f32 gyro_1_bias(0.9, 0.03, 0.09);  // calibrate also
+const types::Vec3f32 accel_2_bias(5, -19, 86);      // calibrate
+const types::Vec3f32 gyro_2_bias(0, 0, 0);          // calibrate also
+const types::f32 accel_distance_from_middle = 25;   // approximate, calibrate
 
 const types::f32 tick_time = 1e-3; // 1ms per new accel and gyro val
 const types::f32 FSR       = 8;    // 8 Gs max

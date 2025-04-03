@@ -8,14 +8,20 @@ extern "C" {
 #include "sensors/IMUs.hpp"
 #include "actions/LEDs.hpp"
 
-#define LED_PIN 25
+static const types::u8 LED_PIN = 25;
 
-int urgent_blink() {
+void main_task(void *params) {
+  comms::USB_CDC.wait_for_CDC_connection(portMAX_DELAY);
+  debug::info("Initialising SPI\r\n");
+  if (!spi_init(spi0, 4e6)) {
+    debug::fatal("SPI initialisation failed\r\n");
+  }
+  debug::info("Creating IMU poll task\r\n");
+  xTaskCreate(imu_poll_task, "imu_poll_task", 1024, NULL, 10,
+              &imu_poll_task_handle);
+  debug::info("Created all tasks\r\n");
   while (true) {
-    gpio_put(LED_PIN, 1);
-    sleep_ms(100);
-    gpio_put(LED_PIN, 0);
-    sleep_ms(100);
+    vTaskDelay(portMAX_DELAY);
   }
 }
 
@@ -27,25 +33,7 @@ int main() {
 
   // * Init USB Comms
   comms::init();
-
-  // * Init SPIs
-  if (!spi_init(spi0, 4000000)) {
-    urgent_blink();
-  }
-
-  xTaskCreate(imu_poll_task, "imu_poll_task", 1024, NULL, 10,
-              &imu_poll_task_handle);
-  xTaskCreate(led_blinker_task, "led_blinker_task", 1024, NULL, 10,
-              &led_blinker_handle);
-
-  led_blinker_data_mutex = xSemaphoreCreateMutex();
-  bool led_attach_successful = comms::USB_CDC.attach_listener(
-      comms::RecvIdentifiers::LEDs, led_blinker_handle, led_blinker_data_mutex,
-      led_blinker_buffer, sizeof(led_blinker_task_data));
-
-  if (!led_attach_successful) {
-    urgent_blink();
-  }
+  xTaskCreate(main_task, "main task", 1024, nullptr, 12, nullptr);
 
   vTaskStartScheduler();
 }

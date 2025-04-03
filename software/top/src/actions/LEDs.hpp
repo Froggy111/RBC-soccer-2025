@@ -10,8 +10,6 @@
 #include <cstdint>
 #include <pico/types.h>
 
-using namespace types;
-
 struct LEDData {
   uint8_t RED = 0;
   uint8_t GREEN = 0;
@@ -31,7 +29,7 @@ WS2812 led_strip((uint)pinmap::Pico::LED_SIG_3V3, LED_COUNT, pio0, 0,
 TaskHandle_t led_blinker_handle = nullptr;
 LEDData led_states[LED_COUNT];
 LEDBLinkerData led_blinker_task_data = {};
-u8 led_blinker_buffer[sizeof(led_blinker_task_data)];
+types::u8 led_blinker_buffer[sizeof(led_blinker_task_data)];
 SemaphoreHandle_t led_blinker_data_mutex = nullptr;
 
 void led_blinker_task(void *args) {
