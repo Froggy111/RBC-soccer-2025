@@ -28,7 +28,7 @@ static types::u8 ping_task_buffer[PING_PACKET_MAX_SIZE];
 static types::u8 ping_task_data[PING_PACKET_MAX_SIZE];
 static TaskHandle_t ping_task_handle;
 const types::u16 PING_TASK_STACK_DEPTH = 256;
-const types::u8 PING_TASK_PRIORITY = 15;
+const types::u8 PING_TASK_PRIORITY = 16;
 
 // board_id task
 static void board_id_task(void *params);
@@ -36,7 +36,7 @@ static SemaphoreHandle_t board_id_task_mutex;
 static TaskHandle_t board_id_task_handle;
 static types::u8 board_id_task_buffer[1]; // just to not fail nullptr checks
 const types::u16 BOARD_ID_TASK_STACK_DEPTH = 256;
-const types::u8 BOARD_ID_TASK_PRIORITY = 15;
+const types::u8 BOARD_ID_TASK_PRIORITY = 16;
 
 // blink task
 const types::u8 LED_PIN = 25;
@@ -53,4 +53,5 @@ const types::u16 BLINK_TASK_STACK_DEPTH = 256;
 const types::u8 BLINK_TASK_PRIORITY = 16;
 
 void blink_task(void *args);
+
 } // namespace comms
