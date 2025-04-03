@@ -13,6 +13,7 @@
 #include <opencv2/opencv.hpp>
 #include <thread>
 #include <unistd.h>
+#include "IMU.hpp"
 
 camera::Camera cam;
 camera::CamProcessor processor;
@@ -51,6 +52,9 @@ bool start() {
     // ^ IR Sensors
     IR::IR_sensors.init();
     debug::info("INITIALIZED IR SENSORS - SUCCESS");
+
+    // ^ IMU
+    IMU::init();
 
     return true;
 }
@@ -98,7 +102,7 @@ int main() {
     std::this_thread::sleep_for(std::chrono::seconds(5));
 
     // Main loop with emergency stop check
-    while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
+    while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP){
         // auto commands = motion_controller.velocity_pid(
         //     processor.current_pos.heading, M_PI / 2, M_PI / 2, 0.3f);
 
