@@ -14,9 +14,9 @@ const int IMG_WIDTH  = 480;
 const int IMG_HEIGHT = 640;
 
 // full search
-const int FULL_SEARCH_STEP                  = 15;
-const int FULL_SEARCH_HEADING_STEP          = 15;
-const int FULL_SEARCH_INTERVAL              = 60;
+const int FULL_SEARCH_STEP                  = 5;
+const int FULL_SEARCH_HEADING_STEP          = 5;
+const int FULL_SEARCH_INTERVAL              = 120;
 const int FULL_SEARCH_WHITE_COUNT_THRESHOLD = 5;
 
 // particle search

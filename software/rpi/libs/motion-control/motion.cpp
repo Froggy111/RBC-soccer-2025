@@ -204,12 +204,12 @@ MotionController::velocity_pid(float current_heading, float target_heading,
 
     translation_vector = std::make_tuple(normalize_angle(std::get<0>(translation_vector) - current_heading), std::get<1>(translation_vector));
 
-    std::cout << "Target Vector: " << std::get<0>(target_vector) << " " << std::get<1>(target_vector) << '\n';
-    std::cout << "P Vector: " << std::get<0>(p_vector) << " " << std::get<1>(p_vector) << '\n';
+    debug::debug("Target Vector: %f %f\n", std::get<0>(target_vector), std::get<1>(target_vector));
+    debug::debug("P Vector: %f %f\n", std::get<0>(p_vector), std::get<1>(p_vector));
     //std::cout << "Integrals:  " << velocity_x_integral << " " << velocity_y_integral << '\n';
     //std::cout << "Integrals: " << velocity_x_integral << " " << velocity_y_integral << '\n';
-    std::cout << "Error Vector: " << std::get<0>(error_vector) << " " << std::get<1>(error_vector) << '\n';
-    std::cout << "Resultant Vector: " << std::get<0>(translation_vector) << " " << std::get<1>(translation_vector) << '\n';
+    debug::debug("Error Vector: %f %f\n", std::get<0>(error_vector), std::get<1>(error_vector));
+    debug::debug("Resultant Vector: %f %f\n", std::get<0>(translation_vector), std::get<1>(translation_vector));
 
     std::tuple<float, float, float, float> translation_motor_values =
         translate(translation_vector);

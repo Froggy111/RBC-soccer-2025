@@ -1,3 +1,4 @@
+#include "actions/kicker.hpp"
 #include "camera.hpp"
 #include "comms.hpp"
 #include "debug.hpp"
@@ -10,6 +11,7 @@
 #include <cmath>
 #include <cstdio>
 #include <opencv2/opencv.hpp>
+#include <thread>
 #include <unistd.h>
 
 camera::Camera cam;
@@ -33,7 +35,7 @@ bool start() {
     }
 
     // ^ Motion
-    // Reset motors
+
     motors::command_motor(1, 0);
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
     motors::command_motor(2, 0);
@@ -43,6 +45,7 @@ bool start() {
     motors::command_motor(4, 0);
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
     // motion_controller.startControlThread();
+
     debug::info("INITIALIZED MOTION CONTROL - SUCCESS");
 
     // ^ IR Sensors
@@ -91,22 +94,28 @@ int main() {
         return 1;
     }
 
+    motion_controller.init(0.16f, 0.00f, 0.0f, 0.2f, 0.1f, 0.0f, 1.0f);
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
-        auto commands = motion_controller.velocity_pid(
-            processor.current_pos.heading, M_PI, M_PI, 0.1f);
+        // auto commands = motion_controller.velocity_pid(
+        //     processor.current_pos.heading, M_PI / 2, M_PI / 2, 0.3f);
 
-        motors::command_motor_motion_controller(1,
-                                                std::get<0>(commands) * 1000);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor_motion_controller(2,
-                                                std::get<1>(commands) * 1000);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor_motion_controller(3,
-                                                std::get<2>(commands) * 1000);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor_motion_controller(4,
-                                                std::get<3>(commands) * 1000);
+        // motors::command_motor_motion_controller(1,
+        //                                         std::get<0>(commands) * 5000);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // motors::command_motor_motion_controller(2,
+        //                                         std::get<1>(commands) * 5000);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // motors::command_motor_motion_controller(3,
+        //                                         std::get<2>(commands) * 5000);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // motors::command_motor_motion_controller(4,
+        //                                         std::get<3>(commands) * 5000);
+
+        kicker::send_kick();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10000));
     }
 
     stop();
