@@ -6,6 +6,7 @@
 #include "position.hpp"
 #include <cstdio>
 #include <cstdlib>
+#include <unistd.h>
 #include <utility>
 
 namespace camera {
@@ -130,8 +131,12 @@ float CamProcessor::calculate_loss_chunks(const cv::Mat &camera_image,
             for (int k = 0; k < field_chunked::CHUNK_SIZE; k++) {
                 int32_t adjusted_x = final_x * field_chunked::CHUNK_SIZE + j;
                 int32_t adjusted_y = final_y * field_chunked::CHUNK_SIZE + k;
+                if (adjusted_x < 0 || adjusted_x > 480 || adjusted_x < 0 ||
+                    adjusted_x > 640) {
+                    continue;
+                }
 
-                const cv::Vec3b *row   = camera_image.ptr<cv::Vec3b>(adjusted_x);
+                const cv::Vec3b *row = camera_image.ptr<cv::Vec3b>(adjusted_x);
                 const cv::Vec3b &pixel = row[IMG_HEIGHT - adjusted_y];
 
                 if (!(pixel[0] > COLOR_R_THRES && pixel[1] > COLOR_G_THRES &&
@@ -147,7 +152,8 @@ float CamProcessor::calculate_loss_chunks(const cv::Mat &camera_image,
                     //            pixel[2]);
                 }
             }
-            if (found) break;
+            if (found)
+                break;
         }
         white += found;
         count++;
@@ -164,7 +170,7 @@ float CamProcessor::calculate_loss_chunks(const cv::Mat &camera_image,
 
 std::pair<Pos, float> CamProcessor::find_minima_particle_search(
     const cv::Mat &camera_image, Pos &initial_guess, int num_particles,
-    int num_generations, int variance_per_generation) {
+    int num_generations, int variance_per_generation, int heading_varience_per_generation) {
     Pos best_guess  = initial_guess;
     float best_loss = calculate_loss(camera_image, best_guess);
 
@@ -185,7 +191,7 @@ std::pair<Pos, float> CamProcessor::find_minima_particle_search(
                 field::FIELD_Y_SIZE / 2);
             new_guess.heading =
                 generate_random_number(
-                    (int)(new_guess.heading * (float)180 / M_PI), 10, 0, 360) *
+                    (int)(new_guess.heading * (float)180 / M_PI), heading_varience_per_generation, 0, 360) *
                 (float)M_PI / 180.0f;
 
             // calculate loss
@@ -213,10 +219,10 @@ CamProcessor::find_minima_full_search(const cv::Mat &camera_image, Pos &center,
     float best_loss = calculate_loss(camera_image, best_guess);
 
     // Search boundaries
-    int x_min = -IMG_WIDTH / 2;
-    int x_max = IMG_WIDTH / 2;
-    int y_min = -IMG_HEIGHT / 2;
-    int y_max = IMG_HEIGHT / 2;
+    int x_min = -field::FIELD_X_SIZE / 2;
+    int x_max = field::FIELD_Y_SIZE / 2;
+    int y_min = -field::FIELD_X_SIZE / 2;
+    int y_max = field::FIELD_Y_SIZE / 2;
 
     for (int x = x_min; x <= x_max; x += step) {
         for (int y = y_min; y <= y_max; y += step) {
@@ -328,26 +334,27 @@ std::pair<Pos, float> CamProcessor::find_minima_regression(
 }
 
 int CamProcessor::_frame_count = 0;
-Pos CamProcessor::current_pos  = {0, 0, 0};
+Pos CamProcessor::current_pos  = {-field::FIELD_X_SIZE / 2,
+                                  -field::FIELD_Y_SIZE / 2, 0};
 
 void CamProcessor::process_frame(const cv::Mat &frame) {
     Pos estimate = current_pos;
 
-    if (_frame_count % FULL_SEARCH_INTERVAL == 0) {
-        // Perform a full search every FULL_SEARCH_INTERVAL frames
-        auto res    = find_minima_full_search(frame, estimate, FULL_SEARCH_STEP,
-                                              FULL_SEARCH_HEADING_STEP);
-        estimate = res.first;
-        debug::log("Full search: %d, %d, %f", estimate.x, estimate.y,
-                   estimate.heading);
-    }
+    // if (_frame_count % FULL_SEARCH_INTERVAL == 0) {
+    //     // Perform a full search every FULL_SEARCH_INTERVAL frames
+    //     auto res = find_minima_full_search(frame, estimate, FULL_SEARCH_STEP,
+    //                                        FULL_SEARCH_HEADING_STEP);
+    //     estimate = res.first;
+    //     debug::log("Full search: %d, %d, %f", estimate.x, estimate.y,
+    //                estimate.heading);
+    // }
 
     auto res =
         find_minima_particle_search(frame, estimate, PARTICLE_SEARCH_NUM,
                                     PARTICLE_SEARCH_GEN, PARTICLE_SEARCH_VAR);
     current_pos = res.first;
-    debug::log("Position: %d, %d, %f", current_pos.x, current_pos.y,
-               current_pos.heading);
+    debug::log("Position: %d, %d, %f (Loss: %f)", current_pos.x, current_pos.y,
+               current_pos.heading / M_PI * 180, res.second);
 
     _frame_count += 1;
 }

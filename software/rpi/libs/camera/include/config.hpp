@@ -10,24 +10,25 @@ const int COLOR_G_THRES = 160;
 const int COLOR_B_THRES = 160;
 
 // image sizes
-const int IMG_WIDTH = 480;
+const int IMG_WIDTH  = 480;
 const int IMG_HEIGHT = 640;
 
 // full search
-const int FULL_SEARCH_STEP = 10;
-const int FULL_SEARCH_HEADING_STEP = 3;
-const int FULL_SEARCH_INTERVAL = 60;
+const int FULL_SEARCH_STEP         = 15;
+const int FULL_SEARCH_HEADING_STEP = 15;
+const int FULL_SEARCH_INTERVAL     = 60;
 
 // regression
-const int PARTICLE_SEARCH_NUM = 25;
-const int PARTICLE_SEARCH_GEN = 12;
-const int PARTICLE_SEARCH_VAR = 3;
+const int PARTICLE_SEARCH_NUM      = 3;
+const int PARTICLE_SEARCH_GEN      = 20;
+const int PARTICLE_SEARCH_VAR      = 4;
+const int PARTICLE_SEARCH_VAR_HEAD = 10;
 
 // gradient descent params
-const int REGRESSION_MAX_ITERATIONS = 50;
-const float REGRESSION_INITIAL_STEP_X = 5.0f;
-const float REGRESSION_INITIAL_STEP_Y = 5.0f;
-const float REGRESSION_INITIAL_STEP_HEADING = 0.05f;  // ~3 degrees
-const float REGRESSION_STEP_DECAY = 0.7f;
+const int REGRESSION_MAX_ITERATIONS          = 50;
+const float REGRESSION_INITIAL_STEP_X        = 5.0f;
+const float REGRESSION_INITIAL_STEP_Y        = 5.0f;
+const float REGRESSION_INITIAL_STEP_HEADING  = 0.05f; // ~3 degrees
+const float REGRESSION_STEP_DECAY            = 0.7f;
 const float REGRESSION_CONVERGENCE_THRESHOLD = 0.001f;
 } // namespace camera

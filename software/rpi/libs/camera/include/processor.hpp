@@ -35,7 +35,7 @@ class CamProcessor {
      * @brief Same as calculate_loss, but using the chunks
      */
     static float calculate_loss_chunks(const cv::Mat &camera_image, Pos &guess);
-  
+
     // * Functions to find the minima
 
     /**
@@ -50,9 +50,10 @@ class CamProcessor {
      */
     static std::pair<Pos, float> find_minima_particle_search(
         const cv::Mat &camera_image, Pos &initial_guess,
-        int num_particles           = PARTICLE_SEARCH_NUM,
-        int num_generations         = PARTICLE_SEARCH_GEN,
-        int variance_per_generation = PARTICLE_SEARCH_VAR);
+        int num_particles                   = PARTICLE_SEARCH_NUM,
+        int num_generations                 = PARTICLE_SEARCH_GEN,
+        int variance_per_generation         = PARTICLE_SEARCH_VAR,
+        int heading_varience_per_generation = PARTICLE_SEARCH_VAR_HEAD);
     /**
      * @brief Find the minima from an initial guess, using smart search
      * Aims to do grid search efficiently by searching middle first

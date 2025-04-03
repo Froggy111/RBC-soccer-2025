@@ -38,7 +38,7 @@ bool start() {
     motors::command_motor(3, 0);
     motors::command_motor(4, 0);
     // motion_controller.startControlThread();
-    debug::info("INITIALIZED MOTION CONTROL - SUCCESS\n");
+    debug::info("INITIALIZED MOTION CONTROL - SUCCESS");
 
     // ^ IR Sensors
     IR::IR_sensors.init();
@@ -70,20 +70,22 @@ int main() {
 
     comms::USB_CDC.init();
 
+    if (!start()) {
+        debug::error("INITIALIZATION - FAILED");
+        return 1;
+    }
+
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
-        auto commands = motion_controller.move_heading(0.0f, 0.0f, 0.2f);
-        motors::command_motor_motion_controller(1,
-                                                std::get<0>(commands) * 1200);
-        motors::command_motor_motion_controller(2,
-                                                std::get<1>(commands) * 1200);
-        motors::command_motor_motion_controller(3,
-                                                std::get<2>(commands) * 1200);
-        motors::command_motor_motion_controller(4,
-                                                std::get<3>(commands) * 1200);
-        debug::info("Motor commands: %d %d %d %d", std::get<0>(commands) * 1200,
-                    std::get<1>(commands) * 1200, std::get<2>(commands) * 1200,
-                    std::get<3>(commands) * 1200); // 4.... (big number) 0 1 0
+        // auto commands = motion_controller.move_heading(0.0f, 0.0f, 0.2f);
+        // motors::command_motor_motion_controller(1,
+        //                                         std::get<0>(commands) * 1200);
+        // motors::command_motor_motion_controller(2,
+        //                                         std::get<1>(commands) * 1200);
+        // motors::command_motor_motion_controller(3,
+        //                                         std::get<2>(commands) * 1200);
+        // motors::command_motor_motion_controller(4,
+        //                                         std::get<3>(commands) * 1200);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
