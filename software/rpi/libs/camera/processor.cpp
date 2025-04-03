@@ -422,17 +422,17 @@ std::pair<Pos, float> CamProcessor::find_minima_local_grid_search(
 }
 
 int CamProcessor::_frame_count = 0;
-Pos CamProcessor::current_pos  = {-field::FIELD_X_SIZE, 0, M_PI};
+Pos CamProcessor::current_pos  = {0, 0, M_PI};
 
 void CamProcessor::process_frame(const cv::Mat &frame) {
-    if (_frame_count % FULL_SEARCH_INTERVAL == 0) {
-        // Perform a full search every FULL_SEARCH_INTERVAL frames
-        auto res    = find_minima_full_search(frame, FULL_SEARCH_STEP,
-                                              FULL_SEARCH_HEADING_STEP);
-        current_pos = res.first;
-        debug::log("Full search: %d, %d, %f", current_pos.x, current_pos.y,
-                   current_pos.heading);
-    }
+    // if (_frame_count % FULL_SEARCH_INTERVAL == 0) {
+    //     // Perform a full search every FULL_SEARCH_INTERVAL frames
+    //     auto res    = find_minima_full_search(frame, FULL_SEARCH_STEP,
+    //                                           FULL_SEARCH_HEADING_STEP);
+    //     current_pos = res.first;
+    //     debug::log("Full search: %d, %d, %f", current_pos.x, current_pos.y,
+    //                current_pos.heading);
+    // }
 
     auto res = find_minima_local_grid_search(
         frame, current_pos, 8, 10, 14 * M_PI / 180, 3, 3, 2 * M_PI / 180);
