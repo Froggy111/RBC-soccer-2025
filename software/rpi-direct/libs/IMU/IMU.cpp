@@ -4,6 +4,10 @@
 #include "timer.hpp"
 #include "types.hpp"
 
+extern "C" {
+#include <memory.h>
+}
+
 using namespace types;
 
 namespace IMU {
@@ -42,9 +46,8 @@ static u64 previous_timestamp    = 0;
 
 void init(void) {
     previous_timestamp = timer::us();
-    comms::USB_CDC.register_callback(usb::DeviceType::TOP_PLATE,
-                                     (u8)comms::RecvTopPicoIdentifiers::IMU,
-                                     IMU_processor);
+    comms::USB_CDC.registerTopPicoHandler(comms::RecvTopPicoIdentifiers::IMU,
+                                          IMU_processor);
     return;
 }
 Vec3f32 position(void) { return current_integrated_data.position; }

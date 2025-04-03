@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ostream>
+
 extern "C" {
 #include <stdint.h>
 }
@@ -103,5 +105,10 @@ struct Vec3f32 {
     // Negation
     Vec3f32 operator-() const { return Vec3f32(-x, -y, -z); }
 };
+
+static std::ostream &operator<<(std::ostream &os, const Vec3f32 &vec) {
+    os << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")";
+    return os;
+}
 
 } // namespace types
