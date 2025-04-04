@@ -1,13 +1,8 @@
-// goalpost_detection.h
-#ifndef GOALPOST_DETECTION_H
-#define GOALPOST_DETECTION_H
-
 #include <opencv2/opencv.hpp>
-#include <iostream>
 #include <vector>
 #include <cmath>
-#include <chrono>
-#include <filesystem>
+
+namespace goalpost {
 
 // Constants
 const bool DEBUG = true;
@@ -53,4 +48,4 @@ std::vector<cv::Point> combineGoalpostParts(const std::vector<std::vector<cv::Po
 
 cv::Point2f findQuadMidpoint(const std::vector<cv::Point2f>& quadPoints);
 
-#endif // GOALPOST_DETECTION_H
+}
