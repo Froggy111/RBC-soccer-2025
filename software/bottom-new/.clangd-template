@@ -1,9 +1,0 @@
-CompileFlags:
-  Add:
-    [
-      -D__ARMCOMPILER_VERSION=6010050,
-      -D_LIBCPP_HAS_NO_THREADS=1,
-      -D__cpp_vendor_availability__,
-      "-isystem${ARM_NONE_EABI_SYSROOT_PATH}/include",
-      -ferror-limit=0,
-    ]
