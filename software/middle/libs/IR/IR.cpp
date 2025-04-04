@@ -48,10 +48,7 @@ void pulse_handler_individual(u8 id, u32 event) {
   if (event & GPIO_IRQ_EDGE_FALL) { // IR activation
     pulse_data[id].last_fall = time_us_64();
   } else if (event & GPIO_IRQ_EDGE_RISE) {
-    u32 time_passed = time_us_64() - pulse_data[id].last_fall;
-    if (time_passed < max_time_passed) {
-      pulse_data[id].uptime += time_passed;
-    }
+    pulse_data[id].uptime += time_us_64() - pulse_data[id].last_fall;
   }
   return;
 }
@@ -68,7 +65,7 @@ void modulation_handler(void) {
   for (u8 i = 0; i < SENSOR_COUNT; i++) {
     // copy all the current uptimes over and zero pulse data
     modulation_data[i].uptime = pulse_data[i].uptime;
-    pulse_data[i].reset();
+    pulse_data[i].zero();
   }
   xTaskNotifyFromISR(modulation_handler_task_handle, 0, eNoAction,
                      &higher_priority_task_woken);
