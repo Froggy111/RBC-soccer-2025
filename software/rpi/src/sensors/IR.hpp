@@ -17,6 +17,7 @@ class IR {
   public:
     void init(void);
     static void data_processor(const types::u8 *data, types::u16 data_len);
+    static types::u32 get_data_for_sensor_id(int id);
 
   private:
     static volatile ModulationData modulation_data[SENSOR_COUNT];

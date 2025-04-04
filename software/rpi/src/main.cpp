@@ -1,3 +1,5 @@
+#include "IMU.hpp"
+#include "actions/LEDs.hpp"
 #include "actions/kicker.hpp"
 #include "camera.hpp"
 #include "comms.hpp"
@@ -13,7 +15,6 @@
 #include <opencv2/opencv.hpp>
 #include <thread>
 #include <unistd.h>
-#include "IMU.hpp"
 
 camera::Camera cam;
 camera::CamProcessor processor;
@@ -102,7 +103,35 @@ int main() {
     std::this_thread::sleep_for(std::chrono::seconds(5));
 
     // Main loop with emergency stop check
-    while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP){
+    while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
+        int max_IR_idx = 0, max_IR = 0;
+        for (int i = 0; i < IR::SENSOR_COUNT; i++) {
+            if (IR::IR_sensors.get_data_for_sensor_id(i) > max_IR) {
+                max_IR_idx = i;
+                max_IR     = IR::IR_sensors.get_data_for_sensor_id(i);
+            }
+
+            if (IR::IR_sensors.get_data_for_sensor_id(i) > 0) {
+                LEDs::LEDBLinkerData data = {
+                    .id = (types::u8) i,
+                    .RED  = 0,
+                    .GREEN  = 255,
+                    .BLUE  = 0,
+                };
+                LEDs::set_LED(data);
+            } else {
+                LEDs::LEDBLinkerData data = {
+                    .id = (types::u8) i,
+                    .RED  = 255,
+                    .GREEN  = 0,
+                    .BLUE  = 0,
+                };
+                LEDs::set_LED(data);
+            }
+        }
+
+        float angle = max_IR * (15.0f / 180.0f * M_PI) - M_PI;
+
         // auto commands = motion_controller.velocity_pid(
         //     processor.current_pos.heading, M_PI / 2, M_PI / 2, 0.3f);
 

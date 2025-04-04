@@ -463,8 +463,8 @@ void CamProcessor::process_frame(const cv::Mat &frame) {
     current_pos.x       = res.first.x;
     current_pos.y       = res.first.y;
     current_pos.heading = res.first.heading;
-    debug::warn("POSITION: %d, %d, %f (Loss: %f)", current_pos.x, current_pos.y,
-                current_pos.heading / M_PI * 180, res.second);
+    // debug::warn("POSITION: %d, %d, %f (Loss: %f)", current_pos.x, current_pos.y,
+    //             current_pos.heading / M_PI * 180, res.second);
 
     _frame_count += 1;
 }
