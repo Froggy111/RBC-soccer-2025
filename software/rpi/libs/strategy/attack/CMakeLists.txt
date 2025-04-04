@@ -1,8 +1,16 @@
 add_library(attack)
 target_sources(attack
 PUBLIC
-    attack.hpp
-    ball_capture.hpp
+    include/attack.hpp
+    include/ball_capture.hpp
 PRIVATE
     attack.cpp
-    )
+)
+target_link_globals(attack)
+target_include_directories(attack
+    PUBLIC
+    $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+)
