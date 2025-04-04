@@ -64,16 +64,16 @@ void modulation_handler(void) {
 
   u32 next_alarm_target = current_alarm_target + US_PER_MODULATION;
   timer_hw->alarm[MODULATION_ALARM_IDX] = next_alarm_target;
-  //
-  // for (u8 i = 0; i < SENSOR_COUNT; i++) {
-  //   // copy all the current uptimes over and zero pulse data
-  //   modulation_data[i].uptime = pulse_data[i].uptime;
-  //   pulse_data[i].reset();
-  // }
-  // xTaskNotifyFromISR(modulation_handler_task_handle, 0, eNoAction,
-  //                    &higher_priority_task_woken);
+
+  for (u8 i = 0; i < SENSOR_COUNT; i++) {
+    // copy all the current uptimes over and zero pulse data
+    modulation_data[i].uptime = pulse_data[i].uptime;
+    pulse_data[i].reset();
+  }
+  xTaskNotifyFromISR(modulation_handler_task_handle, 0, eNoAction,
+                     &higher_priority_task_woken);
   gpio_put(comms::LED_PIN, !gpio_get(comms::LED_PIN));
-  // portYIELD_FROM_ISR(higher_priority_task_woken);
+  portYIELD_FROM_ISR(higher_priority_task_woken);
 }
 
 void modulation_handler_task(void *params) {
