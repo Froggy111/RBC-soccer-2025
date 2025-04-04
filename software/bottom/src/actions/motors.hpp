@@ -21,6 +21,12 @@ MotorRecvData motor_task_data = {};
 u8 motor_task_buffer[sizeof(motor_task_data)];
 SemaphoreHandle_t motor_data_mutex = nullptr;
 
+i16 current_duty_cycles[4] = {0};
+i16 target_duty_cycles[4] = {0};
+const u32 max_duty_cycle = 12500;
+const u32 min_duty_cycle_ramp = 10000;
+const u32 max_duty_cycle_per_ms = max_duty_cycle / min_duty_cycle_ramp;
+
 void motor_task(void *args) {
   // initialize all motors
   if (driver1.init(1, spi0)) {
@@ -62,31 +68,58 @@ void motor_task(void *args) {
   debug::info("Motors initialized");
 
   for (;;) {
+    TickType_t previous_wait_time = xTaskGetTickCount();
     // * data transfer
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    xSemaphoreTake(motor_data_mutex, portMAX_DELAY);
-    memcpy(&motor_task_data, motor_task_buffer, sizeof(motor_task_data));
-    memset(motor_task_buffer, 0, sizeof(motor_task_buffer));
-    xSemaphoreGive(motor_data_mutex);
+    if (ulTaskNotifyTake(pdTRUE, 0)) {
+      xSemaphoreTake(motor_data_mutex, portMAX_DELAY);
+      memcpy(&motor_task_data, motor_task_buffer, sizeof(motor_task_data));
+      memset(motor_task_buffer, 0, sizeof(motor_task_buffer));
+      xSemaphoreGive(motor_data_mutex);
+      target_duty_cycles[motor_task_data.id + 1] = motor_task_data.duty_cycle;
 
-    switch (motor_task_data.id) {
-    case 1:
-      driver1.command(motor_task_data.duty_cycle);
-      break;
-    case 2:
-      driver2.command(motor_task_data.duty_cycle);
-      break;
-    case 3:
-      driver3.command(motor_task_data.duty_cycle);
-      break;
-    case 4:
-      driver4.command(motor_task_data.duty_cycle);
-      break;
-    default:
-      debug::error("Invalid motor ID: %d\n", motor_task_data.id);
-      break;
+      switch (motor_task_data.id) {
+      case 1:
+        driver1.command(motor_task_data.duty_cycle);
+        break;
+      case 2:
+        driver2.command(motor_task_data.duty_cycle);
+        break;
+      case 3:
+        driver3.command(motor_task_data.duty_cycle);
+        break;
+      case 4:
+        driver4.command(motor_task_data.duty_cycle);
+        break;
+      default:
+        debug::error("Invalid motor ID: %d\n", motor_task_data.id);
+        break;
+      }
+    }
+    for (u8 id = 0; id < 4; id++) {
+      if (target_duty_cycles[id] != current_duty_cycles[id]) {
+        if (target_duty_cycles[id] - current_duty_cycles[id] > 0) {
+          current_duty_cycles[id] +=
+              MIN(max_duty_cycle_per_ms,
+                  target_duty_cycles[id] - current_duty_cycles[id]);
+        } else {
+          current_duty_cycles[id] -=
+              MIN(max_duty_cycle_per_ms,
+                  current_duty_cycles[id] - target_duty_cycles[id]);
+        }
+        switch (id) {
+        case 1:
+          driver1.command(current_duty_cycles[id]);
+        case 2:
+          driver2.command(current_duty_cycles[id]);
+        case 3:
+          driver3.command(current_duty_cycles[id]);
+        case 4:
+          driver4.command(current_duty_cycles[id]);
+        }
+      }
     }
     // debug::info("Motor %d: %d\n", motor_task_data.id,
     // motor_task_data.duty_cycle);
+    vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(1));
   }
 }
