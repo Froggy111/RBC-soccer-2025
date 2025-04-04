@@ -1,5 +1,6 @@
 extern "C" {
 #include <pico/stdlib.h>
+#include <hardware/clocks.h>
 }
 #include "comms.hpp"
 #include "debug.hpp"
@@ -25,6 +26,7 @@ void main_task(void *args) {
 }
 
 int main() {
+  set_sys_clock_hz(SYS_CLK_HZ, true);
   // * Init USB Comms
   comms::init();
 
