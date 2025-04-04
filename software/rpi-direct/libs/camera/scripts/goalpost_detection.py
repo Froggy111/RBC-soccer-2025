@@ -339,6 +339,12 @@ def find_closest_points_to_center(quad_points, center_point=CENTRE_POINT):
     closest_indices = [distances[0][0], distances[1][0]]
     return quad_points[closest_indices[0]], quad_points[closest_indices[1]]
 
+def find_distance_to_goal(goal_midpoint): #goal_midpoint is a 2-element list
+    x_delta = goal_midpoint[0] - CENTRE_POINT[0]
+    y_delta = goal_midpoint[1] - CENTRE_POINT[1]
+
+    return (x_delta**2 + y_delta**2)**0.5
+
 
 # Main loop
 while cap.isOpened():
@@ -411,7 +417,8 @@ while cap.isOpened():
         blue_bottom_midpoint = find_line_midpoint(
             [closest_point1.astype(int), closest_point2.astype(int)]
         )
-
+        blue_goal_distance = find_distance_to_goal(blue_bottom_midpoint)
+        print("Distance to Blue Goal: " + str(blue_goal_distance))
         cv2.circle(output, point1_int, 7, (255, 0, 0), -1)
         cv2.circle(output, point2_int, 7, (255, 0, 0), -1)
         cv2.line(output, point1_int, point2_int, (255, 0, 0), 2)
@@ -519,6 +526,8 @@ while cap.isOpened():
         yellow_bottom_midpoint = find_line_midpoint(
             [closest_point1.astype(int), closest_point2.astype(int)]
         )
+        yellow_goal_distance = find_distance_to_goal(yellow_bottom_midpoint)
+        print("Distance to Yellow Goal: " + str(yellow_goal_distance))
         point1_int = tuple(closest_point1.astype(int))
         point2_int = tuple(closest_point2.astype(int))
 
