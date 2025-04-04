@@ -76,24 +76,6 @@ void motor_task(void *args) {
       memset(motor_task_buffer, 0, sizeof(motor_task_buffer));
       xSemaphoreGive(motor_data_mutex);
       target_duty_cycles[motor_task_data.id + 1] = motor_task_data.duty_cycle;
-
-      switch (motor_task_data.id) {
-      case 1:
-        driver1.command(motor_task_data.duty_cycle);
-        break;
-      case 2:
-        driver2.command(motor_task_data.duty_cycle);
-        break;
-      case 3:
-        driver3.command(motor_task_data.duty_cycle);
-        break;
-      case 4:
-        driver4.command(motor_task_data.duty_cycle);
-        break;
-      default:
-        debug::error("Invalid motor ID: %d\n", motor_task_data.id);
-        break;
-      }
     }
     for (u8 id = 0; id < 4; id++) {
       if (target_duty_cycles[id] != current_duty_cycles[id]) {
