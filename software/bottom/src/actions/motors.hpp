@@ -24,8 +24,8 @@ static MotorRecvData motor_task_data = {};
 static u8 motor_task_buffer[sizeof(motor_task_data)];
 static SemaphoreHandle_t motor_data_mutex = nullptr;
 
-i16 current_duty_cycles[4] = {0};
-i16 target_duty_cycles[4] = {0};
+static i16 current_duty_cycles[4] = {0};
+static i16 target_duty_cycles[4] = {0};
 const u32 max_duty_cycle = 12500;
 const u32 min_duty_cycle_ramp = 10000;
 const u32 max_duty_cycle_per_ms = max_duty_cycle / min_duty_cycle_ramp;
