@@ -68,5 +68,4 @@ int main() {
   xTaskCreate(main_task, "main_task", 1024, NULL, 10, &main_task_handle);
 
   vTaskStartScheduler();
-  return 0;
 }
