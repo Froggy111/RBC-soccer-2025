@@ -37,6 +37,7 @@ void motor_task(void *args) {
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }
+  vTaskDelay(pdMS_TO_TICKS(1));
 
   if (driver2.init(2, spi0)) {
     debug::info("Motor Driver 2 Initialized!\n");
@@ -46,6 +47,7 @@ void motor_task(void *args) {
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }
+  vTaskDelay(pdMS_TO_TICKS(1));
 
   if (driver3.init(3, spi0)) {
     debug::info("Motor Driver 3 Initialized!\n");
@@ -55,6 +57,7 @@ void motor_task(void *args) {
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }
+  vTaskDelay(pdMS_TO_TICKS(1));
 
   if (driver4.init(4, spi0)) {
     debug::info("Motor Driver 4 Initialized!\n");
@@ -64,6 +67,7 @@ void motor_task(void *args) {
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }
+  vTaskDelay(pdMS_TO_TICKS(1));
 
   debug::info("Motors initialized");
 
