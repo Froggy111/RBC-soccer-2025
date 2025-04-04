@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <opencv2/opencv.hpp>
 #include <thread>
+#include <tuple>
 #include <unistd.h>
 
 camera::Camera cam;
@@ -100,7 +101,6 @@ int main() {
     }
 
     motion_controller.init(0.16f, 0.00f, 0.0f, 0.2f, 0.1f, 0.0f, 1.0f);
-    std::this_thread::sleep_for(std::chrono::seconds(5));
 
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
@@ -110,30 +110,17 @@ int main() {
                 max_IR_idx = i;
                 max_IR     = IR::IR_sensors.get_data_for_sensor_id(i);
             }
-
-            if (IR::IR_sensors.get_data_for_sensor_id(i) > 0) {
-                LEDs::LEDBLinkerData data = {
-                    .id = (types::u8) i,
-                    .RED  = 0,
-                    .GREEN  = 255,
-                    .BLUE  = 0,
-                };
-                LEDs::set_LED(data);
-            } else {
-                LEDs::LEDBLinkerData data = {
-                    .id = (types::u8) i,
-                    .RED  = 255,
-                    .GREEN  = 0,
-                    .BLUE  = 0,
-                };
-                LEDs::set_LED(data);
-            }
         }
 
-        float angle = max_IR * (15.0f / 180.0f * M_PI) - M_PI;
+        float angle = max_IR_idx * (15.0f / 180.0f * M_PI) - M_PI * 3 / 2;
+        if (angle < 0) {
+            angle += M_PI * 2;
+        }
 
-        // auto commands = motion_controller.velocity_pid(
-        //     processor.current_pos.heading, M_PI / 2, M_PI / 2, 0.3f);
+        // debug::info("Angle: %f", angle * 180 / M_PI);
+
+        // auto commands =
+        //     motion_controller.translate(std::make_tuple(angle, 0.1f));
 
         // motors::command_motor_motion_controller(1,
         //                                         std::get<0>(commands) * 5000);
@@ -147,8 +134,20 @@ int main() {
         // motors::command_motor_motion_controller(4,
         //                                         std::get<3>(commands) * 5000);
 
+        motors::command_motor(1, 1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        motors::command_motor(2, 1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        motors::command_motor(3, 1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        motors::command_motor(4, 1000);
+
+        // debug::info("Motor 1: %f, Motor 2: %f, Motor 3: %f, Motor 4: %f",
+        //             std::get<0>(commands), std::get<1>(commands),
+        //             std::get<2>(commands), std::get<3>(commands));
+
         // kicker::send_kick();
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     stop();
