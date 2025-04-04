@@ -23,6 +23,14 @@ void IR::data_processor(const types::u8 *data, types::u16 data_len) {
     return;
 }
 
+types::u32 IR::get_data_for_sensor_id(int id) {
+    if (id < 0 || id >= SENSOR_COUNT) {
+        debug::error("IR::get_data_for_sensor_id: Invalid sensor ID");
+        return 0;
+    }
+    return modulation_data[id];
+}
+
 IR IR_sensors = IR();
 
 } // namespace IR

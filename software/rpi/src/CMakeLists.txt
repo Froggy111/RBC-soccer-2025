@@ -5,6 +5,7 @@ target_sources(main
   mode_controller.hpp
   sensors/IR.cpp
   sensors/IR.hpp
+  actions/LEDs.hpp
   actions/kicker.hpp
 )
 
