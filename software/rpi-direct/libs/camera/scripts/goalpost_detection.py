@@ -2,34 +2,34 @@ import cv2
 import numpy as np
 import os
 import datetime
+import math
 import time
 
 DEBUG = True
 
-video_path = "RBC-soccer-2025/software/rpi-direct/libs/camera/scripts/vid.mp4"
-print(
-    "file exists? "
-    + str(os.path.exists("RBC-soccer-2025/software/rpi-direct/libs/camera/scripts/vid.mp4"))
-)
+video_path = "vid4.mp4"
+print("file exists? " + str(os.path.exists("vid4.mp4")))
 cap = cv2.VideoCapture(video_path)
 
 # Correct HSV values for blue (OpenCV uses H:0-180, S:0-255, V:0-255)
-BLUE_LOWER = np.array([70, 146, 50])  # Blue color has ~100-130 hue in OpenCV
+BLUE_LOWER = np.array([100, 50, 50])  # Blue color has ~100-130 hue in OpenCV
 BLUE_UPPER = np.array([150, 255, 255])  # Upper limit within valid range
 
 # Correct HSV values for yellow
-YELLOW_LOWER = np.array([20, 100, 100])  # Yellow is around 20-30 in OpenCV HSV
+YELLOW_LOWER = np.array([20, 137, 110])  # Yellow is around 20-30 in OpenCV HSV
 YELLOW_UPPER = np.array([30, 255, 255])
 
 # Field green
 FIELD_LOWER = np.array([35, 50, 50])  # Green is around 35-85 in OpenCV HSV
 FIELD_UPPER = np.array([85, 255, 255])
 
-MIN_CONTOUR_AREA = 300  # Reduced to detect smaller goalposts
+MIN_CONTOUR_AREA = 400  # Reduced to detect smaller goalposts
 MIN_GOAL_HEIGHT = 10
 EDGE_SEARCH_HEIGHT = 69
 EPSILON_FACTOR = 0.05  # Increased for better approximation
 PARALLELOGRAM_TOLERANCE = 1  # Increased tolerance for parallelism
+
+CENTRE_POINT = [640 // 2 - 5, 480 // 2 + 30]
 
 
 def find_true_bottom_edge(frame, bbox, goal_lower, goal_upper):
@@ -328,6 +328,14 @@ def combine_goalpost_parts(contours, min_area):
         return significant_contours[0]
     return None
 
+
+def find_line_midpoint(line_points):
+    total_x = (line_points[0][0] + line_points[1][0]) / 2
+    total_y = (line_points[0][1] + line_points[1][1]) / 2
+
+    return [total_x, total_y]
+
+
 def find_quad_midpoint(quad_points):
     total_x = 0.0
     total_y = 0.0
@@ -335,7 +343,45 @@ def find_quad_midpoint(quad_points):
         total_x += quad_points[i][0]
         total_y += quad_points[i][1]
 
-    return [total_x/4, total_y/4]
+    return [total_x / 4, total_y / 4]
+
+
+def find_goal_angle(goal_midpoint):
+    delta_x = goal_midpoint[0].astype(int) - CENTRE_POINT[0]
+    delta_y = goal_midpoint[1].astype(int) - CENTRE_POINT[1]
+
+    goal_angle = math.atan2(delta_y, delta_x)
+    return goal_angle + math.pi / 2
+
+
+def find_closest_points_to_center(quad_points, center_point=CENTRE_POINT):
+    """
+    Find the two points of the quadrilateral that are closest to the center of the image
+
+    Args:
+        quad_points: The ordered quadrilateral points
+        center_point: The center point of the image
+
+    Returns:
+        A tuple of the two closest points to the center
+    """
+    # Calculate distances from each point to the center
+    distances = []
+    for i, point in enumerate(quad_points):
+        dist = np.sqrt(
+            (point[0] - center_point[0]) ** 2 + (point[1] - center_point[1]) ** 2
+        )
+        distances.append((i, dist))
+
+    # Sort by distance
+    distances.sort(key=lambda x: x[1])
+
+    # Get the indices of the two closest points
+    closest_indices = [distances[0][0], distances[1][0]]
+
+    # Return the two closest points
+    return quad_points[closest_indices[0]], quad_points[closest_indices[1]]
+
 
 # Main loop
 while cap.isOpened():
@@ -375,6 +421,8 @@ while cap.isOpened():
     # Step 4: Process blue goalpost - try multiple approaches
     blue_detected = False
 
+    cv2.circle(output, (640 // 2 - 5, 480 // 2 + 30), 5, (255, 255, 255), -1)
+
     # Try approach 1: Filter and combine
     filtered_blue = filter_out_rods(blue_contours)
     if len(filtered_blue) > 1:
@@ -411,6 +459,43 @@ while cap.isOpened():
             pt2 = tuple(blue_quad[(i + 1) % 4].astype(int))
             cv2.line(output, pt1, pt2, (255, 0, 0), 2)
 
+        # Find the two closest points to the center
+        closest_point1, closest_point2 = find_closest_points_to_center(blue_quad)
+
+        # Convert to integer tuples for drawing
+        point1_int = tuple(closest_point1.astype(int))
+        point2_int = tuple(closest_point2.astype(int))
+
+        closest_point1, closest_point2 = find_closest_points_to_center(blue_quad)
+        blue_bottom_midpoint = find_line_midpoint(
+            [closest_point1.astype(int), closest_point2.astype(int)]
+        )
+        # Convert to integer tuples for drawing
+        point1_int = tuple(closest_point1.astype(int))
+        point2_int = tuple(closest_point2.astype(int))
+
+        # Draw the closest points with distinctive color
+        cv2.circle(output, point1_int, 7, (255, 0, 0), -1)  # Blue
+        cv2.circle(output, point2_int, 7, (255, 0, 0), -1)  # Blue
+
+        # Draw a line connecting the closest points
+        cv2.line(output, point1_int, point2_int, (255, 0, 0), 2)
+
+        # Convert bottom midpoint values to integers before using in cv2.circle
+        blue_line_midpoint_x = int(blue_bottom_midpoint[0])
+        blue_line_midpoint_y = int(blue_bottom_midpoint[1])
+        cv2.circle(output, (blue_line_midpoint_x, blue_line_midpoint_y), 7, (255, 255, 0), -1)
+
+        # Draw the closest points with distinctive color
+        cv2.circle(output, point1_int, 7, (0, 255, 255), -1)  # Yellow
+        cv2.circle(output, point2_int, 7, (0, 255, 255), -1)  # Yellow
+
+        # Draw a line connecting the closest points
+        cv2.line(output, point1_int, point2_int, (0, 255, 255), 2)
+
+        # Print the closest points
+        print(f"Closest points to center: {point1_int}, {point2_int}")
+
         # Find the true bottom edge
         bottom_edge_y = find_true_bottom_edge_quadrilateral(
             frame, blue_quad, BLUE_LOWER, BLUE_UPPER
@@ -425,7 +510,13 @@ while cap.isOpened():
         print(blue_midpoint)
         # Draw the nearest field point
         cv2.circle(output, (nearest_x, nearest_y), 5, (255, 255, 0), -1)
-        cv2.circle(output, (blue_midpoint[0].astype(int), blue_midpoint[1].astype(int)), 5, (255, 255, 255), -1)
+        cv2.circle(
+            output,
+            (blue_midpoint[0].astype(int), blue_midpoint[1].astype(int)),
+            5,
+            (255, 255, 255),
+            -1,
+        )
 
         cv2.line(
             output,
@@ -451,6 +542,16 @@ while cap.isOpened():
             0.5,
             (255, 255, 255),
             1,
+        )
+        blue_goal_angle = find_goal_angle(blue_midpoint)
+        cv2.putText(
+            output,
+            f"Angle: {(blue_goal_angle*180/(math.pi)):.1f} deg",
+            (blue_midpoint[0].astype(int) - 40, blue_midpoint[1].astype(int) + 40),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (0, 0, 255),
+            2,
         )
 
     # Step 5: Process yellow goalpost - using same approach as blue
@@ -492,6 +593,30 @@ while cap.isOpened():
             pt2 = tuple(yellow_quad[(i + 1) % 4].astype(int))
             cv2.line(output, pt1, pt2, (0, 255, 255), 2)
 
+        # Find the two closest points to the center
+        closest_point1, closest_point2 = find_closest_points_to_center(yellow_quad)
+        yellow_bottom_midpoint = find_line_midpoint(
+            [closest_point1.astype(int), closest_point2.astype(int)]
+        )
+        # Convert to integer tuples for drawing
+        point1_int = tuple(closest_point1.astype(int))
+        point2_int = tuple(closest_point2.astype(int))
+
+        # Draw the closest points with distinctive color
+        cv2.circle(output, point1_int, 7, (255, 0, 0), -1)  # Blue
+        cv2.circle(output, point2_int, 7, (255, 0, 0), -1)  # Blue
+
+        # Draw a line connecting the closest points
+        cv2.line(output, point1_int, point2_int, (255, 0, 0), 2)
+
+        # Convert bottom midpoint values to integers before using in cv2.circle
+        yellow_line_midpoint_x = int(yellow_bottom_midpoint[0])
+        yellow_line_midpoint_y = int(yellow_bottom_midpoint[1])
+        cv2.circle(output, (yellow_line_midpoint_x, yellow_line_midpoint_y), 7, (0, 0, 255), -1)
+
+        # Print the closest points
+        print(f"Yellow closest points to center: {point1_int}, {point2_int}")
+
         # Find the true bottom edge
         bottom_edge_y = find_true_bottom_edge_quadrilateral(
             frame, yellow_quad, YELLOW_LOWER, YELLOW_UPPER
@@ -505,8 +630,16 @@ while cap.isOpened():
         nearest_x, nearest_y = nearest_point.astype(int)
 
         # Draw the nearest field point
+
         cv2.circle(output, (nearest_x, nearest_y), 5, (0, 255, 255), -1)
-        cv2.circle(output, (yellow_midpoint[0].astype(int), yellow_midpoint[1].astype(int)), 5, (255, 255, 255), -1)
+
+        cv2.circle(
+            output,
+            (yellow_midpoint[0].astype(int), yellow_midpoint[1].astype(int)),
+            5,
+            (255, 255, 255),
+            -1,
+        )
         cv2.line(
             output,
             (nearest_x - 10, nearest_y),
@@ -531,6 +664,16 @@ while cap.isOpened():
             0.5,
             (255, 255, 255),
             1,
+        )
+        yellow_goal_angle = find_goal_angle(yellow_midpoint)
+        cv2.putText(
+            output,
+            f"Angle: {(yellow_goal_angle*180/(math.pi)):.1f} deg",
+            (yellow_midpoint[0].astype(int) - 40, yellow_midpoint[1].astype(int) + 40),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (0, 0, 255),
+            2,
         )
 
     # Display debug visualization
