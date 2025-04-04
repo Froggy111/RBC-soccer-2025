@@ -42,7 +42,7 @@ void init(void);
 
 // modulation timer
 const uint MODULATION_IRQ = TIMER_IRQ_0;
-const double MODULATION_FREQ = 1200 / 128; // 833.333us per cycle
+const double MODULATION_FREQ = 1200; // 833.333us per cycle
 // const types::u32 CYCLES_PER_MODULATION =
 // (double)SYS_CLK_HZ / (double)MODULATION_FREQ;
 const types::u32 US_PER_MODULATION = 1e6 / MODULATION_FREQ;
