@@ -71,6 +71,7 @@ void modulation_handler(void) {
   }
   xTaskNotifyFromISR(modulation_handler_task_handle, 0, eNoAction,
                      &higher_priority_task_woken);
+  gpio_put(comms::LED_PIN, !gpio_get(comms::LED_PIN));
   portYIELD_FROM_ISR(higher_priority_task_woken);
 }
 
