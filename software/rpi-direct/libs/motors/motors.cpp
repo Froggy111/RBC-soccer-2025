@@ -3,13 +3,14 @@
 #include "config.hpp"
 #include "debug.hpp"
 #include "motion.hpp"
+#include <unistd.h>
 
 using namespace types;
 
 namespace motors {
 
 bool command_motor(uint8_t id, types::i16 duty_cycle) {
-    if (abs(duty_cycle) > MOTOR_MAX_DUTY_CYCLE) {
+    if (duty_cycle > MOTOR_MAX_DUTY_CYCLE) {
         debug::error("Motor duty cycle %d is too high, max is %d", duty_cycle,
                      MOTOR_MAX_DUTY_CYCLE);
         return false;
@@ -39,6 +40,7 @@ void translate(types::Vec2f32 vec) {
     auto commands = motion_controller.move_heading(0.0f, 0.0f, 0.2f);
     motors::command_motor_motion_controller(1, std::get<0>(commands) *
                                                    MOTOR_MAX_DUTY_CYCLE);
+    usleep(100);
     motors::command_motor_motion_controller(2, std::get<1>(commands) *
                                                    MOTOR_MAX_DUTY_CYCLE);
     motors::command_motor_motion_controller(3, std::get<2>(commands) *
@@ -61,12 +63,15 @@ std::tuple<f32, f32, f32, f32> operator+(std::tuple<f32, f32, f32, f32> &a,
 }
 
 void translate_with_target_heading(f32 speed, f32 translate_heading,
-                                   f32 orientation_heading) {
+                                   f32 orientation_heading,
+                                   const Vec2f32 &line_evading) {
     auto translate_command =
         motion_controller.move_heading(0, -translate_heading, speed);
-    auto orient_command = motion_controller.velocity_pid(
+    auto line_evade_command = motion_controller.translate(line_evading);
+    auto orient_command     = motion_controller.velocity_pid(
         0, -orientation_heading, -orientation_heading, 0);
     auto summed_command = translate_command + orient_command;
+    summed_command      = summed_command + line_evade_command;
     motors::command_motor_motion_controller(1, std::get<0>(summed_command) *
                                                    MOTOR_MAX_DUTY_CYCLE);
     motors::command_motor_motion_controller(2, std::get<1>(summed_command) *

@@ -111,4 +111,81 @@ static std::ostream &operator<<(std::ostream &os, const Vec3f32 &vec) {
     return os;
 }
 
+struct Vec2f32 {
+    Vec2f32(f32 x, f32 y) : x(x), y(y) {}
+    f32 x, y;
+
+    // Addition
+    Vec2f32 operator+(const Vec2f32 &other) const {
+        return Vec2f32(x + other.x, y + other.y);
+    }
+
+    // Subtraction
+    Vec2f32 operator-(const Vec2f32 &other) const {
+        return Vec2f32(x - other.x, y - other.y);
+    }
+
+    // Scalar multiplication
+    Vec2f32 operator*(f32 scalar) const {
+        return Vec2f32(x * scalar, y * scalar);
+    }
+
+    // Scalar division
+    Vec2f32 operator/(f32 scalar) const {
+        return Vec2f32(x / scalar, y / scalar);
+    }
+
+    // multiply member by member
+    Vec2f32 operator*(const Vec2f32 &other) const {
+        return Vec2f32(x * other.x, y * other.y);
+    }
+
+    f32 dot(const Vec2f32 &other) const { return x * other.x + y * other.y; }
+
+    // Cross product for 2D vectors (returns scalar)
+    f32 cross(const Vec2f32 &other) const { return x * other.y - y * other.x; }
+
+    // Compound assignment operators
+    Vec2f32 &operator+=(const Vec2f32 &other) {
+        x += other.x;
+        y += other.y;
+        return *this;
+    }
+
+    Vec2f32 &operator-=(const Vec2f32 &other) {
+        x -= other.x;
+        y -= other.y;
+        return *this;
+    }
+
+    Vec2f32 &operator*=(f32 scalar) {
+        x *= scalar;
+        y *= scalar;
+        return *this;
+    }
+
+    Vec2f32 &operator/=(f32 scalar) {
+        x /= scalar;
+        y /= scalar;
+        return *this;
+    }
+
+    // Equality operators
+    bool operator==(const Vec2f32 &other) const {
+        return x == other.x && y == other.y;
+    }
+
+    bool operator!=(const Vec2f32 &other) const { return !(*this == other); }
+
+    // Negation
+    Vec2f32 operator-() const { return Vec2f32(-x, -y); }
+
+    operator std::tuple<float, float>() const { return std::make_tuple(x, y); }
+};
+
+static std::ostream &operator<<(std::ostream &os, const Vec2f32 &vec) {
+    os << "(" << vec.x << ", " << vec.y << ")";
+    return os;
+}
+
 } // namespace types
