@@ -64,7 +64,7 @@ void modulation_handler(void) {
   for (u8 i = 0; i < SENSOR_COUNT; i++) {
     // copy all the current uptimes over and zero pulse data
     modulation_data[i].uptime = pulse_data[i].uptime;
-    pulse_data[i].zero();
+    pulse_data[i].reset();
   }
   xTaskNotifyFromISR(modulation_handler_task_handle, 0, eNoAction,
                      &higher_priority_task_woken);
