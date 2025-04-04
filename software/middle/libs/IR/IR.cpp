@@ -17,8 +17,8 @@ namespace IR {
 
 void init(void) {
   debug::info("Initializing IR sensors");
-  irq_set_priority(MODULATION_IRQ, 0x80);
-  irq_set_priority(IO_IRQ_BANK0, 0x40);
+  irq_set_priority(MODULATION_IRQ, 0x40);
+  irq_set_priority(IO_IRQ_BANK0, 0x80);
   for (u8 i = 0; i < SENSOR_COUNT; i++) {
     pulse_data[i].reset();
     modulation_data[i].reset();
