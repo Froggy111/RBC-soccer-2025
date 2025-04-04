@@ -10,7 +10,6 @@ extern "C" {
 #include <hardware/timer.h>
 #include <hardware/irq.h>
 }
-
 using namespace types;
 
 namespace IR {
@@ -42,7 +41,7 @@ void init(void) {
 
   // Set initial alarm value to trigger first interrupt
   timer_hw->alarm[MODULATION_ALARM_IDX] =
-      timer_hw->timerawl + CYCLES_PER_MODULATION;
+      timer_hw->timerawl + US_PER_MODULATION;
 }
 
 void pulse_handler_individual(u8 id, u32 event) {
@@ -63,7 +62,7 @@ void modulation_handler(void) {
   u32 current_alarm_target = timer_hw->alarm[MODULATION_ALARM_IDX];
   hw_clear_bits(&timer_hw->intr, 0b1 << MODULATION_ALARM_IDX);
 
-  u32 next_alarm_target = current_alarm_target + CYCLES_PER_MODULATION;
+  u32 next_alarm_target = current_alarm_target + US_PER_MODULATION;
   timer_hw->alarm[MODULATION_ALARM_IDX] = next_alarm_target;
   //
   // for (u8 i = 0; i < SENSOR_COUNT; i++) {
