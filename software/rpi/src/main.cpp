@@ -100,7 +100,7 @@ int main() {
         return 1;
     }
 
-    motion_controller.init(0.16f, 0.00f, 0.0f, 0.2f, 0.1f, 0.0f, 1.0f);
+    motion_controller.init(0.3f, 0.00f, 0.0f, 0.2f, 0.1f, 0.0f, 1.0f);
 
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
@@ -116,31 +116,33 @@ int main() {
         if (angle < 0) {
             angle += M_PI * 2;
         }
+        angle = M_PI * 2 - angle;
 
-        // debug::info("Angle: %f", angle * 180 / M_PI);
+        debug::info("Angle: %f", angle * 180 / M_PI);
 
-        // auto commands =
-        //     motion_controller.translate(std::make_tuple(angle, 0.1f));
+        auto commands  = motion_controller.velocity_pid(0, angle, angle, 0.2f);
+        //auto commands2 = motion_controller.move_heading(angle, angle, 0.1f);
+        auto commands2 = std::make_tuple(0.0f, 0.0f, 0.0f, 0.0f);
 
-        // motors::command_motor_motion_controller(1,
-        //                                         std::get<0>(commands) * 5000);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        // motors::command_motor_motion_controller(2,
-        //                                         std::get<1>(commands) * 5000);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        // motors::command_motor_motion_controller(3,
-        //                                         std::get<2>(commands) * 5000);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        // motors::command_motor_motion_controller(4,
-        //                                         std::get<3>(commands) * 5000);
-
-        motors::command_motor(1, 1000);
+        motors::command_motor_motion_controller(
+            1, (std::get<0>(commands) + std::get<0>(commands2)) * 4000);
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor(2, 1000);
+        motors::command_motor_motion_controller(
+            2, (std::get<1>(commands) + std::get<1>(commands2)) * 4000);
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor(3, 1000);
+        motors::command_motor_motion_controller(
+            3, (std::get<2>(commands) + std::get<2>(commands2)) * 4000);
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor(4, 1000);
+        motors::command_motor_motion_controller(
+            4, (std::get<3>(commands) + std::get<3>(commands2)) * 4000);
+
+        // motors::command_motor(1, 2000);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // motors::command_motor(2, 2000);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // motors::command_motor(3, 2000);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // motors::command_motor(4, 2000);
 
         // debug::info("Motor 1: %f, Motor 2: %f, Motor 3: %f, Motor 4: %f",
         //             std::get<0>(commands), std::get<1>(commands),
