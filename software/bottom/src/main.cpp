@@ -38,7 +38,7 @@ void main_task(void *args) {
 
   // xTaskCreate(line_sensor_task, "line_sensor_task", 1024, NULL, 10, NULL);
   // xTaskCreate(mouse_sensor_task, "mouse_sensor_task", 1024, NULL, 10, NULL);
-  xTaskCreate(motor_task, "motor_task", 16384, NULL, 10, &motor_task_handle);
+  xTaskCreate(motor_task, "motor_task", 1024, NULL, 10, &motor_task_handle);
   // xTaskCreate(kicker_task, "kicker_task", 1024, NULL, 10, &kicker_task_handle);
 
   bool motor_attach_successful = comms::USB_CDC.attach_listener(
