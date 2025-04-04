@@ -4,10 +4,12 @@ target_sources(bbw_camera
     PRIVATE
     camera.cpp
     processor.cpp
+    goalpost_detection.cpp
     PUBLIC
     include/camera.hpp
     include/config.hpp
-    include/processor.hpp)
+    include/processor.hpp
+    include/goalpost_detection.hpp)
 
 find_package(OpenCV REQUIRED)
 
