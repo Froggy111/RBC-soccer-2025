@@ -6,6 +6,8 @@
 #include "projdefs.h"
 #include "debug.hpp"
 
+#pragma GCC optimize("O0")
+
 using namespace types;
 
 #define MOTOR_COUNT 4
@@ -24,13 +26,24 @@ static MotorRecvData motor_task_data = {};
 static u8 motor_task_buffer[sizeof(motor_task_data)];
 static SemaphoreHandle_t motor_data_mutex = nullptr;
 
-// static i16 current_duty_cycles[4] = {0};
-// static i16 target_duty_cycles[4] = {0};
-// const u32 max_duty_cycle = 12500;
-// const u32 min_duty_cycle_ramp = 10000;
-// const u32 max_duty_cycle_per_ms = max_duty_cycle / min_duty_cycle_ramp;
+#define MAX_DUTY_CYCLE 12500
+#define MIN_DUTY_CYCLE_RAMP 1000
+#define MAX_DUTY_CYCLE_PER_MS (MAX_DUTY_CYCLE / MIN_DUTY_CYCLE_RAMP)
 
 void motor_task(void *args) {
+  i16 driver1_current_duty_cycle, driver2_current_duty_cycle,
+      driver3_current_duty_cycle, driver4_current_duty_cycle;
+  i16 driver1_target_duty_cycle, driver2_target_duty_cycle,
+      driver3_target_duty_cycle, driver4_target_duty_cycle;
+  u32 notif_val = 0;
+  driver1_current_duty_cycle = 0;
+  driver2_current_duty_cycle = 0;
+  driver3_current_duty_cycle = 0;
+  driver4_current_duty_cycle = 0;
+  driver1_target_duty_cycle = 0;
+  driver2_target_duty_cycle = 0;
+  driver3_target_duty_cycle = 0;
+  driver4_target_duty_cycle = 0;
   // initialize all motors
   if (driver1.init(1, spi0)) {
     debug::info("Motor Driver 1 Initialized!\r\n");
@@ -69,8 +82,8 @@ void motor_task(void *args) {
   }
 
   debug::info("Motors initialized");
+  vTaskDelay(100);
 
-  TickType_t previous_wait_time = xTaskGetTickCount();
   for (;;) {
     // for (int i = 0; i <= 650; i++) {
     //   driver1.command(i * 10);
@@ -99,58 +112,105 @@ void motor_task(void *args) {
     // vTaskDelay(pdMS_TO_TICKS(10));
     // vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(1));
     // previous_wait_time = xTaskGetTickCount();
-    // * data transfer
 
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    xSemaphoreTake(motor_data_mutex, portMAX_DELAY);
-    memcpy(&motor_task_data, motor_task_buffer, sizeof(motor_task_data));
-    memset(motor_task_buffer, 0, sizeof(motor_task_buffer));
-    xSemaphoreGive(motor_data_mutex);
-    debug::info("Motor %d: %d\n", motor_task_data.id,
-                motor_task_data.duty_cycle);
-    switch (motor_task_data.id) {
-    case 1:
-      driver1.command(motor_task_data.duty_cycle);
-      break;
-    case 2:
-      driver2.command(motor_task_data.duty_cycle);
-      break;
-    case 3:
-      driver3.command(motor_task_data.duty_cycle);
-      break;
-    case 4:
-      driver4.command(motor_task_data.duty_cycle);
-      break;
-    default:
-      debug::error("Invalid motor ID: %d\n", motor_task_data.id);
-      break;
+    // ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    // xSemaphoreTake(motor_data_mutex, portMAX_DELAY);
+    // memcpy(&motor_task_data, motor_task_buffer, sizeof(motor_task_data));
+    // memset(motor_task_buffer, 0, sizeof(motor_task_buffer));
+    // xSemaphoreGive(motor_data_mutex);
+    // debug::info("Motor %d: %d\n", motor_task_data.id,
+    //             motor_task_data.duty_cycle);
+    // switch (motor_task_data.id) {
+    // case 1:
+    //   driver1.command(motor_task_data.duty_cycle);
+    //   break;
+    // case 2:
+    //   driver2.command(motor_task_data.duty_cycle);
+    //   break;
+    // case 3:
+    //   driver3.command(motor_task_data.duty_cycle);
+    //   break;
+    // case 4:
+    //   driver4.command(motor_task_data.duty_cycle);
+    //   break;
+    // default:
+    //   debug::error("Invalid motor ID: %d\n", motor_task_data.id);
+    //   break;
+    // }
+
+    notif_val = ulTaskNotifyTake(pdTRUE, 0);
+    if (notif_val > 0) {
+      xSemaphoreTake(motor_data_mutex, portMAX_DELAY);
+      memcpy(&motor_task_data, motor_task_buffer, sizeof(motor_task_data));
+      memset(motor_task_buffer, 0, sizeof(motor_task_buffer));
+      xSemaphoreGive(motor_data_mutex);
+      switch (motor_task_data.id) {
+      case 1:
+        driver1_target_duty_cycle = motor_task_data.duty_cycle;
+        break;
+      case 2:
+        driver2_target_duty_cycle = motor_task_data.duty_cycle;
+        break;
+      case 3:
+        driver3_target_duty_cycle = motor_task_data.duty_cycle;
+        break;
+      case 4:
+        driver4_target_duty_cycle = motor_task_data.duty_cycle;
+        break;
+      default:
+        debug::error("Invalid motor ID: %d\n", motor_task_data.id);
+        break;
+      }
     }
 
-    // debug::info("Motor %d: %d\n", motor_task_data.id,
-
-    // motor_task_data.duty_cycle);               motor_task_data.duty_cycle);
-    // for (u8 id = 0; id < 4; id++) {
-    //   if (target_duty_cycles[id] != current_duty_cycles[id]) {
-    //     if (target_duty_cycles[id] - current_duty_cycles[id] > 0) {
-    //       current_duty_cycles[id] +=
-    //           MIN(max_duty_cycle_per_ms,
-    //               target_duty_cycles[id] - current_duty_cycles[id]);
-    //     } else {
-    //       current_duty_cycles[id] -=
-    //           MIN(max_duty_cycle_per_ms,
-    //               current_duty_cycles[id] - target_duty_cycles[id]);
-    //     }
-    //     switch (id) {
-    //     case 1:
-    //       driver1.command(current_duty_cycles[id]);
-    //     case 2:
-    //       driver2.command(current_duty_cycles[id]);
-    //     case 3:
-    //       driver3.command(current_duty_cycles[id]);
-    //     case 4:
-    //       driver4.command(current_duty_cycles[id]);
-    //     }
-    //   }
-    // }
+    if (driver1_target_duty_cycle != driver1_current_duty_cycle) {
+      if (driver1_target_duty_cycle - driver1_current_duty_cycle > 0) {
+        driver1_current_duty_cycle +=
+            MIN(MAX_DUTY_CYCLE_PER_MS,
+                driver1_target_duty_cycle - driver1_current_duty_cycle);
+      } else {
+        driver1_current_duty_cycle -=
+            MIN(MAX_DUTY_CYCLE_PER_MS,
+                driver1_current_duty_cycle - driver1_target_duty_cycle);
+      }
+      driver1.command(driver1_current_duty_cycle);
+    }
+    if (driver2_target_duty_cycle != driver2_current_duty_cycle) {
+      if (driver2_target_duty_cycle - driver2_current_duty_cycle > 0) {
+        driver2_current_duty_cycle +=
+            MIN(MAX_DUTY_CYCLE_PER_MS,
+                driver2_target_duty_cycle - driver2_current_duty_cycle);
+      } else {
+        driver2_current_duty_cycle -=
+            MIN(MAX_DUTY_CYCLE_PER_MS,
+                driver2_current_duty_cycle - driver2_target_duty_cycle);
+      }
+      driver2.command(driver2_current_duty_cycle);
+    }
+    if (driver3_target_duty_cycle != driver3_current_duty_cycle) {
+      if (driver3_target_duty_cycle - driver3_current_duty_cycle > 0) {
+        driver3_current_duty_cycle +=
+            MIN(MAX_DUTY_CYCLE_PER_MS,
+                driver3_target_duty_cycle - driver3_current_duty_cycle);
+      } else {
+        driver3_current_duty_cycle -=
+            MIN(MAX_DUTY_CYCLE_PER_MS,
+                driver3_current_duty_cycle - driver3_target_duty_cycle);
+      }
+      driver3.command(driver3_current_duty_cycle);
+    }
+    if (driver4_target_duty_cycle != driver4_current_duty_cycle) {
+      if (driver4_target_duty_cycle - driver4_current_duty_cycle > 0) {
+        driver4_current_duty_cycle +=
+            MIN(MAX_DUTY_CYCLE_PER_MS,
+                driver4_target_duty_cycle - driver4_current_duty_cycle);
+      } else {
+        driver4_current_duty_cycle -=
+            MIN(MAX_DUTY_CYCLE_PER_MS,
+                driver4_current_duty_cycle - driver4_target_duty_cycle);
+      }
+      driver4.command(driver4_current_duty_cycle);
+    }
+    vTaskDelay(pdMS_TO_TICKS(1));
   }
 }
