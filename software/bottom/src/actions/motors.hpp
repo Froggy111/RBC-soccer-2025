@@ -67,8 +67,10 @@ void motor_task(void *args) {
 
   debug::info("Motors initialized");
 
+  TickType_t previous_wait_time = xTaskGetTickCount();
   for (;;) {
-    TickType_t previous_wait_time = xTaskGetTickCount();
+    vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(1));
+    previous_wait_time = xTaskGetTickCount();
     // * data transfer
     if (ulTaskNotifyTake(pdTRUE, 0)) {
       xSemaphoreTake(motor_data_mutex, portMAX_DELAY);
@@ -102,6 +104,5 @@ void motor_task(void *args) {
     }
     // debug::info("Motor %d: %d\n", motor_task_data.id,
     // motor_task_data.duty_cycle);
-    vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(1));
   }
 }
