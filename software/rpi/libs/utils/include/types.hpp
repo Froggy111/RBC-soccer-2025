@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <ostream>
 
 extern "C" {
@@ -29,7 +30,7 @@ struct Vec3i16 {
 
 struct Vec3f32 {
     Vec3f32(f32 x, f32 y, f32 z) : x(x), y(y), z(z) {}
-    f32 x, y, z;
+    f32 x = 0, y = 0, z = 0;
 
     // Addition
     Vec3f32 operator+(const Vec3f32 &other) const {
@@ -113,7 +114,7 @@ static std::ostream &operator<<(std::ostream &os, const Vec3f32 &vec) {
 
 struct Vec2f32 {
     Vec2f32(f32 x, f32 y) : x(x), y(y) {}
-    f32 x, y;
+    f32 x = 0, y = 0;
 
     // Addition
     Vec2f32 operator+(const Vec2f32 &other) const {
@@ -188,4 +189,18 @@ static std::ostream &operator<<(std::ostream &os, const Vec2f32 &vec) {
     return os;
 }
 
+static Vec2f32 rotateVector(const Vec2f32 &vector, float angleRadians) {
+    Vec2f32 rotated = Vec2f32(0, 0);
+
+    // Apply rotation matrix:
+    // | cos(θ) -sin(θ) |   | x |
+    // | sin(θ)  cos(θ) | × | y |
+    float cosAngle = std::cos(angleRadians);
+    float sinAngle = std::sin(angleRadians);
+
+    rotated.x = vector.x * cosAngle - vector.y * sinAngle;
+    rotated.y = vector.x * sinAngle + vector.y * cosAngle;
+
+    return rotated;
+}
 } // namespace types
