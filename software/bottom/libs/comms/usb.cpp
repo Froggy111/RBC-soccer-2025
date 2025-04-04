@@ -358,7 +358,7 @@ void CDC::_rx_cb(u8 interface, void *args) {
       // give the semaphore before notifying task, to avoid blocking
       xSemaphoreGive(_command_task_buffer_mutexes[identifier]);
       // notify task
-      xTaskNotify(_command_task_handles[identifier], 1, eSetValueWithOverwrite);
+      xTaskNotify(_command_task_handles[identifier], 0, eNoAction);
 
       state.reset();
       // NOTE: don't return here, to avoid missing out a command

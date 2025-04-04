@@ -49,6 +49,6 @@ def process_first_frame(video_path, threshold=200):
     print(f"Highlighted image saved as 'highlighted_white_pixels.jpg'")
 
 if __name__ == "__main__":
-    video_path = "RBC-soccer-2025/software/rpi-direct/libs/camera/scripts/vid2.mp4"  # Update this path if your video is in a different location
+    video_path = "480p.mp4"  # Update this path if your video is in a different location
     process_first_frame(video_path, threshold=160)
     print("Processing complete!")

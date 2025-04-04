@@ -1,0 +1,7 @@
+add_subdirectory(motor-driver-only-1)
+add_subdirectory(motor-driver-dbg-board)
+add_subdirectory(motor-driver-all-4)
+add_subdirectory(mouse-sensor)
+add_subdirectory(comms)
+add_subdirectory(line-sensor)
+add_subdirectory(kicker)
