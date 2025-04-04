@@ -1,4 +1,5 @@
 #pragma once
+#include "motion.hpp"
 #include "types.hpp"
 
 namespace motors {
@@ -31,4 +32,6 @@ bool command_motor(uint8_t id, types::i16 duty_cycle);
  */
 bool command_motor_motion_controller(uint8_t id, types::i16 duty_cycle);
 
+void translate(types::Vec2f32 vec);
+void translate_with_target_heading(types::Vec2f32 vec, types::f32 heading);
 } // namespace motors

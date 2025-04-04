@@ -7,6 +7,7 @@ target_sources(motors
     PRIVATE
     motors.cpp
 )
+target_link_globals(motors)
 
 target_include_directories(motors
     PUBLIC
@@ -15,7 +16,3 @@ target_include_directories(motors
     PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
-
-
-target_compile_features(motors PUBLIC cxx_std_17)
-target_link_libraries(motors comms)
