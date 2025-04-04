@@ -2,12 +2,14 @@
 #include "comms.hpp"
 #include "config.hpp"
 #include "debug.hpp"
-#include "motion.hpp"
+#include "motors.hpp"
 #include <unistd.h>
+#include "motion.hpp"
 
 using namespace types;
 
 namespace motors {
+MotionController motion_controller;
 
 bool command_motor(uint8_t id, types::i16 duty_cycle) {
     if (duty_cycle > MOTOR_MAX_DUTY_CYCLE) {

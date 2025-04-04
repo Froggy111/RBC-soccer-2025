@@ -72,91 +72,29 @@ void motor_task(void *args) {
 
   TickType_t previous_wait_time = xTaskGetTickCount();
   for (;;) {
-    // for (int i = 0; i <= 650; i++) {
-    //   driver1.command(i * 10);
-    //   driver2.command(i * 10);
-    //   driver3.command(i * 10);
-    //   driver4.command(i * 10);
-    //
-    //   // debug::log"Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
-    //   //        driver3.read_current(), driver4.read_current());
-    //
-    //   vTaskDelay(pdMS_TO_TICKS(10));
-    // }
-    //
-    // vTaskDelay(pdMS_TO_TICKS(10));
-    // for (int i = 650; i >= 0; i--) {
-    //   driver1.command(i * 10);
-    //   driver2.command(i * 10);
-    //   driver3.command(i * 10);
-    //   driver4.command(i * 10);
-    //
-    //   // debug::log"Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
-    //   //        driver3.read_current(), driver4.read_current());
-    //
-    //   vTaskDelay(pdMS_TO_TICKS(10));
-    // }
-    // vTaskDelay(pdMS_TO_TICKS(10));
-    // vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(1));
-    // previous_wait_time = xTaskGetTickCount();
-    // * data transfer
-
-    // ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    // xSemaphoreTake(motor_data_mutex, portMAX_DELAY);
-    // memcpy(&motor_task_data, motor_task_buffer, sizeof(motor_task_data));
-    // memset(motor_task_buffer, 0, sizeof(motor_task_buffer));
-    // xSemaphoreGive(motor_data_mutex);
-    // debug::info("Motor %d: %d\n", motor_task_data.id,
-    //             motor_task_data.duty_cycle);
-    // switch (motor_task_data.id) {
-    // case 1:
-    //   driver1.command(motor_task_data.duty_cycle);
-    //   break;
-    // case 2:
-    //   driver2.command(motor_task_data.duty_cycle);
-    //   break;
-    // case 3:
-    //   driver3.command(motor_task_data.duty_cycle);
-    //   break;
-    // case 4:
-    //   driver4.command(motor_task_data.duty_cycle);
-    //   break;
-    // default:
-    //   debug::error("Invalid motor ID: %d\n", motor_task_data.id);
-    //   break;
-    // }
-
-    driver1.command(1000);
-    driver2.command(1000);
-    driver3.command(1000);
-    driver4.command(1000);
-    vTaskDelay(1);
-
-    // debug::info("Motor %d: %d\n", motor_task_data.id,
-
-    // motor_task_data.duty_cycle);               motor_task_data.duty_cycle);
-    // for (u8 id = 0; id < 4; id++) {
-    //   if (target_duty_cycles[id] != current_duty_cycles[id]) {
-    //     if (target_duty_cycles[id] - current_duty_cycles[id] > 0) {
-    //       current_duty_cycles[id] +=
-    //           MIN(max_duty_cycle_per_ms,
-    //               target_duty_cycles[id] - current_duty_cycles[id]);
-    //     } else {
-    //       current_duty_cycles[id] -=
-    //           MIN(max_duty_cycle_per_ms,
-    //               current_duty_cycles[id] - target_duty_cycles[id]);
-    //     }
-    //     switch (id) {
-    //     case 1:
-    //       driver1.command(current_duty_cycles[id]);
-    //     case 2:
-    //       driver2.command(current_duty_cycles[id]);
-    //     case 3:
-    //       driver3.command(current_duty_cycles[id]);
-    //     case 4:
-    //       driver4.command(current_duty_cycles[id]);
-    //     }
-    //   }
-    // }
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    xSemaphoreTake(motor_data_mutex, portMAX_DELAY);
+    memcpy(&motor_task_data, motor_task_buffer, sizeof(motor_task_data));
+    memset(motor_task_buffer, 0, sizeof(motor_task_buffer));
+    xSemaphoreGive(motor_data_mutex);
+    debug::info("Motor %d: %d\n", motor_task_data.id,
+                motor_task_data.duty_cycle);
+    switch (motor_task_data.id) {
+    case 1:
+      driver1.command(motor_task_data.duty_cycle);
+      break;
+    case 2:
+      driver2.command(motor_task_data.duty_cycle);
+      break;
+    case 3:
+      driver3.command(motor_task_data.duty_cycle);
+      break;
+    case 4:
+      driver4.command(motor_task_data.duty_cycle);
+      break;
+    default:
+      debug::error("Invalid motor ID: %d\n", motor_task_data.id);
+      break;
+    }
   }
 }
