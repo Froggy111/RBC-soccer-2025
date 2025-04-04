@@ -58,23 +58,23 @@ void pulse_handler_individual(u8 id, u32 event) {
 }
 
 void modulation_handler(void) {
-  BaseType_t higher_priority_task_woken;
+  BaseType_t higher_priority_task_woken = pdFALSE;
   // setup time
   u32 current_alarm_target = timer_hw->alarm[MODULATION_ALARM_IDX];
   hw_clear_bits(&timer_hw->intr, 0b1 << MODULATION_ALARM_IDX);
 
   u32 next_alarm_target = current_alarm_target + CYCLES_PER_MODULATION;
   timer_hw->alarm[MODULATION_ALARM_IDX] = next_alarm_target;
-
-  for (u8 i = 0; i < SENSOR_COUNT; i++) {
-    // copy all the current uptimes over and zero pulse data
-    modulation_data[i].uptime = pulse_data[i].uptime;
-    pulse_data[i].reset();
-  }
-  xTaskNotifyFromISR(modulation_handler_task_handle, 0, eNoAction,
-                     &higher_priority_task_woken);
+  //
+  // for (u8 i = 0; i < SENSOR_COUNT; i++) {
+  //   // copy all the current uptimes over and zero pulse data
+  //   modulation_data[i].uptime = pulse_data[i].uptime;
+  //   pulse_data[i].reset();
+  // }
+  // xTaskNotifyFromISR(modulation_handler_task_handle, 0, eNoAction,
+  //                    &higher_priority_task_woken);
   gpio_put(comms::LED_PIN, !gpio_get(comms::LED_PIN));
-  portYIELD_FROM_ISR(higher_priority_task_woken);
+  // portYIELD_FROM_ISR(higher_priority_task_woken);
 }
 
 void modulation_handler_task(void *params) {
