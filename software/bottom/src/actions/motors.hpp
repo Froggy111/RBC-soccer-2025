@@ -15,11 +15,14 @@ struct MotorRecvData {
   i16 duty_cycle;
 } __attribute__((packed));
 
-TaskHandle_t motor_task_handle = nullptr;
-driver::MotorDriver driver1, driver2, driver3, driver4;
-MotorRecvData motor_task_data = {};
-u8 motor_task_buffer[sizeof(motor_task_data)];
-SemaphoreHandle_t motor_data_mutex = nullptr;
+static TaskHandle_t motor_task_handle = nullptr;
+static driver::MotorDriver driver1;
+static driver::MotorDriver driver2;
+static driver::MotorDriver driver3;
+static driver::MotorDriver driver4;
+static MotorRecvData motor_task_data = {};
+static u8 motor_task_buffer[sizeof(motor_task_data)];
+static SemaphoreHandle_t motor_data_mutex = nullptr;
 
 i16 current_duty_cycles[4] = {0};
 i16 target_duty_cycles[4] = {0};
@@ -71,6 +74,7 @@ void motor_task(void *args) {
 
   debug::info("Motors initialized");
 
+  vTaskDelay(10000);
   TickType_t previous_wait_time = xTaskGetTickCount();
   for (;;) {
     vTaskDelayUntil(&previous_wait_time, pdMS_TO_TICKS(1));
