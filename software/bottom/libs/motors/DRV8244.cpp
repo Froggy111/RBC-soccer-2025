@@ -57,7 +57,7 @@ namespace driver {
 // ! init
 // use -1 as driver_id for debug pins
 bool MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
-  debug::info("---> Initializing DRV824\r\n");
+  debug::info("---> Initializing DRV8244\r\n");
   duty_cycle_cache = 0;
 
   if (id == -1) {
