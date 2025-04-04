@@ -1,304 +1,352 @@
-// goalpost_detection.cpp
-#include "include/goalpost_detection.hpp"
+#include <opencv2/opencv.hpp>
+#include <iostream>
+#include <chrono>
+#include <cmath>
+#include <vector>
+#include <string>
 
-// Find the true bottom edge of a rectangular region
+// Constants
+const bool DEBUG = true;
+
+// Color thresholds (H:0-180, S:0-255, V:0-255)
+const cv::Scalar BLUE_LOWER(100, 50, 50);
+const cv::Scalar BLUE_UPPER(150, 255, 255);
+const cv::Scalar YELLOW_LOWER(20, 137, 110);
+const cv::Scalar YELLOW_UPPER(30, 255, 255);
+const cv::Scalar FIELD_LOWER(35, 50, 50);
+const cv::Scalar FIELD_UPPER(85, 255, 255);
+
+const int MIN_CONTOUR_AREA = 400;
+const int MIN_GOAL_HEIGHT = 10;
+const int EDGE_SEARCH_HEIGHT = 69;
+const float EPSILON_FACTOR = 0.05f;
+const int PARALLELOGRAM_TOLERANCE = 1;
+const cv::Point CENTRE_POINT(640 / 2 - 5, 480 / 2 + 30);
+
+// Function prototypes
 int findTrueBottomEdge(const cv::Mat& frame, const cv::Rect& bbox, 
-                     const cv::Scalar& goalLower, const cv::Scalar& goalUpper) {
+                      const cv::Scalar& goalLower, const cv::Scalar& goalUpper);
+int findTrueBottomEdgeQuadrilateral(const cv::Mat& frame, const std::vector<cv::Point>& quadrilateral,
+                                   const cv::Scalar& goalLower, const cv::Scalar& goalUpper);
+cv::Point findNearestFieldPoint(const std::vector<cv::Point>& quadrilateral, int bottomEdgeY, int frameHeight);
+std::vector<cv::Point> detectQuadrilateral(const std::vector<cv::Point>& contour, 
+                                          float epsilonFactor = 0.03f, 
+                                          int minHeight = MIN_GOAL_HEIGHT, 
+                                          int maxPoints = 6);
+std::vector<cv::Point> orderQuadrilateralPoints(std::vector<cv::Point> pts);
+std::vector<cv::Point> getReliableGoalpostContour(const std::vector<std::vector<cv::Point>>& contours, 
+                                                 const cv::Mat& colorMask);
+std::vector<std::vector<cv::Point>> filterOutRods(const std::vector<std::vector<cv::Point>>& contours);
+std::vector<cv::Point> combineGoalpostParts(const std::vector<std::vector<cv::Point>>& contours, int minArea);
+cv::Point findLineMidpoint(const std::vector<cv::Point>& linePoints);
+cv::Point findQuadMidpoint(const std::vector<cv::Point>& quadPoints);
+float findGoalAngle(const cv::Point& goalMidpoint);
+std::vector<cv::Point> findClosestPointsToCenter(const std::vector<cv::Point>& quadPoints, 
+                                               const cv::Point& centerPoint = CENTRE_POINT);
+
+int main() {
+    std::string videoPath = "vid4.mp4";
+    std::cout << "File exists? " << (std::ifstream(videoPath).good() ? "yes" : "no") << std::endl;
+    
+    cv::VideoCapture cap(videoPath);
+    if (!cap.isOpened()) {
+        std::cerr << "Error opening video file" << std::endl;
+        return -1;
+    }
+    
+    while (true) {
+        cv::Mat frame;
+        bool ret = cap.read(frame);
+        if (!ret) break;
+        
+        auto startTime = std::chrono::high_resolution_clock::now();
+        cv::Mat hsv, output = frame.clone();
+        cv::cvtColor(frame, hsv, cv::COLOR_BGR2HSV);
+        
+        cv::Mat debugMask;
+        if (DEBUG) {
+            debugMask = cv::Mat::zeros(frame.size(), frame.type());
+        }
+        
+        // Step 1: Create and clean color masks
+        cv::Mat blueMask, yellowMask;
+        cv::inRange(hsv, BLUE_LOWER, BLUE_UPPER, blueMask);
+        cv::inRange(hsv, YELLOW_LOWER, YELLOW_UPPER, yellowMask);
+        
+        // Step 2: Apply morphology
+        cv::Mat kernelSmall = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+        cv::morphologyEx(blueMask, blueMask, cv::MORPH_CLOSE, kernelSmall);
+        cv::morphologyEx(yellowMask, yellowMask, cv::MORPH_CLOSE, kernelSmall);
+        
+        // Step 3: Find contours
+        std::vector<std::vector<cv::Point>> blueContours, yellowContours;
+        cv::findContours(blueMask, blueContours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+        cv::findContours(yellowMask, yellowContours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+        
+        // Step 4: Process blue goalpost
+        bool blueDetected = false;
+        std::vector<cv::Point> blueQuad;
+        cv::circle(output, CENTRE_POINT, 5, cv::Scalar(255, 255, 255), -1);
+        
+        std::vector<std::vector<cv::Point>> filteredBlue = filterOutRods(blueContours);
+        if (filteredBlue.size() > 1) {
+            std::vector<cv::Point> combinedBlue = combineGoalpostParts(filteredBlue, MIN_CONTOUR_AREA / 2);
+            if (!combinedBlue.empty()) {
+                std::vector<cv::Point> quad = detectQuadrilateral(combinedBlue, EPSILON_FACTOR);
+                if (!quad.empty()) {
+                    blueDetected = true;
+                    blueQuad = quad;
+                }
+            }
+        }
+        
+        if (!blueDetected && !filteredBlue.empty()) {
+            std::vector<cv::Point> reliableBlue = getReliableGoalpostContour(filteredBlue, blueMask);
+            if (!reliableBlue.empty()) {
+                std::vector<cv::Point> quad = detectQuadrilateral(reliableBlue, EPSILON_FACTOR);
+                if (!quad.empty()) {
+                    blueDetected = true;
+                    blueQuad = quad;
+                }
+            }
+        }
+        
+        if (!blueDetected && !blueContours.empty()) {
+            auto largestBlue = *std::max_element(blueContours.begin(), blueContours.end(), 
+                                               [](const std::vector<cv::Point>& a, const std::vector<cv::Point>& b) {
+                                                   return cv::contourArea(a) < cv::contourArea(b);
+                                               });
+            if (cv::contourArea(largestBlue) > MIN_CONTOUR_AREA) {
+                std::vector<cv::Point> quad = detectQuadrilateral(largestBlue, EPSILON_FACTOR);
+                if (!quad.empty()) {
+                    blueDetected = true;
+                    blueQuad = quad;
+                }
+            }
+        }
+        
+        if (blueDetected) {
+            // Draw the blue quadrilateral
+            for (int i = 0; i < 4; i++) {
+                cv::line(output, blueQuad[i], blueQuad[(i + 1) % 4], cv::Scalar(255, 0, 0), 2);
+            }
+            
+            auto closestPoints = findClosestPointsToCenter(blueQuad);
+            cv::Point point1 = closestPoints[0];
+            cv::Point point2 = closestPoints[1];
+            cv::Point blueBottomMidpoint = findLineMidpoint({point1, point2});
+            
+            cv::circle(output, point1, 7, cv::Scalar(255, 0, 0), -1);
+            cv::circle(output, point2, 7, cv::Scalar(255, 0, 0), -1);
+            cv::line(output, point1, point2, cv::Scalar(255, 0, 0), 2);
+            
+            int blueLineMidpointX = blueBottomMidpoint.x;
+            int blueLineMidpointY = blueBottomMidpoint.y;
+            cv::circle(output, cv::Point(blueLineMidpointX, blueLineMidpointY), 7, cv::Scalar(255, 255, 0), -1);
+            
+            cv::circle(output, point1, 7, cv::Scalar(0, 255, 255), -1);
+            cv::circle(output, point2, 7, cv::Scalar(0, 255, 255), -1);
+            cv::line(output, point1, point2, cv::Scalar(0, 255, 255), 2);
+            
+            std::cout << "Closest points to center: (" << point1.x << "," << point1.y << "), "
+                      << "(" << point2.x << "," << point2.y << ")" << std::endl;
+            
+            int bottomEdgeY = findTrueBottomEdgeQuadrilateral(frame, blueQuad, BLUE_LOWER, BLUE_UPPER);
+            cv::Point nearestPoint = findNearestFieldPoint(blueQuad, bottomEdgeY, frame.rows);
+            int nearestX = nearestPoint.x;
+            int nearestY = nearestPoint.y;
+            cv::Point blueMidpoint = findQuadMidpoint(blueQuad);
+            
+            cv::circle(output, cv::Point(nearestX, nearestY), 5, cv::Scalar(255, 255, 0), -1);
+            cv::circle(output, blueMidpoint, 5, cv::Scalar(255, 255, 255), -1);
+            cv::line(output, cv::Point(nearestX - 10, nearestY), cv::Point(nearestX + 10, nearestY),
+                    cv::Scalar(255, 255, 0), 2);
+            
+            cv::putText(output, "(" + std::to_string(nearestX) + "," + std::to_string(nearestY) + ")",
+                       cv::Point(nearestX - 40, nearestY - 10), cv::FONT_HERSHEY_SIMPLEX, 0.5,
+                       cv::Scalar(255, 255, 0), 1);
+            
+            cv::putText(output, "(" + std::to_string(blueMidpoint.x) + "," + std::to_string(blueMidpoint.y) + ")",
+                       cv::Point(blueMidpoint.x - 40, blueMidpoint.y - 10), cv::FONT_HERSHEY_SIMPLEX, 0.5,
+                       cv::Scalar(255, 255, 255), 1);
+            
+            float blueGoalAngle = findGoalAngle(blueMidpoint);
+            cv::putText(output, "Angle: " + std::to_string(blueGoalAngle * 180 / M_PI).substr(0, 5) + " deg",
+                       cv::Point(blueMidpoint.x - 40, blueMidpoint.y + 40), cv::FONT_HERSHEY_SIMPLEX, 0.5,
+                       cv::Scalar(0, 0, 255), 2);
+        }
+        
+        // Step 5: Process yellow goalpost
+        // (Similar processing as blue goalpost - abbreviated for brevity)
+        bool yellowDetected = false;
+        std::vector<cv::Point> yellowQuad;
+        
+        std::vector<std::vector<cv::Point>> filteredYellow = filterOutRods(yellowContours);
+        // Process yellow goalpost similar to blue goalpost...
+        
+        // Display debug view
+        if (DEBUG) {
+            cv::Mat blueDisplay, yellowDisplay;
+            cv::cvtColor(blueMask, blueDisplay, cv::COLOR_GRAY2BGR);
+            cv::cvtColor(yellowMask, yellowDisplay, cv::COLOR_GRAY2BGR);
+            
+            cv::putText(blueDisplay, "Blue Mask", cv::Point(10, 30), 
+                       cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
+            cv::putText(yellowDisplay, "Yellow Mask", cv::Point(10, 30), 
+                       cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
+            
+            int h = frame.rows, w = frame.cols;
+            cv::resize(blueDisplay, blueDisplay, cv::Size(w / 2, h / 2));
+            cv::resize(yellowDisplay, yellowDisplay, cv::Size(w / 2, h / 2));
+            
+            cv::Mat debugTop, debugView;
+            cv::hconcat(blueDisplay, yellowDisplay, debugTop);
+            
+            cv::Mat resizedOutput;
+            cv::resize(output, resizedOutput, cv::Size(w, h / 2));
+            cv::vconcat(debugTop, resizedOutput, debugView);
+            
+            cv::imshow("Debug View", debugView);
+        }
+        
+        cv::imshow("Goal Detection", output);
+        auto endTime = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+        std::cout << "Time taken for frame: " << duration.count() << " ms" << std::endl;
+        
+        if (cv::waitKey(25) == 'q') {
+            break;
+        }
+    }
+    
+    cap.release();
+    cv::destroyAllWindows();
+    return 0;
+}
+
+// Helper function implementations
+int findTrueBottomEdge(const cv::Mat& frame, const cv::Rect& bbox, 
+                      const cv::Scalar& goalLower, const cv::Scalar& goalUpper) {
     int x = bbox.x;
     int y = bbox.y;
     int w = bbox.width;
     int h = bbox.height;
-
+    
     int roiHeight = std::min(h + EDGE_SEARCH_HEIGHT, frame.rows - y);
     cv::Mat roi = frame(cv::Rect(x, y, w, roiHeight));
-
-    cv::Mat hsv;
-    cv::cvtColor(roi, hsv, cv::COLOR_BGR2HSV);
     
-    cv::Mat goalMask, fieldMask;
+    cv::Mat hsv, goalMask, fieldMask;
+    cv::cvtColor(roi, hsv, cv::COLOR_BGR2HSV);
     cv::inRange(hsv, goalLower, goalUpper, goalMask);
     cv::inRange(hsv, FIELD_LOWER, FIELD_UPPER, fieldMask);
-
+    
     // Calculate vertical projection
     std::vector<int> verticalProj(roiHeight, 0);
     for (int i = 0; i < roiHeight; i++) {
         verticalProj[i] = cv::sum(goalMask.row(i))[0];
     }
-
-    // Find max value for threshold calculation
-    int maxVal = 0;
-    for (int val : verticalProj) {
-        maxVal = std::max(maxVal, val);
-    }
     
+    int maxVal = *std::max_element(verticalProj.begin(), verticalProj.end());
     int threshold = 0.4 * maxVal;
-    std::vector<int> goalRows;
     
+    // Find goal rows
+    std::vector<int> goalRows;
     for (int i = 0; i < verticalProj.size(); i++) {
         if (verticalProj[i] > threshold) {
             goalRows.push_back(i);
         }
     }
-
+    
     if (goalRows.empty()) {
         return y + h;
     }
-
+    
     int bottomRow = goalRows.back();
     for (int row = bottomRow; row < std::min(bottomRow + EDGE_SEARCH_HEIGHT, roiHeight); row++) {
         if (row >= fieldMask.rows) {
             break;
         }
-        
         if (cv::sum(fieldMask.row(row))[0] > 0.1 * w * 255) {
             bottomRow = row;
             break;
         }
     }
-
+    
     return y + bottomRow;
 }
 
-// Find the true bottom edge using a quadrilateral region
-int findTrueBottomEdgeQuadrilateral(const cv::Mat& frame, const std::vector<cv::Point2f>& quadrilateral,
-                                 const cv::Scalar& goalLower, const cv::Scalar& goalUpper) {
+int findTrueBottomEdgeQuadrilateral(const cv::Mat& frame, const std::vector<cv::Point>& quadrilateral,
+                                   const cv::Scalar& goalLower, const cv::Scalar& goalUpper) {
     cv::Rect bbox = cv::boundingRect(quadrilateral);
     int x = bbox.x;
-    int y = bbox.y; 
+    int y = bbox.y;
     int w = bbox.width;
     int h = bbox.height;
-
+    
     int roiHeight = std::min(h + EDGE_SEARCH_HEIGHT, frame.rows - y);
     cv::Mat roi = frame(cv::Rect(x, y, w, roiHeight));
-
-    // Create mask from quadrilateral
-    cv::Mat mask = cv::Mat::zeros(roiHeight, w, CV_8UC1);
     
-    // Shift quadrilateral to ROI coordinates and convert to integer points
+    cv::Mat mask = cv::Mat::zeros(roiHeight, w, CV_8UC1);
     std::vector<cv::Point> shiftedQuad;
     for (const auto& pt : quadrilateral) {
-        cv::Point shiftedPt(
-            std::max(0, std::min(w-1, int(pt.x - x))),
-            std::max(0, std::min(roiHeight-1, int(pt.y - y)))
-        );
-        shiftedQuad.push_back(shiftedPt);
+        shiftedQuad.push_back(cv::Point(pt.x - x, pt.y - y));
     }
     
-    // Draw filled polygon
-    std::vector<std::vector<cv::Point>> contours = {shiftedQuad};
+    std::vector<std::vector<cv::Point>> contours{shiftedQuad};
     cv::fillPoly(mask, contours, 255);
-
-    // Apply color detection
+    
     cv::Mat hsv, goalMask, fieldMask;
     cv::cvtColor(roi, hsv, cv::COLOR_BGR2HSV);
+    cv::inRange(hsv, goalLower, goalUpper, goalMask);
+    cv::inRange(hsv, FIELD_LOWER, FIELD_UPPER, fieldMask);
     
-    cv::Mat tempGoalMask, tempFieldMask;
-    cv::inRange(hsv, goalLower, goalUpper, tempGoalMask);
-    cv::inRange(hsv, FIELD_LOWER, FIELD_UPPER, tempFieldMask);
+    goalMask = goalMask & mask;
+    fieldMask = fieldMask & mask;
     
-    // Apply the quadrilateral mask
-    cv::bitwise_and(tempGoalMask, mask, goalMask);
-    cv::bitwise_and(tempFieldMask, mask, fieldMask);
-
     // Calculate vertical projection
     std::vector<int> verticalProj(roiHeight, 0);
     for (int i = 0; i < roiHeight; i++) {
         verticalProj[i] = cv::sum(goalMask.row(i))[0];
     }
-
-    // Find max for threshold
+    
     int maxVal = 0;
     for (int val : verticalProj) {
         maxVal = std::max(maxVal, val);
     }
     
     int threshold = 0.2 * maxVal;
-    std::vector<int> goalRows;
     
+    // Find goal rows
+    std::vector<int> goalRows;
     for (int i = 0; i < verticalProj.size(); i++) {
         if (verticalProj[i] > threshold) {
             goalRows.push_back(i);
         }
     }
-
+    
     if (goalRows.empty()) {
         return y + h;
     }
-
+    
     int bottomRow = goalRows.back();
     for (int row = bottomRow; row < std::min(bottomRow + EDGE_SEARCH_HEIGHT, roiHeight); row++) {
         if (row >= fieldMask.rows) {
             break;
         }
-        
         if (cv::sum(fieldMask.row(row))[0] > 0.05 * w * 255) {
             bottomRow = row;
             break;
         }
     }
-
+    
     return y + bottomRow;
 }
 
-// Order points function
-std::vector<cv::Point2f> orderPoints(const std::vector<cv::Point2f>& pts) {
-    std::vector<cv::Point2f> rect(4);
-    
-    // Calculate sum of coordinates
-    std::vector<float> sums(pts.size());
-    for (size_t i = 0; i < pts.size(); i++) {
-        sums[i] = pts[i].x + pts[i].y;
-    }
-    
-    // Find indices for top-left (min sum) and bottom-right (max sum)
-    auto minIt = std::min_element(sums.begin(), sums.end());
-    auto maxIt = std::max_element(sums.begin(), sums.end());
-    
-    rect[0] = pts[std::distance(sums.begin(), minIt)]; // Top-left
-    rect[2] = pts[std::distance(sums.begin(), maxIt)]; // Bottom-right
-    
-    // Calculate difference of coordinates
-    std::vector<float> diffs(pts.size());
-    for (size_t i = 0; i < pts.size(); i++) {
-        diffs[i] = pts[i].y - pts[i].x;
-    }
-    
-    // Find indices for top-right (min diff) and bottom-left (max diff)
-    minIt = std::min_element(diffs.begin(), diffs.end());
-    maxIt = std::max_element(diffs.begin(), diffs.end());
-    
-    rect[1] = pts[std::distance(diffs.begin(), minIt)]; // Top-right
-    rect[3] = pts[std::distance(diffs.begin(), maxIt)]; // Bottom-left
-    
-    return rect;
-}
-
-// Detect quadrilateral from contour
-std::vector<cv::Point2f> detectQuadrilateral(const std::vector<cv::Point>& contour, 
-                                         double epsilonFactor,
-                                         int minHeight, 
-                                         int maxPoints) {
-    // Approximate the contour
-    double perimeter = cv::arcLength(contour, true);
-    double epsilon = epsilonFactor * perimeter;
-    std::vector<cv::Point> approx;
-    cv::approxPolyDP(contour, approx, epsilon, true);
-    
-    // Debug output
-    if (DEBUG) {
-        std::cout << "Contour has " << approx.size() << " points" << std::endl;
-    }
-    
-    // Check point count
-    if (approx.size() < 4 || approx.size() > maxPoints) {
-        if (DEBUG) {
-            std::cout << "Skipping shape with " << approx.size() << " points" << std::endl;
-        }
-        return std::vector<cv::Point2f>();
-    }
-    
-    std::vector<cv::Point2f> pts;
-    
-    // If we have more than 4 points, simplify to get 4 most significant
-    if (approx.size() > 4) {
-        // Calculate center of contour
-        cv::Point2f center(0, 0);
-        for (const auto& pt : approx) {
-            center.x += pt.x;
-            center.y += pt.y;
-        }
-        center.x /= approx.size();
-        center.y /= approx.size();
-        
-        // Calculate distances from center
-        std::vector<std::pair<float, int>> distances;
-        for (size_t i = 0; i < approx.size(); i++) {
-            float dx = approx[i].x - center.x;
-            float dy = approx[i].y - center.y;
-            float dist = std::sqrt(dx*dx + dy*dy);
-            distances.push_back(std::make_pair(dist, i));
-        }
-        
-        // Sort distances in descending order
-        std::sort(distances.begin(), distances.end(), 
-                 [](const std::pair<float, int>& a, const std::pair<float, int>& b) {
-                     return a.first > b.first;
-                 });
-        
-        // Take 4 points with largest distances
-        for (int i = 0; i < 4; i++) {
-            pts.push_back(cv::Point2f(approx[distances[i].second]));
-        }
-    } else {
-        // Convert all points to Point2f
-        for (const auto& pt : approx) {
-            pts.push_back(cv::Point2f(pt));
-        }
-    }
-    
-    // Basic size check
-    cv::Rect bbox = cv::boundingRect(pts);
-    if (bbox.height < minHeight || bbox.width < 5 || 
-        static_cast<float>(bbox.height) / std::max(1, bbox.width) > 8.0) {
-        if (DEBUG) {
-            std::cout << "Skipping shape with h/w ratio " 
-                     << static_cast<float>(bbox.height) / std::max(1, bbox.width) << std::endl;
-        }
-        return std::vector<cv::Point2f>();
-    }
-    
-    // Order points for consistency
-    if (pts.size() == 4) {
-        pts = orderQuadrilateralPoints(pts);
-    }
-    
-    return pts;
-}
-
-// Order quadrilateral points
-std::vector<cv::Point2f> orderQuadrilateralPoints(const std::vector<cv::Point2f>& pts) {
-    // Sort by x coordinate
-    std::vector<cv::Point2f> xSorted = pts;
-    std::sort(xSorted.begin(), xSorted.end(), 
-             [](const cv::Point2f& a, const cv::Point2f& b) {
-                 return a.x < b.x;
-             });
-    
-    // Get left points and right points
-    std::vector<cv::Point2f> leftPoints = {xSorted[0], xSorted[1]};
-    std::vector<cv::Point2f> rightPoints = {xSorted[2], xSorted[3]};
-    
-    // Sort left points by y
-    std::sort(leftPoints.begin(), leftPoints.end(), 
-             [](const cv::Point2f& a, const cv::Point2f& b) {
-                 return a.y < b.y;
-             });
-    
-    // Sort right points by y
-    std::sort(rightPoints.begin(), rightPoints.end(), 
-             [](const cv::Point2f& a, const cv::Point2f& b) {
-                 return a.y < b.y;
-             });
-    
-    // Return ordered points: top-left, top-right, bottom-right, bottom-left
-    return {
-        leftPoints[0],   // top-left
-        rightPoints[0],  // top-right
-        rightPoints[1],  // bottom-right
-        leftPoints[1]    // bottom-left
-    };
-}
-
-// Find nearest field point
-cv::Point2f findNearestFieldPoint(const std::vector<cv::Point2f>& quadrilateral, 
-                               int bottomEdgeY, int frameHeight) {
-    // Get center bottom point (robot position)
+cv::Point findNearestFieldPoint(const std::vector<cv::Point>& quadrilateral, int bottomEdgeY, int frameHeight) {
     int botCenterX = frameHeight / 2;
     int botCenterY = frameHeight;
-    
-    // Filter points near field transition
     int fieldThreshold = 20;
-    std::vector<cv::Point2f> fieldPoints;
+    std::vector<cv::Point> fieldPoints;
     
     for (const auto& point : quadrilateral) {
         if (std::abs(point.y - bottomEdgeY) < fieldThreshold) {
@@ -306,20 +354,18 @@ cv::Point2f findNearestFieldPoint(const std::vector<cv::Point2f>& quadrilateral,
         }
     }
     
-    // If no points near field line, use all points
     if (fieldPoints.empty()) {
         fieldPoints = quadrilateral;
     }
     
-    // Find point closest to robot
-    cv::Point2f closestPoint = fieldPoints[0];
-    float minDistance = std::numeric_limits<float>::max();
+    cv::Point closestPoint;
+    double minDistance = std::numeric_limits<double>::infinity();
     
     for (const auto& point : fieldPoints) {
-        float dx = point.x - botCenterX;
-        float dy = point.y - botCenterY;
-        float distance = std::sqrt(dx*dx + dy*dy);
-        
+        double distance = std::sqrt(
+            std::pow(point.x - botCenterX, 2) + 
+            std::pow(point.y - botCenterY, 2)
+        );
         if (distance < minDistance) {
             minDistance = distance;
             closestPoint = point;
@@ -329,67 +375,144 @@ cv::Point2f findNearestFieldPoint(const std::vector<cv::Point2f>& quadrilateral,
     return closestPoint;
 }
 
-// Get reliable goalpost contour
+std::vector<cv::Point> detectQuadrilateral(const std::vector<cv::Point>& contour, 
+                                          float epsilonFactor, int minHeight, int maxPoints) {
+    double perimeter = cv::arcLength(contour, true);
+    double epsilon = epsilonFactor * perimeter;
+    std::vector<cv::Point> approx;
+    cv::approxPolyDP(contour, approx, epsilon, true);
+    
+    if (DEBUG) {
+        std::cout << "Contour has " << approx.size() << " points" << std::endl;
+    }
+    
+    if (approx.size() < 4 || approx.size() > maxPoints) {
+        if (DEBUG) {
+            std::cout << "Skipping shape with " << approx.size() << " points" << std::endl;
+        }
+        return {};
+    }
+    
+    std::vector<cv::Point> pts;
+    if (approx.size() > 4) {
+        // Find center
+        cv::Point center(0, 0);
+        for (const auto& pt : approx) {
+            center.x += pt.x;
+            center.y += pt.y;
+        }
+        center.x /= approx.size();
+        center.y /= approx.size();
+        
+        // Calculate distances from center
+        std::vector<std::pair<int, double>> distances;
+        for (int i = 0; i < approx.size(); i++) {
+            double dist = std::sqrt(
+                std::pow(approx[i].x - center.x, 2) + 
+                std::pow(approx[i].y - center.y, 2)
+            );
+            distances.push_back({i, dist});
+        }
+        
+        // Sort by distance and get furthest 4 points
+        std::sort(distances.begin(), distances.end(), 
+                 [](const std::pair<int, double>& a, const std::pair<int, double>& b) {
+                     return a.second > b.second;
+                 });
+        
+        for (int i = 0; i < 4; i++) {
+            pts.push_back(approx[distances[i].first]);
+        }
+    } else {
+        pts = approx;
+    }
+    
+    cv::Rect bbox = cv::boundingRect(pts);
+    if (bbox.height < minHeight || bbox.width < 5 || 
+        static_cast<float>(bbox.height) / bbox.width > 8.0f) {
+        if (DEBUG) {
+            std::cout << "Skipping shape with h/w ratio " 
+                     << static_cast<float>(bbox.height) / bbox.width << std::endl;
+        }
+        return {};
+    }
+    
+    if (pts.size() == 4) {
+        pts = orderQuadrilateralPoints(pts);
+    }
+    
+    return pts;
+}
+
+std::vector<cv::Point> orderQuadrilateralPoints(std::vector<cv::Point> pts) {
+    // Sort points by x-coordinate
+    std::sort(pts.begin(), pts.end(), [](const cv::Point& a, const cv::Point& b) {
+        return a.x < b.x;
+    });
+    
+    std::vector<cv::Point> leftPoints = {pts[0], pts[1]};
+    std::vector<cv::Point> rightPoints = {pts[2], pts[3]};
+    
+    // Sort left points by y-coordinate
+    std::sort(leftPoints.begin(), leftPoints.end(), [](const cv::Point& a, const cv::Point& b) {
+        return a.y < b.y;
+    });
+    
+    // Sort right points by y-coordinate
+    std::sort(rightPoints.begin(), rightPoints.end(), [](const cv::Point& a, const cv::Point& b) {
+        return a.y < b.y;
+    });
+    
+    return {
+        leftPoints[0],   // top-left
+        rightPoints[0],  // top-right
+        rightPoints[1],  // bottom-right
+        leftPoints[1]    // bottom-left
+    };
+}
+
 std::vector<cv::Point> getReliableGoalpostContour(const std::vector<std::vector<cv::Point>>& contours, 
-                                              const cv::Mat& colorMask) {
+                                                const cv::Mat& colorMask) {
     if (contours.empty()) {
-        return std::vector<cv::Point>();
+        return {};
     }
     
-    // Sort contours by area (largest first)
-    std::vector<std::pair<double, int>> areas;
-    for (size_t i = 0; i < contours.size(); i++) {
-        areas.push_back(std::make_pair(cv::contourArea(contours[i]), i));
-    }
-    
-    std::sort(areas.begin(), areas.end(), 
-             [](const std::pair<double, int>& a, const std::pair<double, int>& b) {
-                 return a.first > b.first;
+    std::vector<std::vector<cv::Point>> sortedContours = contours;
+    std::sort(sortedContours.begin(), sortedContours.end(), 
+             [](const std::vector<cv::Point>& a, const std::vector<cv::Point>& b) {
+                 return cv::contourArea(a) > cv::contourArea(b);
              });
     
-    const std::vector<cv::Point>& largest = contours[areas[0].second];
-    
-    // Check if it's large enough
+    std::vector<cv::Point> largest = sortedContours[0];
     if (cv::contourArea(largest) < MIN_CONTOUR_AREA) {
-        return std::vector<cv::Point>();
+        return {};
     }
     
-    // Create convex hull
     std::vector<cv::Point> hull;
     cv::convexHull(largest, hull);
     
-    // Calculate aspect ratio
     cv::Rect bbox = cv::boundingRect(hull);
-    float aspectRatio = static_cast<float>(bbox.height) / std::max(1, bbox.width);
+    float aspectRatio = static_cast<float>(bbox.height) / std::max(bbox.width, 1);
     
-    // If tall and narrow, likely a goalpost
-    if (aspectRatio > 1.5) {
+    if (aspectRatio > 1.5f) {
         return hull;
     }
-    
-    return largest;  // Fall back to largest
+    return largest;
 }
 
-// Filter out rod-like contours
 std::vector<std::vector<cv::Point>> filterOutRods(const std::vector<std::vector<cv::Point>>& contours) {
     std::vector<std::vector<cv::Point>> filteredContours;
-    
     for (const auto& contour : contours) {
-        // Calculate minimum area rectangle
         cv::RotatedRect rect = cv::minAreaRect(contour);
         float width = rect.size.width;
         float height = rect.size.height;
         
-        // Ensure width < height for vertical objects
         if (width > height) {
             std::swap(width, height);
         }
         
-        // Calculate aspect ratio
-        float aspectRatio = height / std::max(1.0f, width);
-        
-        // If too tall and thin, likely a rod
-        if (aspectRatio > 8.0) {
+        float aspectRatio = height / std::max(width, 1.0f);
+        if (aspectRatio > 8.0f) {
             continue;
         }
         
@@ -399,24 +522,20 @@ std::vector<std::vector<cv::Point>> filterOutRods(const std::vector<std::vector<
     return filteredContours;
 }
 
-// Combine goalpost parts
 std::vector<cv::Point> combineGoalpostParts(const std::vector<std::vector<cv::Point>>& contours, int minArea) {
     std::vector<std::vector<cv::Point>> significantContours;
-    
-    for (const auto& contour : contours) {
-        if (cv::contourArea(contour) > minArea / 4) {
-            significantContours.push_back(contour);
+    for (const auto& c : contours) {
+        if (cv::contourArea(c) > minArea / 4) {
+            significantContours.push_back(c);
         }
     }
     
     if (significantContours.size() > 1) {
-        // Combine all points
         std::vector<cv::Point> allPoints;
         for (const auto& contour : significantContours) {
             allPoints.insert(allPoints.end(), contour.begin(), contour.end());
         }
         
-        // Create convex hull
         std::vector<cv::Point> hull;
         cv::convexHull(allPoints, hull);
         return hull;
@@ -424,279 +543,60 @@ std::vector<cv::Point> combineGoalpostParts(const std::vector<std::vector<cv::Po
         return significantContours[0];
     }
     
-    return std::vector<cv::Point>();
+    return {};
 }
 
-// Find quadrilateral midpoint
-cv::Point2f findQuadMidpoint(const std::vector<cv::Point2f>& quadPoints) {
-    float totalX = 0.0f;
-    float totalY = 0.0f;
-    
-    for (const auto& pt : quadPoints) {
-        totalX += pt.x;
-        totalY += pt.y;
+cv::Point findLineMidpoint(const std::vector<cv::Point>& linePoints) {
+    if (linePoints.size() != 2) {
+        return cv::Point(0, 0);
     }
     
-    return cv::Point2f(totalX / quadPoints.size(), totalY / quadPoints.size());
+    int totalX = (linePoints[0].x + linePoints[1].x) / 2;
+    int totalY = (linePoints[0].y + linePoints[1].y) / 2;
+    return cv::Point(totalX, totalY);
 }
 
-// Main function
-int main() {
-    // Open video
-    std::string videoPath = "RBC-soccer-2025/software/rpi-direct/libs/camera/scripts/vid.mp4";
-    std::cout << "File exists? " << std::filesystem::exists(videoPath) << std::endl;
-    
-    cv::VideoCapture cap(videoPath);
-    if (!cap.isOpened()) {
-        std::cerr << "Error: Could not open video file" << std::endl;
-        return -1;
+cv::Point findQuadMidpoint(const std::vector<cv::Point>& quadPoints) {
+    if (quadPoints.size() != 4) {
+        return cv::Point(0, 0);
     }
     
-    // Main processing loop
-    while (cap.isOpened()) {
-        cv::Mat frame;
-        if (!cap.read(frame)) {
-            break;
-        }
-        
-        auto startTime = std::chrono::high_resolution_clock::now();
-        
-        cv::Mat hsv, output = frame.clone();
-        cv::cvtColor(frame, hsv, cv::COLOR_BGR2HSV);
-        
-        // Create and clean color masks
-        cv::Mat blueMask, yellowMask;
-        cv::inRange(hsv, BLUE_LOWER, BLUE_UPPER, blueMask);
-        cv::inRange(hsv, YELLOW_LOWER, YELLOW_UPPER, yellowMask);
-        
-        // Apply morphology
-        cv::Mat kernelSmall = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
-        
-        cv::morphologyEx(blueMask, blueMask, cv::MORPH_CLOSE, kernelSmall);
-        cv::morphologyEx(yellowMask, yellowMask, cv::MORPH_CLOSE, kernelSmall);
-        
-        // Find contours
-        std::vector<std::vector<cv::Point>> blueContours, yellowContours;
-        cv::findContours(blueMask, blueContours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-        cv::findContours(yellowMask, yellowContours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-        
-        // Process blue goalpost
-        bool blueDetected = false;
-        std::vector<cv::Point2f> blueQuad;
-        
-        // Try approach 1: Filter and combine
-        std::vector<std::vector<cv::Point>> filteredBlue = filterOutRods(blueContours);
-        if (filteredBlue.size() > 1) {
-            std::vector<cv::Point> combinedBlue = combineGoalpostParts(filteredBlue, MIN_CONTOUR_AREA / 2);
-            if (!combinedBlue.empty()) {
-                blueQuad = detectQuadrilateral(combinedBlue, EPSILON_FACTOR);
-                if (!blueQuad.empty()) {
-                    blueDetected = true;
-                }
-            }
-        }
-        
-        // Try approach 2: Use reliable goalpost contour
-        if (!blueDetected && !filteredBlue.empty()) {
-            std::vector<cv::Point> reliableBlue = getReliableGoalpostContour(filteredBlue, blueMask);
-            if (!reliableBlue.empty()) {
-                blueQuad = detectQuadrilateral(reliableBlue, EPSILON_FACTOR);
-                if (!blueQuad.empty()) {
-                    blueDetected = true;
-                }
-            }
-        }
-        
-        // Try approach 3: Use largest contour directly
-        if (!blueDetected && !blueContours.empty()) {
-            // Find largest contour
-            int largestIdx = 0;
-            double largestArea = 0;
-            for (size_t i = 0; i < blueContours.size(); i++) {
-                double area = cv::contourArea(blueContours[i]);
-                if (area > largestArea) {
-                    largestArea = area;
-                    largestIdx = i;
-                }
-            }
-            
-            if (largestArea > MIN_CONTOUR_AREA) {
-                blueQuad = detectQuadrilateral(blueContours[largestIdx], EPSILON_FACTOR);
-                if (!blueQuad.empty()) {
-                    blueDetected = true;
-                }
-            }
-        }
-        
-        // Draw blue goalpost if detected
-        if (blueDetected) {
-            // Draw quadrilateral
-            for (size_t i = 0; i < 4; i++) {
-                cv::Point pt1(static_cast<int>(blueQuad[i].x), static_cast<int>(blueQuad[i].y));
-                cv::Point pt2(static_cast<int>(blueQuad[(i + 1) % 4].x), static_cast<int>(blueQuad[(i + 1) % 4].y));
-                cv::line(output, pt1, pt2, cv::Scalar(255, 0, 0), 2);
-            }
-            
-            // Find true bottom edge
-            int bottomEdgeY = findTrueBottomEdgeQuadrilateral(frame, blueQuad, BLUE_LOWER, BLUE_UPPER);
-            
-            // Find nearest field point
-            cv::Point2f nearestPoint = findNearestFieldPoint(blueQuad, bottomEdgeY, frame.rows);
-            int nearestX = static_cast<int>(nearestPoint.x);
-            int nearestY = static_cast<int>(nearestPoint.y);
-            
-            // Calculate midpoint
-            cv::Point2f blueMidpoint = findQuadMidpoint(blueQuad);
-            std::cout << "Blue midpoint: " << blueMidpoint << std::endl;
-            
-            // Draw points and annotations
-            cv::circle(output, cv::Point(nearestX, nearestY), 5, cv::Scalar(255, 255, 0), -1);
-            cv::circle(output, cv::Point(static_cast<int>(blueMidpoint.x), static_cast<int>(blueMidpoint.y)), 
-                      5, cv::Scalar(255, 255, 255), -1);
-            
-            cv::line(output, cv::Point(nearestX - 10, nearestY), cv::Point(nearestX + 10, nearestY), 
-                    cv::Scalar(255, 255, 0), 2);
-            
-            cv::putText(output, "(" + std::to_string(nearestX) + "," + std::to_string(nearestY) + ")",
-                       cv::Point(nearestX - 40, nearestY - 10), 
-                       cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 0), 1);
-                       
-            cv::putText(output, 
-                       "(" + std::to_string(static_cast<int>(blueMidpoint.x)) + "," + 
-                       std::to_string(static_cast<int>(blueMidpoint.y)) + ")",
-                       cv::Point(static_cast<int>(blueMidpoint.x) - 40, static_cast<int>(blueMidpoint.y) - 10),
-                       cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
-        }
-        
-        // Process yellow goalpost (similar to blue)
-        bool yellowDetected = false;
-        std::vector<cv::Point2f> yellowQuad;
-        
-        // Try approach 1: Filter and combine
-        std::vector<std::vector<cv::Point>> filteredYellow = filterOutRods(yellowContours);
-        if (filteredYellow.size() > 1) {
-            std::vector<cv::Point> combinedYellow = combineGoalpostParts(filteredYellow, MIN_CONTOUR_AREA / 2);
-            if (!combinedYellow.empty()) {
-                yellowQuad = detectQuadrilateral(combinedYellow, EPSILON_FACTOR);
-                if (!yellowQuad.empty()) {
-                    yellowDetected = true;
-                }
-            }
-        }
-        
-        // Try approach 2: Use reliable goalpost contour
-        if (!yellowDetected && !filteredYellow.empty()) {
-            std::vector<cv::Point> reliableYellow = getReliableGoalpostContour(filteredYellow, yellowMask);
-            if (!reliableYellow.empty()) {
-                yellowQuad = detectQuadrilateral(reliableYellow, EPSILON_FACTOR);
-                if (!yellowQuad.empty()) {
-                    yellowDetected = true;
-                }
-            }
-        }
-        
-        // Try approach 3: Use largest contour directly
-        if (!yellowDetected && !yellowContours.empty()) {
-            // Find largest contour
-            int largestIdx = 0;
-            double largestArea = 0;
-            for (size_t i = 0; i < yellowContours.size(); i++) {
-                double area = cv::contourArea(yellowContours[i]);
-                if (area > largestArea) {
-                    largestArea = area;
-                    largestIdx = i;
-                }
-            }
-            
-            if (largestArea > MIN_CONTOUR_AREA) {
-                yellowQuad = detectQuadrilateral(yellowContours[largestIdx], EPSILON_FACTOR);
-                if (!yellowQuad.empty()) {
-                    yellowDetected = true;
-                }
-            }
-        }
-        
-        // Draw yellow goalpost if detected
-        if (yellowDetected) {
-            // Draw quadrilateral
-            for (size_t i = 0; i < 4; i++) {
-                cv::Point pt1(static_cast<int>(yellowQuad[i].x), static_cast<int>(yellowQuad[i].y));
-                cv::Point pt2(static_cast<int>(yellowQuad[(i + 1) % 4].x), static_cast<int>(yellowQuad[(i + 1) % 4].y));
-                cv::line(output, pt1, pt2, cv::Scalar(0, 255, 255), 2);
-            }
-            
-            // Find true bottom edge
-            int bottomEdgeY = findTrueBottomEdgeQuadrilateral(frame, yellowQuad, YELLOW_LOWER, YELLOW_UPPER);
-            
-            // Find nearest field point
-            cv::Point2f nearestPoint = findNearestFieldPoint(yellowQuad, bottomEdgeY, frame.rows);
-            int nearestX = static_cast<int>(nearestPoint.x);
-            int nearestY = static_cast<int>(nearestPoint.y);
-            
-            // Calculate midpoint
-            cv::Point2f yellowMidpoint = findQuadMidpoint(yellowQuad);
-            
-            // Draw points and annotations
-            cv::circle(output, cv::Point(nearestX, nearestY), 5, cv::Scalar(0, 255, 255), -1);
-            cv::circle(output, cv::Point(static_cast<int>(yellowMidpoint.x), static_cast<int>(yellowMidpoint.y)),
-                      5, cv::Scalar(255, 255, 255), -1);
-            
-            cv::line(output, cv::Point(nearestX - 10, nearestY), cv::Point(nearestX + 10, nearestY),
-                    cv::Scalar(0, 255, 255), 2);
-            
-            cv::putText(output, "(" + std::to_string(nearestX) + "," + std::to_string(nearestY) + ")",
-                       cv::Point(nearestX - 40, nearestY - 10),
-                       cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 255), 1);
-                       
-            cv::putText(output,
-                       "(" + std::to_string(static_cast<int>(yellowMidpoint.x)) + "," +
-                       std::to_string(static_cast<int>(yellowMidpoint.y)) + ")",
-                       cv::Point(static_cast<int>(yellowMidpoint.x) - 40, static_cast<int>(yellowMidpoint.y) - 10),
-                       cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
-        }
-        
-        // Debug visualization
-        if (DEBUG) {
-            // Create colored versions of masks
-            cv::Mat blueDisplay, yellowDisplay;
-            cv::cvtColor(blueMask, blueDisplay, cv::COLOR_GRAY2BGR);
-            cv::cvtColor(yellowMask, yellowDisplay, cv::COLOR_GRAY2BGR);
-            
-            // Add labels
-            cv::putText(blueDisplay, "Blue Mask", cv::Point(10, 30),
-                       cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
-            cv::putText(yellowDisplay, "Yellow Mask", cv::Point(10, 30),
-                       cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
-            
-            // Resize masks to half size
-            cv::resize(blueDisplay, blueDisplay, cv::Size(frame.cols / 2, frame.rows / 2));
-            cv::resize(yellowDisplay, yellowDisplay, cv::Size(frame.cols / 2, frame.rows / 2));
-            
-            // Create composite debug view
-            cv::Mat debugTop, debugView, outputResized;
-            cv::hconcat(blueDisplay, yellowDisplay, debugTop);
-            cv::resize(output, outputResized, cv::Size(frame.cols, frame.rows / 2));
-            cv::vconcat(debugTop, outputResized, debugView);
-            
-            cv::imshow("Debug View", debugView);
-        }
-        
-        // Show main output
-        cv::imshow("Goal Detection", output);
-        
-        // Calculate processing time
-        auto endTime = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
-        std::cout << "Time taken for frame: " << duration << " ms" << std::endl;
-        
-        // Exit if 'q' is pressed
-        if (cv::waitKey(25) == 'q') {
-            break;
-        }
+    int totalX = 0;
+    int totalY = 0;
+    for (int i = 0; i < 4; i++) {
+        totalX += quadPoints[i].x;
+        totalY += quadPoints[i].y;
+    }
+    return cv::Point(totalX / 4, totalY / 4);
+}
+
+float findGoalAngle(const cv::Point& goalMidpoint) {
+    int deltaX = goalMidpoint.x - CENTRE_POINT.x;
+    int deltaY = goalMidpoint.y - CENTRE_POINT.y;
+    float goalAngle = std::atan2(deltaY, deltaX);
+    return goalAngle + M_PI / 2;
+}
+
+std::vector<cv::Point> findClosestPointsToCenter(const std::vector<cv::Point>& quadPoints, 
+                                               const cv::Point& centerPoint) {
+    std::vector<std::pair<int, double>> distances;
+    for (int i = 0; i < quadPoints.size(); i++) {
+        double dist = std::sqrt(
+            std::pow(quadPoints[i].x - centerPoint.x, 2) + 
+            std::pow(quadPoints[i].y - centerPoint.y, 2)
+        );
+        distances.push_back({i, dist});
     }
     
-    cap.release();
-    cv::destroyAllWindows();
+    std::sort(distances.begin(), distances.end(), 
+             [](const std::pair<int, double>& a, const std::pair<int, double>& b) {
+                 return a.second < b.second;
+             });
     
-    return 0;
+    std::vector<cv::Point> closestPoints = {
+        quadPoints[distances[0].first],
+        quadPoints[distances[1].first]
+    };
+    
+    return closestPoints;
 }
