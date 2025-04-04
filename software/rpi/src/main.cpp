@@ -120,21 +120,21 @@ int main() {
 
         debug::info("Angle: %f", angle * 180 / M_PI);
 
-        auto commands  = motion_controller.velocity_pid(0, angle, angle, 0.0f);
-        auto commands2 = motion_controller.move_heading(angle, angle, 0.1f);
-        // auto commands2 = std::make_tuple(0.0f, 0.0f, 0.0f, 0.0f);
+        // auto commands  = motion_controller.velocity_pid(0, angle, angle, 0.0f);
+        // auto commands2 = motion_controller.move_heading(angle, angle, 0.1f);
+        // // auto commands2 = std::make_tuple(0.0f, 0.0f, 0.0f, 0.0f);
 
-        motors::command_motor_motion_controller(
-            1, (std::get<0>(commands) + std::get<0>(commands2)) * 4000);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor_motion_controller(
-            2, (std::get<1>(commands) + std::get<1>(commands2)) * 4000);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor_motion_controller(
-            3, (std::get<2>(commands) + std::get<2>(commands2)) * 4000);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor_motion_controller(
-            4, (std::get<3>(commands) + std::get<3>(commands2)) * 4000);
+        // motors::command_motor_motion_controller(
+        //     1, (std::get<0>(commands) + std::get<0>(commands2)) * 4000);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // motors::command_motor_motion_controller(
+        //     2, (std::get<1>(commands) + std::get<1>(commands2)) * 4000);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // motors::command_motor_motion_controller(
+        //     3, (std::get<2>(commands) + std::get<2>(commands2)) * 4000);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // motors::command_motor_motion_controller(
+        //     4, (std::get<3>(commands) + std::get<3>(commands2)) * 4000);
 
         // motors::command_motor(1, 2000);
         // std::this_thread::sleep_for(std::chrono::milliseconds(1));

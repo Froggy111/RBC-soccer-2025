@@ -125,5 +125,5 @@ types::Vec3f32 correct_accel_bias(const types::Vec3f32 &accel_data,
 types::Vec3f32 correct_gyro_bias(const types::Vec3f32 &gyro_data,
                                  const types::Vec3f32 &gyro_bias);
 ProcessedIMUData fuse_IMU_data(const CorrectedIMUData &data);
-void IMU_processor(const types::u8 *data, types::u16 data_len);
+IntegratedData IMU_processor(const types::u8 *data, types::u16 data_len);
 } // namespace IMU
