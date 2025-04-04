@@ -47,7 +47,10 @@ void pulse_handler_individual(u8 id, u32 event) {
   if (event & GPIO_IRQ_EDGE_FALL) { // IR activation
     pulse_data[id].last_fall = time_us_64();
   } else if (event & GPIO_IRQ_EDGE_RISE) {
-    pulse_data[id].uptime += time_us_64() - pulse_data[id].last_fall;
+    u32 time_passed = time_us_64() - pulse_data[id].last_fall;
+    if (time_passed < max_time_passed) {
+      pulse_data[id].uptime += time_passed;
+    }
   }
   return;
 }

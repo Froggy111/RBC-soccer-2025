@@ -55,7 +55,8 @@ const types::u16 MODULATION_HANLDER_TASK_STACK_SIZE = 1024;
 const types::u16 MODULATION_HANLDER_TASK_PRIORITY = 12;
 
 // // pulse timer
-// const double PULSE_FREQ = 40000;
+const double PULSE_FREQ = 40000;
+const types::u32 max_time_passed = 1e6 / PULSE_FREQ * 2;
 // const types::u32 CYCLES_PER_PULSE = (double)SYS_CLK_HZ / PULSE_FREQ;
 // const types::u8 PULSE_ALARM_IDX = 1;
 static volatile PulseData pulse_data[SENSOR_COUNT];
