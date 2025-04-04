@@ -66,6 +66,7 @@ bool MotorDriver::init(int id, spi_inst_t *spi_obj_touse) {
     pins.set_debug_mode(false);
     pins.set_driver_id(id);
   }
+  _id = id;
   outputControl.init(id == -1, spi_obj_touse);
   inputControl.init(id == -1, spi_obj_touse);
 
@@ -404,6 +405,24 @@ bool MotorDriver::command(types::i16 duty_cycle) {
   if (abs(duty_cycle) > 3000) {
     debug::error("Invalid duty cycle. Must be between -12500 and 12500.\r\n");
     return false;
+  }
+
+  bool nfault_value = inputControl.read_digital(pins.get_pin(NFAULT),
+                                                pins.get_pin_interface(NFAULT));
+  if (!nfault_value) {
+    // faulted
+    debug::error("Driver %u faulted\r\n", _id);
+    if (!init_registers()) {
+      debug::error("Could not unfault driver %u\r\n", _id);
+    }
+    // types::u8 faultSummary = read8(FAULT_SUMMARY_REG);
+    // if (faultSummary != 0) {
+    //   debug::error("Error: FAULT_SUMMARY: %s\r\n",
+    //                FAULT::get_fault_description(faultSummary).c_str());
+    //   return false;
+    // }
+  } else {
+    debug::error("Driver %u not faulted\r\n", _id);
   }
 
   // get direction and speed

@@ -100,6 +100,7 @@ private:
 
   types::i16 duty_cycle_cache;
   spi_inst_t *spi_obj;
+  types::u8 _id = 0;
 
 public:
   /**

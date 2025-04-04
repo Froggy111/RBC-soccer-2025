@@ -101,30 +101,36 @@ void motor_task(void *args) {
     // previous_wait_time = xTaskGetTickCount();
     // * data transfer
 
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    xSemaphoreTake(motor_data_mutex, portMAX_DELAY);
-    memcpy(&motor_task_data, motor_task_buffer, sizeof(motor_task_data));
-    memset(motor_task_buffer, 0, sizeof(motor_task_buffer));
-    xSemaphoreGive(motor_data_mutex);
-    debug::info("Motor %d: %d\n", motor_task_data.id,
-                motor_task_data.duty_cycle);
-    switch (motor_task_data.id) {
-    case 1:
-      driver1.command(motor_task_data.duty_cycle);
-      break;
-    case 2:
-      driver2.command(motor_task_data.duty_cycle);
-      break;
-    case 3:
-      driver3.command(motor_task_data.duty_cycle);
-      break;
-    case 4:
-      driver4.command(motor_task_data.duty_cycle);
-      break;
-    default:
-      debug::error("Invalid motor ID: %d\n", motor_task_data.id);
-      break;
-    }
+    // ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    // xSemaphoreTake(motor_data_mutex, portMAX_DELAY);
+    // memcpy(&motor_task_data, motor_task_buffer, sizeof(motor_task_data));
+    // memset(motor_task_buffer, 0, sizeof(motor_task_buffer));
+    // xSemaphoreGive(motor_data_mutex);
+    // debug::info("Motor %d: %d\n", motor_task_data.id,
+    //             motor_task_data.duty_cycle);
+    // switch (motor_task_data.id) {
+    // case 1:
+    //   driver1.command(motor_task_data.duty_cycle);
+    //   break;
+    // case 2:
+    //   driver2.command(motor_task_data.duty_cycle);
+    //   break;
+    // case 3:
+    //   driver3.command(motor_task_data.duty_cycle);
+    //   break;
+    // case 4:
+    //   driver4.command(motor_task_data.duty_cycle);
+    //   break;
+    // default:
+    //   debug::error("Invalid motor ID: %d\n", motor_task_data.id);
+    //   break;
+    // }
+
+    driver1.command(1000);
+    driver2.command(1000);
+    driver3.command(1000);
+    driver4.command(1000);
+    vTaskDelay(1);
 
     // debug::info("Motor %d: %d\n", motor_task_data.id,
 
