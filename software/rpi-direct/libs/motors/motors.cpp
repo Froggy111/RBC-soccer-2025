@@ -9,7 +9,7 @@ using namespace types;
 namespace motors {
 
 bool command_motor(uint8_t id, types::i16 duty_cycle) {
-    if (duty_cycle > MOTOR_MAX_DUTY_CYCLE) {
+    if (abs(duty_cycle) > MOTOR_MAX_DUTY_CYCLE) {
         debug::error("Motor duty cycle %d is too high, max is %d", duty_cycle,
                      MOTOR_MAX_DUTY_CYCLE);
         return false;

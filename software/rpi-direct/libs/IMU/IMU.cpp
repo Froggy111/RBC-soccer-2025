@@ -6,6 +6,7 @@
 
 extern "C" {
 #include <memory.h>
+#include <math.h>
 }
 
 using namespace types;
@@ -110,7 +111,7 @@ ProcessedIMUData fuse_IMU_data(const CorrectedIMUData &data) {
                             2;
     // centrifugal acceleration is (angular velocity)^2/r, thus:
     f32 accel_x_angular_velocity =
-        krt(centrifugal_accel * accel_distance_from_middle);
+        sqrtf(centrifugal_accel * accel_distance_from_middle);
 
     // take angular acceleration
     f32 angular_acceleration = ((previous_corrected_data.accel_1.y -
@@ -130,7 +131,7 @@ ProcessedIMUData fuse_IMU_data(const CorrectedIMUData &data) {
     return processed_data;
 }
 
-void IMU_processor(const u8 *data, u16 data_len) {
+IntegratedData IMU_processor(const u8 *data, u16 data_len) {
     // read data
     memcpy(&current_raw_data, data, data_len);
     debug::debug("Received IMU data with length: %u", data_len);
@@ -206,5 +207,7 @@ void IMU_processor(const u8 *data, u16 data_len) {
                  current_integrated_data.orientation.x,
                  current_integrated_data.orientation.y,
                  current_integrated_data.orientation.z);
+
+    return current_integrated_data;
 }
 } // namespace IMU

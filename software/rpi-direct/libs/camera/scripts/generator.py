@@ -107,6 +107,7 @@ def generate_field_coordinates(
         f.write("#pragma once\n")
 
         f.write("namespace camera {\n")
+        f.write("namespace field {\n")
         f.write(f"const int WHITE_LINES_LENGTH = {len(selected_coordinates)};\n")
         f.write(f"const int FIELD_X_SIZE = {image_width};\n")
         f.write(f"const int FIELD_Y_SIZE = {image_height};\n\n")
@@ -120,6 +121,7 @@ def generate_field_coordinates(
             f.write("\n")
 
         f.write("};\n\n")
+        f.write("}")
         f.write("}")
 
 
