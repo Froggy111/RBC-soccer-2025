@@ -1,0 +1,3 @@
+add_executable(IMU_calibration main.cpp)
+target_link_globals(IMU_calibration)
+target_link_libraries(IMU_calibration IMU)
