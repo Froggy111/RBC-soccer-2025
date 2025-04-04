@@ -6,6 +6,7 @@
 #include <cstring>
 #include <dirent.h>
 #include <fcntl.h>
+#include <linux/serial.h>
 #include <stdarg.h>
 #include <sys/ioctl.h>
 #include <termios.h>
@@ -152,6 +153,25 @@ void CDC::scanDevices() {
             close(fd);
             continue;
         }
+
+        // <<<--- START: Add this block for low latency mode --->>>
+        struct serial_struct serial_info;
+        if (ioctl(fd, TIOCGSERIAL, &serial_info) < 0) {
+            // Error getting serial info - maybe not supported?
+            // You might want to log this as a warning or just continue
+            debug::warn("Could not get serial info for %s to set low_latency",
+                        port.c_str());
+        } else {
+            serial_info.flags |= ASYNC_LOW_LATENCY; // Set the low latency flag
+            if (ioctl(fd, TIOCSSERIAL, &serial_info) < 0) {
+                // Error setting serial info - maybe not supported?
+                debug::warn("Could not set low_latency mode for %s",
+                            port.c_str());
+            } else {
+                debug::info("Enabled low latency mode for %s", port.c_str());
+            }
+        }
+        // <<<--- END: Add this block for low latency mode --->>>
 
         // Create device object
         auto device        = std::make_shared<PicoDevice>();

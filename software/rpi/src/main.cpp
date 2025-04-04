@@ -22,20 +22,20 @@ camera::CamProcessor processor;
 MotionController motion_controller;
 
 bool start() {
-    // ^ Camera
-    if (!cam.initialize(camera::RES_480P)) {
-        debug::error("INITIALIZED CAMERA - FAILED");
-        return false;
-    } else {
-        debug::info("INITIALIZED CAMERA - SUCCESS");
-    }
-
-    if (!cam.startCapture(processor.process_frame)) {
-        debug::error("INITIALIZED CAMERA CAPTURE - FAILED");
-        return false;
-    } else {
-        debug::info("INITIALIZED CAMERA CAPTURE - SUCCESS");
-    }
+    // // ^ Camera
+    // if (!cam.initialize(camera::RES_480P)) {
+    //     debug::error("INITIALIZED CAMERA - FAILED");
+    //     return false;
+    // } else {
+    //     debug::info("INITIALIZED CAMERA - SUCCESS");
+    // }
+    //
+    // if (!cam.startCapture(processor.process_frame)) {
+    //     debug::error("INITIALIZED CAMERA CAPTURE - FAILED");
+    //     return false;
+    // } else {
+    //     debug::info("INITIALIZED CAMERA CAPTURE - SUCCESS");
+    // }
 
     // ^ Motion
 
@@ -83,7 +83,7 @@ void stop() {
 
     // ^ Stop Camera
     debug::warn("STOPPING CAMERA...");
-    cam.stopCapture();
+    // cam.stopCapture();
 }
 
 int main() {
@@ -118,7 +118,7 @@ int main() {
         }
         angle = M_PI * 2 - angle;
 
-        // debug::info("Angle: %f", angle * 180 / M_PI);
+        debug::info("Angle: %f", angle * 180 / M_PI);
 
         // auto commands  = motion_controller.velocity_pid(0, angle, angle, 0.0f);
         // auto commands2 = motion_controller.move_heading(angle, angle, 0.1f);

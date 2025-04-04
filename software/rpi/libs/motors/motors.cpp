@@ -17,6 +17,8 @@ bool command_motor(uint8_t id, types::i16 duty_cycle) {
         return false;
     }
 
+    debug::info("Commanding motor %u with duty cycle %d", id, duty_cycle);
+
     MotorRecvData motor_data = {.id = id, .duty_cycle = duty_cycle};
 
     if (!DIRECTIONS[id - 1]) {
