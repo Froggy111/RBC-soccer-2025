@@ -230,6 +230,17 @@ MotionController::velocity_pid(float current_heading, float target_heading,
     float motor3 = float(std::get<2>(translation_motor_values));
     float motor4 = float(std::get<3>(translation_motor_values));
 
+    if (std::abs(rotation_pid) < 0.03)
+        rotation_pid = 0.0;
+    else {
+        if (rotation_pid > 0) {
+            rotation_pid = std::min(rotation_pid, 0.15f);
+        } else {
+            rotation_pid = std::max(rotation_pid, -0.15f);
+        }
+    }
+        
+
     motor1 = std::max(float(-1.0),
                       std::min(float(1.0), float(motor1 - rotation_pid)));
     motor2 = std::max(float(-1.0),
