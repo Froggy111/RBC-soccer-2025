@@ -1,51 +1,91 @@
+#ifndef GOALPOST_DETECTION_HPP
+#define GOALPOST_DETECTION_HPP
+
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <cmath>
+#include <string>
+#include <iostream>
+#include <chrono>
 
-namespace goalpost {
 
-// Constants
-const bool DEBUG = true;
-const int MIN_CONTOUR_AREA = 300;
-const int MIN_GOAL_HEIGHT = 10;
-const int EDGE_SEARCH_HEIGHT = 69;
-const double EPSILON_FACTOR = 0.05;
-const double PARALLELOGRAM_TOLERANCE = 1.0;
+class GoalpostDetector {
+private:
+    // Configuration
+    bool DEBUG;
+    std::string videoPath;
+    cv::VideoCapture cap;
+    
+    // HSV color ranges
+    cv::Scalar BLUE_LOWER;
+    cv::Scalar BLUE_UPPER;
+    cv::Scalar YELLOW_LOWER;
+    cv::Scalar YELLOW_UPPER;
+    cv::Scalar FIELD_LOWER;
+    cv::Scalar FIELD_UPPER;
+    
+    // Constants
+    int MIN_CONTOUR_AREA;
+    int MIN_GOAL_HEIGHT;
+    int EDGE_SEARCH_HEIGHT;
+    double EPSILON_FACTOR;
+    int PARALLELOGRAM_TOLERANCE;
+    cv::Point CENTRE_POINT;
 
-// Color thresholds in HSV
-const cv::Scalar BLUE_LOWER(70, 146, 50);
-const cv::Scalar BLUE_UPPER(150, 255, 255);
-const cv::Scalar YELLOW_LOWER(20, 100, 100);
-const cv::Scalar YELLOW_UPPER(30, 255, 255);
-const cv::Scalar FIELD_LOWER(35, 50, 50);
-const cv::Scalar FIELD_UPPER(85, 255, 255);
+    // Helper functions
+    int findTrueBottomEdge(const cv::Mat& frame, const cv::Rect& bbox, 
+                          const cv::Scalar& goalLower, const cv::Scalar& goalUpper);
+                          
+    int findTrueBottomEdgeParallelogram(const cv::Mat& frame, const cv::Mat& parallelogram, 
+                                      const cv::Scalar& goalLower, const cv::Scalar& goalUpper);
+                                      
+    int findTrueBottomEdgeQuadrilateral(const cv::Mat& frame, const cv::Mat& quadrilateral, 
+                                       const cv::Scalar& goalLower, const cv::Scalar& goalUpper);
+                                       
+    cv::Mat orderPoints(const cv::Mat& pts);
+    
+    cv::Mat detectQuadrilateral(const std::vector<cv::Point>& contour, double epsilonFactor = 0.03, 
+                              int minHeight = 10, int maxPoints = 6);
+                              
+    cv::Mat orderQuadrilateralPoints(const cv::Mat& pts);
+    
+    cv::Point findNearestFieldPoint(const cv::Mat& quadrilateral, int bottomEdgeY, int frameHeight);
+    
+    std::vector<cv::Point> getReliableGoalpostContour(const std::vector<std::vector<cv::Point>>& contours, 
+                                                   const cv::Mat& colorMask);
+                                                   
+    std::vector<std::vector<cv::Point>> filterOutRods(const std::vector<std::vector<cv::Point>>& contours);
+    
+    std::vector<cv::Point> combineGoalpostParts(const std::vector<std::vector<cv::Point>>& contours, int minArea);
+    
+    cv::Point2f findLineMidpoint(const std::vector<cv::Point>& linePoints);
+    
+    cv::Point2f findQuadMidpoint(const cv::Mat& quadPoints);
+    
+    double findGoalAngle(const cv::Point2f& goalMidpoint);
+    
+    std::vector<cv::Point> findClosestPointsToCenter(const cv::Mat& quadPoints, 
+                                                 const cv::Point& centerPoint = cv::Point(0, 0));
+                                                 
+    double findDistanceToGoal(const cv::Point2f& goalMidpoint);
 
-// Function declarations
-int findTrueBottomEdge(const cv::Mat& frame, const cv::Rect& bbox, 
-                      const cv::Scalar& goalLower, const cv::Scalar& goalUpper);
+public:
+    // Constructor with default parameters
+    GoalpostDetector(const std::string& videoPath = "vid4.mp4", bool debug = true);
+    
+    // Destructor
+    ~GoalpostDetector();
+    
+    // Initialize detector
+    bool initialize();
+    
+    // Process a single frame
+    cv::Mat processFrame(cv::Mat& frame, bool& blueDetected, bool& yellowDetected,
+                       double& blueGoalAngle, double& yellowGoalAngle,
+                       double& blueGoalDistance, double& yellowGoalDistance);
+    
+    // Run the detection on video
+    void run();
+};
 
-int findTrueBottomEdgeQuadrilateral(const cv::Mat& frame, const std::vector<cv::Point2f>& quadrilateral,
-                                  const cv::Scalar& goalLower, const cv::Scalar& goalUpper);
-
-std::vector<cv::Point2f> orderPoints(const std::vector<cv::Point2f>& pts);
-
-std::vector<cv::Point2f> detectQuadrilateral(const std::vector<cv::Point>& contour, 
-                                          double epsilonFactor = EPSILON_FACTOR,
-                                          int minHeight = MIN_GOAL_HEIGHT, 
-                                          int maxPoints = 6);
-
-std::vector<cv::Point2f> orderQuadrilateralPoints(const std::vector<cv::Point2f>& pts);
-
-cv::Point2f findNearestFieldPoint(const std::vector<cv::Point2f>& quadrilateral, 
-                                int bottomEdgeY, int frameHeight);
-
-std::vector<cv::Point> getReliableGoalpostContour(const std::vector<std::vector<cv::Point>>& contours, 
-                                               const cv::Mat& colorMask);
-
-std::vector<std::vector<cv::Point>> filterOutRods(const std::vector<std::vector<cv::Point>>& contours);
-
-std::vector<cv::Point> combineGoalpostParts(const std::vector<std::vector<cv::Point>>& contours, int minArea);
-
-cv::Point2f findQuadMidpoint(const std::vector<cv::Point2f>& quadPoints);
-
-}
+#endif // GOALPOST_DETECTION_HPP
