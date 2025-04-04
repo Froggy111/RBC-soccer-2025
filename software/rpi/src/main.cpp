@@ -120,9 +120,9 @@ int main() {
 
         debug::info("Angle: %f", angle * 180 / M_PI);
 
-        auto commands  = motion_controller.velocity_pid(0, angle, angle, 0.2f);
-        //auto commands2 = motion_controller.move_heading(angle, angle, 0.1f);
-        auto commands2 = std::make_tuple(0.0f, 0.0f, 0.0f, 0.0f);
+        auto commands  = motion_controller.velocity_pid(0, angle, angle, 0.0f);
+        auto commands2 = motion_controller.move_heading(angle, angle, 0.1f);
+        // auto commands2 = std::make_tuple(0.0f, 0.0f, 0.0f, 0.0f);
 
         motors::command_motor_motion_controller(
             1, (std::get<0>(commands) + std::get<0>(commands2)) * 4000);
