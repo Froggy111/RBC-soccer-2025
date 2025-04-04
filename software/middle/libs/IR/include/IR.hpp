@@ -42,7 +42,7 @@ void init(void);
 
 // modulation timer
 const uint MODULATION_IRQ = TIMER_IRQ_0;
-const double MODULATION_FREQ = 1200 / 16; // 833.333us per cycle
+const double MODULATION_FREQ = 1200; // 833.333us per cycle
 const types::u32 CYCLES_PER_MODULATION = (double)SYS_CLK_HZ / MODULATION_FREQ;
 const types::u8 MODULATION_ALARM_IDX = 0;
 static volatile ModulationData modulation_data[SENSOR_COUNT];
