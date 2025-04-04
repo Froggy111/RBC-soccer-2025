@@ -22,7 +22,7 @@ struct LEDBLinkerData {
   uint8_t RED = 0;
   uint8_t GREEN = 0;
   uint8_t BLUE = 0;
-};
+} __attribute__((packed));
 
 WS2812 led_strip((uint)pinmap::Pico::LED_SIG_3V3, LED_COUNT, pio0,
                  0, WS2812::DataFormat::FORMAT_GRB);

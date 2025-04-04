@@ -17,9 +17,6 @@ void IR::init(void) {
 
 void IR::data_processor(const types::u8 *data, types::u16 data_len) {
     memcpy((void *)modulation_data, data, data_len);
-    for (u8 i = 0; i < SENSOR_COUNT; i++) {
-        debug::info("IR sensor %u uptime: %u", i, modulation_data[i].uptime);
-    }
     return;
 }
 
@@ -28,7 +25,7 @@ types::u32 IR::get_data_for_sensor_id(int id) {
         debug::error("IR::get_data_for_sensor_id: Invalid sensor ID");
         return 0;
     }
-    return modulation_data[id];
+    return modulation_data[id].uptime;
 }
 
 IR IR_sensors = IR();
