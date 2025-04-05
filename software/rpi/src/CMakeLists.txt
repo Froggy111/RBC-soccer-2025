@@ -1,12 +1,15 @@
 add_executable(main main.cpp)
 target_sources(main
-  PUBLIC
+PRIVATE
   mode_controller.cpp
-  mode_controller.hpp
   sensors/IR.cpp
+  sensors/line_sensors.cpp
+  PUBLIC
+  mode_controller.hpp
   sensors/IR.hpp
   actions/LEDs.hpp
   actions/kicker.hpp
+  sensors/line_sensors.hpp
 )
 
 find_package(Threads REQUIRED)
