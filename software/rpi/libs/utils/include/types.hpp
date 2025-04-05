@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <ostream>
 
 extern "C" {
@@ -29,7 +30,7 @@ struct Vec3i16 {
 
 struct Vec3f32 {
     Vec3f32(f32 x, f32 y, f32 z) : x(x), y(y), z(z) {}
-    f32 x, y, z;
+    f32 x = 0, y = 0, z = 0;
 
     // Addition
     Vec3f32 operator+(const Vec3f32 &other) const {
@@ -111,4 +112,96 @@ static std::ostream &operator<<(std::ostream &os, const Vec3f32 &vec) {
     return os;
 }
 
+struct Vec2f32 {
+    Vec2f32() = default;
+    Vec2f32(f32 x, f32 y) : x(x), y(y) {}
+    f32 x = 0, y = 0;
+
+    // Addition
+    Vec2f32 operator+(const Vec2f32 &other) const {
+        return Vec2f32(x + other.x, y + other.y);
+    }
+
+    // Subtraction
+    Vec2f32 operator-(const Vec2f32 &other) const {
+        return Vec2f32(x - other.x, y - other.y);
+    }
+
+    // Scalar multiplication
+    Vec2f32 operator*(f32 scalar) const {
+        return Vec2f32(x * scalar, y * scalar);
+    }
+
+    // Scalar division
+    Vec2f32 operator/(f32 scalar) const {
+        return Vec2f32(x / scalar, y / scalar);
+    }
+
+    // multiply member by member
+    Vec2f32 operator*(const Vec2f32 &other) const {
+        return Vec2f32(x * other.x, y * other.y);
+    }
+
+    f32 dot(const Vec2f32 &other) const { return x * other.x + y * other.y; }
+
+    // Cross product for 2D vectors (returns scalar)
+    f32 cross(const Vec2f32 &other) const { return x * other.y - y * other.x; }
+
+    // Compound assignment operators
+    Vec2f32 &operator+=(const Vec2f32 &other) {
+        x += other.x;
+        y += other.y;
+        return *this;
+    }
+
+    Vec2f32 &operator-=(const Vec2f32 &other) {
+        x -= other.x;
+        y -= other.y;
+        return *this;
+    }
+
+    Vec2f32 &operator*=(f32 scalar) {
+        x *= scalar;
+        y *= scalar;
+        return *this;
+    }
+
+    Vec2f32 &operator/=(f32 scalar) {
+        x /= scalar;
+        y /= scalar;
+        return *this;
+    }
+
+    // Equality operators
+    bool operator==(const Vec2f32 &other) const {
+        return x == other.x && y == other.y;
+    }
+
+    bool operator!=(const Vec2f32 &other) const { return !(*this == other); }
+
+    // Negation
+    Vec2f32 operator-() const { return Vec2f32(-x, -y); }
+
+    operator std::tuple<float, float>() const { return std::make_tuple(x, y); }
+};
+
+static std::ostream &operator<<(std::ostream &os, const Vec2f32 &vec) {
+    os << "(" << vec.x << ", " << vec.y << ")";
+    return os;
+}
+
+static Vec2f32 rotateVector(const Vec2f32 &vector, float angleRadians) {
+    Vec2f32 rotated = Vec2f32(0, 0);
+
+    // Apply rotation matrix:
+    // | cos(θ) -sin(θ) |   | x |
+    // | sin(θ)  cos(θ) | × | y |
+    float cosAngle = std::cos(angleRadians);
+    float sinAngle = std::sin(angleRadians);
+
+    rotated.x = vector.x * cosAngle - vector.y * sinAngle;
+    rotated.y = vector.x * sinAngle + vector.y * cosAngle;
+
+    return rotated;
+}
 } // namespace types
