@@ -1,5 +1,4 @@
 #pragma once
-#include "motion.hpp"
 #include "types.hpp"
 
 namespace motors {

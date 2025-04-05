@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <ostream>
+#include <tuple>
 
 extern "C" {
 #include <stdint.h>
@@ -113,7 +114,6 @@ static std::ostream &operator<<(std::ostream &os, const Vec3f32 &vec) {
 }
 
 struct Vec2f32 {
-    Vec2f32() = default;
     Vec2f32(f32 x, f32 y) : x(x), y(y) {}
     f32 x = 0, y = 0;
 
