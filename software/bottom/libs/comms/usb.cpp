@@ -383,6 +383,7 @@ void CDC::_line_state_cb(u8 interface, bool dtr, bool rts, void *args) {
   } else {
     // disconnected
     xEventGroupClearBits(_tusb_state_eventgroup, CDC_CONNECTED_BIT);
+    watchdog_reboot(0, 0, 10);
     return;
   }
 }
@@ -397,10 +398,10 @@ bool CDC::_vendor_control_xfer_cb(u8 rhport, u8 stage,
   case 0x01: // reset to bootloader
     reset_usb_boot(0, 0);
     return true;
-    //
-    // case 0x02: // restart
-    //   watchdog_reboot(0, 0, 100);
-    //   return true;
+
+  case 0x02: // restart
+    watchdog_reboot(0, 0, 10);
+    return true;
   }
 
   return false;
