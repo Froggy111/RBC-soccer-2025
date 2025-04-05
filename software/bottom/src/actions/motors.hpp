@@ -31,68 +31,78 @@ static SemaphoreHandle_t motor_data_mutex = nullptr;
 // const u32 max_duty_cycle_per_ms = max_duty_cycle / min_duty_cycle_ramp;
 
 void motor_task(void *args) {
-  // initialize all motors
+  // comms::USB_CDC.wait_for_CDC_connection();
   if (driver1.init(1, spi0)) {
-    debug::info("Motor Driver 1 Initialized!\r\n");
+    driver1.set_ITRIP(driver::ITRIP::ITRIP::TRIP_2_97V);
+    driver1.set_OCP(driver::OCP::OCP::SETTING_100);
+    debug::log("Motor Driver Initialized!\n");
   } else {
-    debug::error("Motor Driver 1 Initialization Failed!\r\n");
-    while (true) {
-      vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-  }
-
-  if (driver2.init(2, spi0)) {
-    debug::info("Motor Driver 2 Initialized!\r\n");
-  } else {
-    debug::error("Motor Driver 2 Initialization Failed!\r\n");
+    debug::log("Motor Driver Initialization Failed!\n");
     while (true) {
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }
 
   if (driver3.init(3, spi0)) {
-    debug::info("Motor Driver 3 Initialized!\r\n");
+    driver1.set_ITRIP(driver::ITRIP::ITRIP::TRIP_2_97V);
+    driver1.set_OCP(driver::OCP::OCP::SETTING_100);
+    debug::log("Motor Driver Initialized!\n");
   } else {
-    debug::error("Motor Driver 3 Initialization Failed!\r\n");
+    debug::log("Motor Driver Initialization Failed!\n");
     while (true) {
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }
 
   if (driver4.init(4, spi0)) {
-    debug::info("Motor Driver 4 Initialized!\r\n");
+    driver1.set_ITRIP(driver::ITRIP::ITRIP::TRIP_2_97V);
+    driver1.set_OCP(driver::OCP::OCP::SETTING_100);
+    debug::log("Motor Driver Initialized!\n");
   } else {
-    debug::error("Motor Driver 4 Initialization Failed!\r\n");
+    debug::log("Motor Driver Initialization Failed!\n");
     while (true) {
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }
 
-  debug::info("Motors initialized");
-
-  TickType_t previous_wait_time = xTaskGetTickCount();
-  for (;;) {
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    xSemaphoreTake(motor_data_mutex, portMAX_DELAY);
-    memcpy(&motor_task_data, motor_task_buffer, sizeof(motor_task_data));
-    memset(motor_task_buffer, 0, sizeof(motor_task_buffer));
-    xSemaphoreGive(motor_data_mutex);
-    switch (motor_task_data.id) {
-    case 1:
-      driver1.command(motor_task_data.duty_cycle);
-      break;
-    case 2:
-      driver2.command(motor_task_data.duty_cycle);
-      break;
-    case 3:
-      driver3.command(motor_task_data.duty_cycle);
-      break;
-    case 4:
-      driver4.command(motor_task_data.duty_cycle);
-      break;
-    default:
-      debug::error("Invalid motor ID: %d\n", motor_task_data.id);
-      break;
+  if (driver2.init(2, spi0)) {
+    driver1.set_ITRIP(driver::ITRIP::ITRIP::TRIP_2_97V);
+    driver1.set_OCP(driver::OCP::OCP::SETTING_100);
+    debug::log("Motor Driver Initialized!\n");
+  } else {
+    debug::log("Motor Driver Initialization Failed!\n");
+    while (true) {
+      vTaskDelay(pdMS_TO_TICKS(1000));
     }
+  }
+  debug::info("Motors initialized");
+  for (;;) {
+    driver1.command(2000);
+    driver2.command(2000);
+    driver3.command(2000);
+    driver4.command(2000);
+    vTaskDelay(pdMS_TO_TICKS(1));
+    // ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    // xSemaphoreTake(motor_data_mutex, portMAX_DELAY);
+    // memcpy(&motor_task_data, motor_task_buffer, sizeof(motor_task_data));
+    // memset(motor_task_buffer, 0, sizeof(motor_task_buffer));
+    // xSemaphoreGive(motor_data_mutex);
+    // switch (motor_task_data.id) {
+    // case 1:
+    //   driver1.command(motor_task_data.duty_cycle);
+    //   break;
+    // case 2:
+    //   driver2.command(motor_task_data.duty_cycle);
+    //   break;
+    // case 3:
+    //   driver3.command(motor_task_data.duty_cycle);
+    //   break;
+    // case 4:
+    //   driver4.command(motor_task_data.duty_cycle);
+    //   break;
+    // default:
+    //   debug::error("Invalid motor ID: %d\n", motor_task_data.id);
+    //   break;
+    // }
   }
 }
