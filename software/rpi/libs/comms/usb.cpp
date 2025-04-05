@@ -230,7 +230,7 @@ void CDC::rxThreadFunc(PicoDevice &device) {
     while (device.running) {
         // Try to read data
         int bytes_avail;
-=        ioctl(device.fd, FIONREAD, &bytes_avail);
+        ioctl(device.fd, FIONREAD, &bytes_avail);
 
         if (bytes_avail > 0) {
             int n =
