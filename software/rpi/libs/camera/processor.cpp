@@ -435,8 +435,10 @@ BallDetector CamProcessor::ball_detector = BallDetector();
 IRPoint CamProcessor::ball_position      = IRPoint();
 float CamProcessor::ball_heading         = 0.0f;
 
-void CamProcessor::process_frame(const cv::Mat &frame) {
+void CamProcessor ::process_frame(const cv::Mat &frame) {
     goalpost_info = goalpost_detector.detectGoalposts(frame);
+    goalpost_info.first.angle += M_PI / 2;
+    goalpost_info.second.angle += M_PI / 2;
 
     // Detect IR points
     cv::Mat irMask;
