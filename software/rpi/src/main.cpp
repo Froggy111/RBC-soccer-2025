@@ -119,10 +119,25 @@ int main() {
         angle = M_PI * 2 - angle;
 
         // * Attack strategy
-        types::Vec2f32 ball_pos(0, 0);
-        strategy::attack(ball_pos, M_PI - processor.goalpost_info.first.angle,
-                         max_IR > 6000,
-                         types::Vec2f32(0, 0));
+        // types::Vec2f32 ball_pos(0, 0);
+        // strategy::attack(ball_pos, M_PI - processor.goalpost_info.first.angle,
+        //                  max_IR > 6000,
+        //                  types::Vec2f32(0, 0));
+
+        auto commands  = motion_controller.velocity_pid(0, angle, angle, 0.0f);
+        auto commands2 = motion_controller.move_heading(angle, M_PI / 2, 0.0f);
+
+        motors::command_motor_motion_controller(1,
+                                                std::get<0>(commands) * 5000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        motors::command_motor_motion_controller(2,
+                                                std::get<1>(commands) * 5000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        motors::command_motor_motion_controller(3,
+                                                std::get<2>(commands) * 5000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        motors::command_motor_motion_controller(4,
+                                                std::get<3>(commands) * 5000);
     }
 
     stop();

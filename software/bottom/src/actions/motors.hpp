@@ -77,8 +77,6 @@ void motor_task(void *args) {
     memcpy(&motor_task_data, motor_task_buffer, sizeof(motor_task_data));
     memset(motor_task_buffer, 0, sizeof(motor_task_buffer));
     xSemaphoreGive(motor_data_mutex);
-    debug::info("Motor %d: %d\n", motor_task_data.id,
-                motor_task_data.duty_cycle);
     switch (motor_task_data.id) {
     case 1:
       driver1.command(motor_task_data.duty_cycle);

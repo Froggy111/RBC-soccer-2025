@@ -21,13 +21,13 @@ void main_task(void *args) {
   debug::info("USB CDC connected.\n");
   IR::init();
 
-  xTaskCreate(led_blinker_task, "led_blinker_task", 1024, NULL, 10,
-              &led_blinker_handle);
+  // xTaskCreate(led_blinker_task, "led_blinker_task", 1024, NULL, 10,
+  //             &led_blinker_handle);
 
-  led_blinker_data_mutex = xSemaphoreCreateMutex();
-  bool led_attach_successful = comms::USB_CDC.attach_listener(
-      comms::RecvIdentifiers::LEDs, led_blinker_handle, led_blinker_data_mutex,
-      led_blinker_buffer, sizeof(led_blinker_task_data));
+  // led_blinker_data_mutex = xSemaphoreCreateMutex();
+  // bool led_attach_successful = comms::USB_CDC.attach_listener(
+  //     comms::RecvIdentifiers::LEDs, led_blinker_handle, led_blinker_data_mutex,
+  //     led_blinker_buffer, sizeof(led_blinker_task_data));
 
   while (true) {
     vTaskDelay(pdMS_TO_TICKS(portMAX_DELAY));

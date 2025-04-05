@@ -434,8 +434,8 @@ bool MotorDriver::command(types::i16 duty_cycle) {
                               pins.get_pin_interface(IN2));
   outputControl.write_pwm(pins.get_pin(IN1), duty_cycle);
 
-  debug::log("Motor command executed: Duty cycle = %d, Direction = %d\r\n",
-             duty_cycle, direction);
+  debug::info("Motor command executed: Duty cycle = %d, Direction = %d\r\n",
+              duty_cycle, direction);
   return true;
 }
 
