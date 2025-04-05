@@ -24,6 +24,8 @@ void motor_driver_task(void *args) {
 
   // init as debug
   if (driver1.init(1, spi0)) {
+    driver1.set_ITRIP(driver::ITRIP::ITRIP::TRIP_2_97V);
+    driver1.set_OCP(driver::OCP::OCP::SETTING_100);
     debug::log("Motor Driver Initialized!\n");
   } else {
     debug::log("Motor Driver Initialization Failed!\n");
@@ -33,6 +35,8 @@ void motor_driver_task(void *args) {
   }
 
   if (driver3.init(3, spi0)) {
+    driver1.set_ITRIP(driver::ITRIP::ITRIP::TRIP_2_97V);
+    driver1.set_OCP(driver::OCP::OCP::SETTING_100);
     debug::log("Motor Driver Initialized!\n");
   } else {
     debug::log("Motor Driver Initialization Failed!\n");
@@ -42,6 +46,8 @@ void motor_driver_task(void *args) {
   }
 
   if (driver4.init(4, spi0)) {
+    driver1.set_ITRIP(driver::ITRIP::ITRIP::TRIP_2_97V);
+    driver1.set_OCP(driver::OCP::OCP::SETTING_100);
     debug::log("Motor Driver Initialized!\n");
   } else {
     debug::log("Motor Driver Initialization Failed!\n");
@@ -51,6 +57,8 @@ void motor_driver_task(void *args) {
   }
 
   if (driver2.init(2, spi0)) {
+    driver1.set_ITRIP(driver::ITRIP::ITRIP::TRIP_2_97V);
+    driver1.set_OCP(driver::OCP::OCP::SETTING_100);
     debug::log("Motor Driver Initialized!\n");
   } else {
     debug::log("Motor Driver Initialization Failed!\n");
@@ -60,31 +68,36 @@ void motor_driver_task(void *args) {
   }
 
   while (true) {
-    for (int i = 0; i <= 650; i++) {
-      driver1.command(i * 10);
-      driver2.command(i * 10);
-      driver3.command(i * 10);
-      driver4.command(i * 10);
-
-      // debug::log"Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
-      //        driver3.read_current(), driver4.read_current());
-
-      vTaskDelay(pdMS_TO_TICKS(10));
-    }
-
-    vTaskDelay(pdMS_TO_TICKS(10));
-    for (int i = 650; i >= 0; i--) {
-      driver1.command(i * 10);
-      driver2.command(i * 10);
-      driver3.command(i * 10);
-      driver4.command(i * 10);
-
-      // debug::log"Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
-      //        driver3.read_current(), driver4.read_current());
-
-      vTaskDelay(pdMS_TO_TICKS(10));
-    }
-    vTaskDelay(pdMS_TO_TICKS(10));
+    driver1.command(2000);
+    driver2.command(2000);
+    driver3.command(2000);
+    driver4.command(2000);
+    vTaskDelay(pdMS_TO_TICKS(1));
+    //   for (int i = 0; i <= 650; i++) {
+    //     driver1.command(i * 10);
+    //     driver2.command(i * 10);
+    //     driver3.command(i * 10);
+    //     driver4.command(i * 10);
+    //
+    //     // debug::log"Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
+    //     //        driver3.read_current(), driver4.read_current());
+    //
+    //     vTaskDelay(pdMS_TO_TICKS(10));
+    //   }
+    //
+    //   vTaskDelay(pdMS_TO_TICKS(10));
+    //   for (int i = 650; i >= 0; i--) {
+    //     driver1.command(i * 10);
+    //     driver2.command(i * 10);
+    //     driver3.command(i * 10);
+    //     driver4.command(i * 10);
+    //
+    //     // debug::log"Current: %d %d %d %d\n", driver1.read_current(), driver2.read_current(),
+    //     //        driver3.read_current(), driver4.read_current());
+    //
+    //     vTaskDelay(pdMS_TO_TICKS(10));
+    //   }
+    //   vTaskDelay(pdMS_TO_TICKS(10));
   }
 }
 

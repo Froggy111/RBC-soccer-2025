@@ -104,19 +104,19 @@ int main() {
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
         // * IR processing
-        int max_IR_idx = 0, max_IR = 0;
-        for (int i = 0; i < IR::SENSOR_COUNT; i++) {
-            if (IR::IR_sensors.get_data_for_sensor_id(i) > max_IR) {
-                max_IR_idx = i;
-                max_IR     = IR::IR_sensors.get_data_for_sensor_id(i);
-            }
-        }
-
-        float angle = max_IR_idx * (15.0f / 180.0f * M_PI) - M_PI * 3 / 2;
-        if (angle < 0) {
-            angle += M_PI * 2;
-        }
-        angle = M_PI * 2 - angle;
+        // int max_IR_idx = 0, max_IR = 0;
+        // for (int i = 0; i < IR::SENSOR_COUNT; i++) {
+        //     if (IR::IR_sensors.get_data_for_sensor_id(i) > max_IR) {
+        //         max_IR_idx = i;
+        //         max_IR     = IR::IR_sensors.get_data_for_sensor_id(i);
+        //     }
+        // }
+        //
+        // float angle = max_IR_idx * (15.0f / 180.0f * M_PI) - M_PI * 3 / 2;
+        // if (angle < 0) {
+        //     angle += M_PI * 2;
+        // }
+        // angle = M_PI * 2 - angle;
 
         // * Attack strategy
         // types::Vec2f32 ball_pos(0, 0);
@@ -124,20 +124,41 @@ int main() {
         //                  max_IR > 6000,
         //                  types::Vec2f32(0, 0));
 
-        auto commands  = motion_controller.velocity_pid(0, angle, angle, 0.0f);
-        auto commands2 = motion_controller.move_heading(angle, M_PI / 2, 0.0f);
+        // auto commands  = motion_controller.velocity_pid(0, angle, angle, 0.0f);
+        // auto commands2 = motion_controller.move_heading(angle, M_PI / 2, 0.0f);
 
-        motors::command_motor_motion_controller(1,
-                                                std::get<0>(commands) * 5000);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor_motion_controller(2,
-                                                std::get<1>(commands) * 5000);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor_motion_controller(3,
-                                                std::get<2>(commands) * 5000);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor_motion_controller(4,
-                                                std::get<3>(commands) * 5000);
+        // motors::command_motor_motion_controller(1,
+        //                                         std::get<0>(commands) * 5000);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // motors::command_motor_motion_controller(2,
+        //                                         std::get<1>(commands) * 5000);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // motors::command_motor_motion_controller(3,
+        //                                         std::get<2>(commands) * 5000);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // motors::command_motor_motion_controller(4,
+        //                                         std::get<3>(commands) * 5000);
+        for (int i = 0; i <= 5000; i++) {
+            motors::command_motor_motion_controller(1, i);
+            motors::command_motor_motion_controller(2, i);
+            motors::command_motor_motion_controller(3, i);
+            motors::command_motor_motion_controller(4, i);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        for (int i = 5000; i >= -5000; i--) {
+            motors::command_motor_motion_controller(1, i);
+            motors::command_motor_motion_controller(2, i);
+            motors::command_motor_motion_controller(3, i);
+            motors::command_motor_motion_controller(4, i);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        for (int i = -5000; i <= 0; i++) {
+            motors::command_motor_motion_controller(1, i);
+            motors::command_motor_motion_controller(2, i);
+            motors::command_motor_motion_controller(3, i);
+            motors::command_motor_motion_controller(4, i);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
     }
 
     stop();

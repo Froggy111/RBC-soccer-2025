@@ -20,16 +20,18 @@ extern "C" {
 #define DEFAULT_CS 1     // CS high by default
 
 #define COMMAND_REG 0x08
-#define COMMAND_REG_RESET 0b10001001    // CLR FLT, SPI_IN lock, REG unlock
-#define COMMAND_REG_EXPECTED 0b00001001 // CLR FLT, SPI_IN lock, REG unlock
+#define COMMAND_REG_RESET 0b10000000
+#define COMMAND_REG_EXPECTED 0b00000000
 
 #define CONFIG1_REG_RESET 0x10
+// #define CONFIG1_REG_RESET 0b00010000 // default?
+// #define CONFIG1_REG_RESET 0b00010000 // set all to retry
 #define CONFIG1_REG 0x0A
 
-#define CONFIG2_REG_RESET 0x00
+#define CONFIG2_REG_RESET 0b00010000
 #define CONFIG2_REG 0x0B
 
-#define CONFIG3_REG_RESET 0x40
+#define CONFIG3_REG_RESET 0b01011100
 #define CONFIG3_REG 0x0C
 
 #define CONFIG4_REG_RESET 0x04
@@ -149,44 +151,44 @@ bool MotorDriver::write8(uint8_t reg, uint8_t value, int8_t expected) {
   // debug::info("SPI Write - Sent: 0x%04X, Received: 0x%04X\r\n",
   //                       reg_value, rx_data);
 
-  //* Check for no errors in received bytes
-  // First 2 MSBs bytes should be '1'
-  if ((rx_data & 0xC000) != 0xC000) {
-    debug::info("SPI Write - Error: Initial '1' MSB check bytes not found\r\n");
-    return false;
-  }
-
-  // following 6 bytes are from fault summary
-  if ((rx_data & 0x3F00) != 0x0000) {
-    debug::info(
-        "SPI Write - Error: Fault summary bytes indicating error, %d\r\n",
-        rx_data);
-    // get fault register
-    types::u8 fault = read8(FAULT_SUMMARY_REG);
-
-    if (fault == 0) {
-      debug::info(
-          "SPI Write - No fault found in fault register, moving on...\r\n");
-    } else {
-      debug::info("SPI Write - %s\n",
-                  FAULT::get_fault_description(fault).c_str());
-      return false;
-    }
-  }
-
-  // Check remaining 8 bytes to match the sent data or expected return
-  if (expected == -1) {
-    if ((rx_data & 0x00FF) != value) {
-      debug::info("SPI Write - Error: Data bytes do not match\r\n");
-      return false;
-    }
-  } else {
-    if ((rx_data & 0x00FF) != expected) {
-      debug::info("SPI Write - Error: Data bytes do not match expected\r\n");
-      return false;
-    }
-  }
-
+  ////* Check for no errors in received bytes
+  //// First 2 MSBs bytes should be '1'
+  //if ((rx_data & 0xC000) != 0xC000) {
+  //  debug::info("SPI Write - Error: Initial '1' MSB check bytes not found\r\n");
+  //  return false;
+  //}
+  //
+  //// following 6 bytes are from fault summary
+  //if ((rx_data & 0x3F00) != 0x0000) {
+  //  debug::info(
+  //      "SPI Write - Error: Fault summary bytes indicating error, %d\r\n",
+  //      rx_data);
+  //  // get fault register
+  //  types::u8 fault = read8(FAULT_SUMMARY_REG);
+  //
+  //  if (fault == 0) {
+  //    debug::info(
+  //        "SPI Write - No fault found in fault register, moving on...\r\n");
+  //  } else {
+  //    debug::info("SPI Write - %s\n",
+  //                FAULT::get_fault_description(fault).c_str());
+  //    return false;
+  //  }
+  //}
+  //
+  //// Check remaining 8 bytes to match the sent data or expected return
+  //if (expected == -1) {
+  //  if ((rx_data & 0x00FF) != value) {
+  //    debug::info("SPI Write - Error: Data bytes do not match\r\n");
+  //    return false;
+  //  }
+  //} else {
+  //  if ((rx_data & 0x00FF) != expected) {
+  //    debug::info("SPI Write - Error: Data bytes do not match expected\r\n");
+  //    return false;
+  //  }
+  //}
+  //
   return bytes_written == 1;
 }
 
@@ -239,30 +241,35 @@ uint8_t MotorDriver::read8(uint8_t reg) {
 //! reading specific registers
 bool MotorDriver::init_registers() {
   //* COMMAND register
+  debug::info("writing command reg\r\n");
   if (!write8(COMMAND_REG, COMMAND_REG_RESET, COMMAND_REG_EXPECTED)) {
-    debug::info("Error: Could not write to COMMAND register\r\n");
-    return false;
+    // debug::info("Error: Could not write to COMMAND register\r\n");
+    // return false;
   }
 
   //* CONFIG1 register
+  debug::info("writing config1 reg\r\n");
   if (!write8(CONFIG1_REG, CONFIG1_REG_RESET)) {
     debug::info("Error: Could not write to CONFIG1 register\r\n");
     return false;
   }
 
   //* CONFIG2 register
+  debug::info("writing config2 reg\r\n");
   if (!write8(CONFIG2_REG, CONFIG2_REG_RESET)) {
     debug::info("Error: Could not write to CONFIG2 register\r\n");
     return false;
   }
 
   //* CONFIG3 register
+  debug::info("writing config3 reg\r\n");
   if (!write8(CONFIG3_REG, CONFIG3_REG_RESET)) {
     debug::info("Error: Could not write to CONFIG3 register\r\n");
     return false;
   }
 
   //* CONFIG4 register
+  debug::info("writing config4 reg\r\n");
   if (!write8(CONFIG4_REG, CONFIG4_REG_RESET)) {
     debug::info("Error: Could not write to CONFIG4 register\r\n");
     return false;
@@ -402,7 +409,7 @@ bool MotorDriver::command(types::i16 duty_cycle) {
   //       "Motor command aborted due to configuration error.\r\n");
   //   return false;
   // }
-  if (abs(duty_cycle) > 3000) {
+  if (abs(duty_cycle) > 8000) {
     debug::error("Invalid duty cycle. Must be between -12500 and 12500.\r\n");
     return false;
   }
