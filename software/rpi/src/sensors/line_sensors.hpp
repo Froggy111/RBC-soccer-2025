@@ -4,7 +4,9 @@
 
 namespace line_sensors {
 
-const types::u8 SENSOR_COUNT = 48;
+const types::u8 SENSOR_COUNT      = 48;
+const types::u16 SENSOR_THRESHOLD = 1000; // calibrate!
+const types::f32 EVADE_MULTIPLIER = 0.8;
 
 const types::Vec2f32 SENSOR_VECTORS[SENSOR_COUNT] = {
     types::Vec2f32(-12, -65).normalize(),
@@ -64,7 +66,8 @@ class LineSensors {
     types::Vec2f32 evade_vector(void);
 
   private:
-    static volatile int data[SENSOR_COUNT];
+    static types::u16 _data[SENSOR_COUNT];
+    static types::Vec2f32 _evade_vector;
 };
 
 } // namespace line_sensors

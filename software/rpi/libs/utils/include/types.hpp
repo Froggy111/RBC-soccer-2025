@@ -201,6 +201,15 @@ struct Vec2f32 {
         }
         return *this;
     }
+    Vec2f32 &operator=(const Vec2f32 &other) {
+        // Optional: Check for self-assignment (though unlikely to cause issues here)
+        // if (this == &other) {
+        //     return *this;
+        // }
+        x = other.x;
+        y = other.y;
+        return *this; // Return *this by reference as per convention
+    }
 };
 
 static std::ostream &operator<<(std::ostream &os, const Vec2f32 &vec) {
