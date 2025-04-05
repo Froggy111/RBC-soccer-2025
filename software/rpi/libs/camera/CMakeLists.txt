@@ -5,6 +5,7 @@ target_sources(bbw_camera
     camera.cpp
     processor.cpp
     goalpost.cpp
+    
     PUBLIC
     include/camera.hpp
     include/config.hpp
