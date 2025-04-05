@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# filepath: button_toggle.py
 
 import RPi.GPIO as GPIO
 import subprocess
@@ -9,39 +8,50 @@ import sys
 
 # Configuration
 BUTTON_PIN = 31        # GPIO pin for button
-EXECUTABLE = "./your_executable"  # Change this to your executable path
+EXECUTABLE = "./main"  # Primary executable 
+DESTROY = "./destroy"  # Secondary executable
 DEBOUNCE_TIME = 0.3    # Debounce time in seconds
 
 # Setup
 process = None
-running = False
+current_app = None  # Tracks which app is currently running
 
 def setup():
     GPIO.setmode(GPIO.BOARD)  # Use physical pin numbering
     GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # Set pin as input with pull-up
 
 def toggle_executable():
-    global process, running
+    global process, current_app
     
-    if running:
-        # Stop the executable
-        if process:
-            process.terminate()
-            try:
-                process.wait(timeout=5)  # Wait up to 5 seconds for normal termination
-            except subprocess.TimeoutExpired:
-                process.kill()  # Force kill if it doesn't terminate
-            process = None
-        running = False
-        print("Executable stopped")
+    # Stop any currently running process
+    if process:
+        process.terminate()
+        try:
+            process.wait(timeout=5)  # Wait up to 5 seconds for normal termination
+        except subprocess.TimeoutExpired:
+            process.kill()  # Force kill if it doesn't terminate
+        process = None
+        print(f"{current_app} stopped")
+    
+    # Toggle between executables
+    if current_app == EXECUTABLE or current_app is None:
+        # Switch to destroy
+        try:
+            process = subprocess.Popen(DESTROY, shell=True)
+            current_app = DESTROY
+            print("Destroy executable started")
+        except Exception as e:
+            print(f"Error starting destroy executable: {e}")
+            current_app = None
     else:
-        # Start the executable
+        # Switch to main
         try:
             process = subprocess.Popen(EXECUTABLE, shell=True)
-            running = True
-            print("Executable started")
+            current_app = EXECUTABLE
+            print("Main executable started")
         except Exception as e:
-            print(f"Error starting executable: {e}")
+            print(f"Error starting main executable: {e}")
+            current_app = None
 
 def cleanup():
     # Ensure we stop the process when exiting
