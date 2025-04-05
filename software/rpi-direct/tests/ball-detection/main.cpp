@@ -4,19 +4,27 @@
 #include <opencv2/opencv.hpp>
 #include "ball.hpp"
 
-int main() {
+int main(int argc, char** argv) {
     const bool DEBUG = true;
-    const std::string video_path = "vid2.mp4";
+    std::string video_path;
+    
+    // Check if video path was provided as command line argument
+    if (argc > 1) {
+        video_path = argv[1];
+    } else {
+        std::cerr << "Usage: " << (argc > 0 ? argv[0] : "ball-detection-test") << " <video_path>" << std::endl;
+        return -1;
+    }
     
     // Check if file exists
     std::ifstream file(video_path);
     std::cout << "file exists? " << (file.good() ? "true" : "false") << std::endl;
     file.close();
-    
+
     // Open video file
     cv::VideoCapture cap(video_path);
     if (!cap.isOpened()) {
-        std::cerr << "Error opening video file" << std::endl;
+        std::cerr << "Error opening video file: " << video_path << std::endl;
         return -1;
     }
     
