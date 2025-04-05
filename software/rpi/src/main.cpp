@@ -121,7 +121,8 @@ int main() {
         // * Attack strategy
         types::Vec2f32 ball_pos(0, 0);
         strategy::attack(ball_pos, M_PI - processor.goalpost_info.first.angle,
-                         max_IR > 6000, types::Vec2f32(0, 0));
+                         max_IR > 6000,
+                         types::Vec2f32(0, 0));
     }
 
     stop();

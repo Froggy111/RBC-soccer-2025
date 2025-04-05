@@ -5,12 +5,14 @@ target_sources(bbw_camera
     camera.cpp
     processor.cpp
     goalpost.cpp
-    
+
+    ball.cpp
     PUBLIC
     include/camera.hpp
     include/config.hpp
     include/processor.hpp
-    include/goalpost.hpp)
+    include/goalpost.hpp
+    include/ball.hpp)
 
 find_package(OpenCV REQUIRED)
 
