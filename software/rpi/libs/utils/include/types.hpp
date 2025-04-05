@@ -181,8 +181,26 @@ struct Vec2f32 {
 
     // Negation
     Vec2f32 operator-() const { return Vec2f32(-x, -y); }
+    f32 magnitude() const {
+        // Using hypotf for better numerical stability against overflow/underflow
+        // compared to std::sqrt(x*x + y*y)
+        return std::hypotf(x, y);
+        // Alternatively: return std::sqrt(dot(*this));
+        // Or: return std::sqrt(x * x + y * y);
+    }
 
     operator std::tuple<float, float>() const { return std::make_tuple(x, y); }
+    Vec2f32 &normalize() {
+        f32 mag           = magnitude();
+        const f32 epsilon = 1e-8f;
+        if (mag < epsilon) {
+            x = 0.0f;
+            y = 0.0f;
+        } else {
+            *this /= mag; // Use the existing compound division operator
+        }
+        return *this;
+    }
 };
 
 static std::ostream &operator<<(std::ostream &os, const Vec2f32 &vec) {
