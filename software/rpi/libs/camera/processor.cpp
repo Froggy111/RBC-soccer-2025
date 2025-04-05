@@ -1,12 +1,11 @@
 #include "processor.hpp"
-#include "IMU.hpp"
+#include "ball.hpp"
 #include "config.hpp"
 #include "debug.hpp"
 #include "field.hpp"
 #include "field_chunked.hpp"
 #include "goalpost.hpp"
 #include "position.hpp"
-#include "types.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <opencv2/core/cvdef.h>
@@ -427,11 +426,25 @@ std::pair<Pos, float> CamProcessor::find_minima_local_grid_search(
 int CamProcessor::_frame_count = 0;
 Pos CamProcessor::current_pos(-field::FIELD_X_SIZE / 2, 0, M_PI);
 
+// * goalposts
 std::pair<GoalpostInfo, GoalpostInfo> CamProcessor::goalpost_info;
 GoalpostDetector CamProcessor::goalpost_detector = GoalpostDetector();
 
+// * ball detection
+BallDetector CamProcessor::ball_detector = BallDetector();
+IRPoint CamProcessor::ball_position      = IRPoint();
+
 void CamProcessor::process_frame(const cv::Mat &frame) {
+    auto start_time = std::chrono::high_resolution_clock::now();
+
     goalpost_info = goalpost_detector.detectGoalposts(frame);
+
+    // Detect IR points
+    cv::Mat irMask;
+    std::vector<IRPoint> currentFramePoints =
+        ball_detector.detectIRPoints(frame, irMask);
+    ball_position = ball_detector.detectIRPointByHeading(
+        currentFramePoints, ball_heading, BALL_DETECTION_HEADING_TOL);
 
     // types::Vec3f32 cur_pos_imu         = IMU::position();
     // types::Vec3f32 cur_orientation_imu = IMU::orientation();
@@ -469,7 +482,11 @@ void CamProcessor::process_frame(const cv::Mat &frame) {
     // debug::warn("POSITION: %d, %d, %f (Loss: %f)", current_pos.x, current_pos.y,
     //             current_pos.heading / M_PI * 180, res.second);
 
+    auto end_time = std::chrono::high_resolution_clock::now();
     _frame_count += 1;
+    debug::info("Frame %d processed in %f ms", _frame_count,
+                std::chrono::duration<float, std::milli>(end_time - start_time)
+                    .count());
 }
 
 } // namespace camera

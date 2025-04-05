@@ -117,9 +117,11 @@ int main() {
             angle += M_PI * 2;
         }
         angle = M_PI * 2 - angle;
+        processor.ball_heading = angle;
 
         // * Attack strategy
-        types::Vec2f32 ball_pos(0, 0);
+        types::Vec2f32 ball_pos(processor.ball_position.position.x,
+                                processor.ball_position.position.y);
         strategy::attack(ball_pos, M_PI - processor.goalpost_info.first.angle,
                          true, types::Vec2f32(0, 0));
     }

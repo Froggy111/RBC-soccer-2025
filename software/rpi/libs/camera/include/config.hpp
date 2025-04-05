@@ -4,6 +4,11 @@ namespace camera {
 enum Resolutions { RES_1232P = 0, RES_1080P = 1, RES_480P = 2 };
 
 // ^ TO BE TUNED
+// ball detection
+const int BALL_DETECTION_MIN_CONTOUR = 10;
+const int BALL_DETECTION_MIN_BRIGHTNESS = 130;
+const int BALL_DETECTION_HEADING_TOL = 15;
+ 
 // thresholds for white
 const int COLOR_R_THRES = 160;
 const int COLOR_G_THRES = 160;
