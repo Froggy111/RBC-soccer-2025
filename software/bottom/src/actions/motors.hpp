@@ -77,32 +77,32 @@ void motor_task(void *args) {
   }
   debug::info("Motors initialized");
   for (;;) {
-    driver1.command(2000);
-    driver2.command(2000);
-    driver3.command(2000);
-    driver4.command(2000);
-    vTaskDelay(pdMS_TO_TICKS(1));
-    // ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    // xSemaphoreTake(motor_data_mutex, portMAX_DELAY);
-    // memcpy(&motor_task_data, motor_task_buffer, sizeof(motor_task_data));
-    // memset(motor_task_buffer, 0, sizeof(motor_task_buffer));
-    // xSemaphoreGive(motor_data_mutex);
-    // switch (motor_task_data.id) {
-    // case 1:
-    //   driver1.command(motor_task_data.duty_cycle);
-    //   break;
-    // case 2:
-    //   driver2.command(motor_task_data.duty_cycle);
-    //   break;
-    // case 3:
-    //   driver3.command(motor_task_data.duty_cycle);
-    //   break;
-    // case 4:
-    //   driver4.command(motor_task_data.duty_cycle);
-    //   break;
-    // default:
-    //   debug::error("Invalid motor ID: %d\n", motor_task_data.id);
-    //   break;
-    // }
+    // driver1.command(2000);
+    // driver2.command(2000);
+    // driver3.command(2000);
+    // driver4.command(2000);
+    // vTaskDelay(pdMS_TO_TICKS(1));
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    xSemaphoreTake(motor_data_mutex, portMAX_DELAY);
+    memcpy(&motor_task_data, motor_task_buffer, sizeof(motor_task_data));
+    memset(motor_task_buffer, 0, sizeof(motor_task_buffer));
+    xSemaphoreGive(motor_data_mutex);
+    switch (motor_task_data.id) {
+    case 1:
+      driver1.command(motor_task_data.duty_cycle);
+      break;
+    case 2:
+      driver2.command(motor_task_data.duty_cycle);
+      break;
+    case 3:
+      driver3.command(motor_task_data.duty_cycle);
+      break;
+    case 4:
+      driver4.command(motor_task_data.duty_cycle);
+      break;
+    default:
+      debug::error("Invalid motor ID: %d\n", motor_task_data.id);
+      break;
+    }
   }
 }
