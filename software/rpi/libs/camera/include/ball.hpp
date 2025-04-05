@@ -3,6 +3,7 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <cmath>
+#include "config.hpp"
 
 struct IRPoint {
     cv::Point position;
@@ -15,9 +16,9 @@ class BallDetector {
 public:
     // Constructor with default values
     BallDetector(
-        const cv::Point& centerPoint = cv::Point(640/2 - 5, 480/2 + 30),
-        int minContourArea = 10,
-        int minBrightness = 130,
+        const cv::Point& centerPoint = cv::Point(camera::IMG_WIDTH/2, camera::IMG_HEIGHT/2),
+        int minContourArea = camera::BALL_DETECTION_MIN_CONTOUR,
+        int minBrightness = camera::BALL_DETECTION_MIN_BRIGHTNESS,
         bool debug = true
     );
 

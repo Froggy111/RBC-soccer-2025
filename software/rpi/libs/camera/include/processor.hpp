@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ball.hpp"
 #include "config.hpp"
 #include "goalpost.hpp"
 #include "position.hpp"
@@ -18,8 +19,15 @@ class CamProcessor {
     ~CamProcessor() = default;
     static Pos current_pos;
 
+    // * Goalpost Detection
     static std::pair<GoalpostInfo, GoalpostInfo> goalpost_info;
     static GoalpostDetector goalpost_detector;
+
+    // * Ball Detection
+    static BallDetector ball_detector;
+    // meant for other modules to set to tell the processor where the ball is
+    static float ball_heading;
+    static IRPoint ball_position;
 
     static std::tuple<std::pair<Pos, float>, std::pair<Pos, float>,
                       std::pair<Pos, float>, std::pair<Pos, float>>
