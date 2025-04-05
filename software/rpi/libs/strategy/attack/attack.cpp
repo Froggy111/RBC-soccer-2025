@@ -43,7 +43,7 @@ void orbit(types::Vec2f32 ball_pos_rel, types::f32 goal_heading,
 
     // Target position relative to the ball.
     // We want to end up at (0, -TARGET_DISTANCE_BEHIND) relative to the ball.
-    types::Vec2f32 target_pos_rel_ball;
+    types::Vec2f32 target_pos_rel_ball(0, 0);
 
     // --- Decide on the intermediate target based on current relative position ---
     // This logic determines where around the ball we should aim right now.
@@ -82,7 +82,7 @@ void orbit(types::Vec2f32 ball_pos_rel, types::f32 goal_heading,
 
     // --- Calculate the vector from the robot to the target point ---
     // Target point relative to robot = ball pos relative to robot + target pos relative to ball
-    types::Vec2f32 target_pos_rel_robot;
+    types::Vec2f32 target_pos_rel_robot(0, 0);
     target_pos_rel_robot.x = ball_pos_rel.x + target_pos_rel_ball.x;
     target_pos_rel_robot.y = ball_pos_rel.y + target_pos_rel_ball.y;
 
@@ -90,7 +90,7 @@ void orbit(types::Vec2f32 ball_pos_rel, types::f32 goal_heading,
     types::f32 target_dist_sq =
         target_pos_rel_robot.x * target_pos_rel_robot.x +
         target_pos_rel_robot.y * target_pos_rel_robot.y;
-    types::f32 target_dist = std::sqrtf(target_dist_sq);
+    types::f32 target_dist = sqrtf(target_dist_sq);
 
     types::f32 speed = MAX_ORBIT_SPEED; // Start with max speed
     // Optional: Scale speed based on distance (e.g., slow down when close)
@@ -100,7 +100,7 @@ void orbit(types::Vec2f32 ball_pos_rel, types::f32 goal_heading,
     // atan2f(y, x) gives angle from positive X-axis.
     // We want angle from positive Y-axis (forward). atan2f(x, y) does this.
     types::f32 translate_heading =
-        std::atan2f(target_pos_rel_robot.x, target_pos_rel_robot.y);
+        atan2f(target_pos_rel_robot.x, target_pos_rel_robot.y);
 
     // Ensure we move if the target is not exactly the current position
     if (target_dist < EPSILON) {
