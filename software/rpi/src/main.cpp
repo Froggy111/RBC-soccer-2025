@@ -115,7 +115,7 @@ int main() {
         if (angle < 0) {
             angle += M_PI * 2;
         }
-        angle = M_PI * 2 - angle;
+        angle                  = M_PI * 2 - angle;
         processor.ball_heading = angle;
 
         // * Attack strategy

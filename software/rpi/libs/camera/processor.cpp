@@ -443,6 +443,9 @@ void CamProcessor::process_frame(const cv::Mat &frame) {
     std::vector<IRPoint> currentFramePoints =
         ball_detector.detectIRPoints(frame, irMask);
 
+    debug::info("Points Count: %d, Heading (IR): %f", currentFramePoints.size(),
+                ball_heading);
+
     if (currentFramePoints.size() > 0) {
         ball_position = ball_detector.detectIRPointByHeading(
             currentFramePoints, ball_heading, BALL_DETECTION_HEADING_TOL);

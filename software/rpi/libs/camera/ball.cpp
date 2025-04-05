@@ -1,12 +1,13 @@
 #include "ball.hpp"
+#include "config.hpp"
 
 BallDetector::BallDetector(const cv::Point& centerPoint, int minContourArea, int minBrightness, bool debug)
     : m_centerPoint(centerPoint),
       m_minContourArea(minContourArea),
       m_minBrightness(minBrightness),
       m_debug(debug),
-      m_purpleLower(cv::Scalar(130, 50, 100)),
-      m_purpleUpper(cv::Scalar(175, 255, 255))
+      m_purpleLower(camera::BALL_DETECTION_PURPLE_MASK_LOWER),
+      m_purpleUpper(camera::BALL_DETECTION_PURPLE_MASK_UPPER)
 {
 }
 
