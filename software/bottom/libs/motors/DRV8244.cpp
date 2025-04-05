@@ -23,9 +23,9 @@ extern "C" {
 #define COMMAND_REG_RESET 0b10000000
 #define COMMAND_REG_EXPECTED 0b00000000
 
-#define CONFIG1_REG_RESET 0x10
+// #define CONFIG1_REG_RESET 0x10
 // #define CONFIG1_REG_RESET 0b00010000 // default?
-// #define CONFIG1_REG_RESET 0b00011111 // set all to retry
+#define CONFIG1_REG_RESET 0b00011111 // set all to retry
 #define CONFIG1_REG 0x0A
 
 #define CONFIG2_REG_RESET 0b00010000
