@@ -1,8 +1,8 @@
 #pragma once
 
+#include <cmath>
 #include <opencv2/opencv.hpp>
 #include <vector>
-#include <cmath>
 
 struct IRPoint {
     cv::Point position;
@@ -12,31 +12,46 @@ struct IRPoint {
 };
 
 class BallDetector {
-public:
+  public:
     // Constructor with default values
-    BallDetector(
-        const cv::Point& centerPoint = cv::Point(640/2 - 5, 480/2 + 30),
-        int minContourArea = 10,
-        int minBrightness = 130,
-        bool debug = true
-    );
+    BallDetector(const cv::Point &centerPoint = cv::Point(640 / 2 - 5,
+                                                          480 / 2 + 30),
+                 int minContourArea = 10, int minBrightness = 130,
+                 bool debug = true);
 
     // Main detection function returning ball position and heading
-    bool detectBall(const cv::Mat& frame, cv::Point& ballPosition, double& ballHeading);
+    bool detectBall(const cv::Mat &frame, cv::Point &ballPosition,
+                    double &ballHeading);
 
     // Additional functions for debugging and visualization
-    std::vector<IRPoint> detectIRPoints(const cv::Mat& frame, cv::Mat& irMask);
-    void drawDebugInfo(cv::Mat& outputFrame, const std::vector<IRPoint>& points, const cv::Point* strongestPoint = nullptr);
-    cv::Mat createDebugView(const cv::Mat& frame, const cv::Mat& irMask, const std::vector<IRPoint>& points, const cv::Point* strongestPoint = nullptr);
+    std::vector<IRPoint> detectIRPoints(const cv::Mat &frame, cv::Mat &irMask);
+    void drawDebugInfo(cv::Mat &outputFrame, const std::vector<IRPoint> &points,
+                       const cv::Point *strongestPoint = nullptr);
+    cv::Mat createDebugView(const cv::Mat &frame, const cv::Mat &irMask,
+                            const std::vector<IRPoint> &points,
+                            const cv::Point *strongestPoint = nullptr);
 
     // Setter methods for parameters
-    void setCenterPoint(const cv::Point& center) { m_centerPoint = center; }
+    void setCenterPoint(const cv::Point &center) { m_centerPoint = center; }
     void setMinContourArea(int area) { m_minContourArea = area; }
     void setMinBrightness(int brightness) { m_minBrightness = brightness; }
     void setDebugMode(bool debug) { m_debug = debug; }
-    IRPoint detectIRPointByHeading(const std::vector<IRPoint>& irPoints, double heading, double angleTolerance);
+    IRPoint detectIRPointByHeading(const std::vector<IRPoint> &irPoints,
+                                   double heading, double angleTolerance);
+    // Detect IR point based on heading in radians
+    IRPoint detectIRPoint(const std::vector<IRPoint> &irPoints,
+                          double headingRadians);
 
-private:
+    // Calculate distance to a detected ball
+    double getDistanceToBall(const IRPoint &irPoint);
+
+    IRPoint getBallInfo(
+        const cv::Mat& frame, 
+        double headingRadians,
+        cv::Mat* outputFrame = nullptr
+    )
+
+  private:
     // Configuration parameters
     cv::Point m_centerPoint;
     int m_minContourArea;
@@ -48,7 +63,7 @@ private:
     cv::Scalar m_purpleUpper;
 
     // Helper functions
-    double calculateDistance(const cv::Point& p1, const cv::Point& p2);
-    double calculateAngle(const cv::Point& point);
-    cv::Point findStrongestIRSource(const std::vector<IRPoint>& irPoints);
+    double calculateDistance(const cv::Point &p1, const cv::Point &p2);
+    double calculateAngle(const cv::Point &point);
+    cv::Point findStrongestIRSource(const std::vector<IRPoint> &irPoints);
 };

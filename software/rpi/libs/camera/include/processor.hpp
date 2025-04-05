@@ -2,6 +2,7 @@
 
 #include "config.hpp"
 #include "goalpost.hpp"
+#include "ball.hpp"
 #include "position.hpp"
 #include <opencv2/opencv.hpp>
 
@@ -20,6 +21,10 @@ class CamProcessor {
 
     static std::pair<GoalpostInfo, GoalpostInfo> goalpost_info;
     static GoalpostDetector goalpost_detector;
+    static IRPoint ball_info;
+    static float ball_distance;
+
+    static float ball_heading;
 
     static std::tuple<std::pair<Pos, float>, std::pair<Pos, float>,
                       std::pair<Pos, float>, std::pair<Pos, float>>

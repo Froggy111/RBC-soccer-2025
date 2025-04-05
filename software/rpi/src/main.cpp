@@ -17,6 +17,11 @@
 #include <thread>
 #include <unistd.h>
 
+#define BALL_IN_CONTROL_THRESHOLD 50
+#define ASSIGNED_GOALPOST 0 //0 = BLUE, 1 = YELLOW
+
+
+
 camera::Camera cam;
 camera::CamProcessor processor;
 MotionController motion_controller;
@@ -103,65 +108,123 @@ int main() {
 
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
-        // * IR processing
-        // int max_IR_idx = 0, max_IR = 0;
-        // for (int i = 0; i < IR::SENSOR_COUNT; i++) {
-        //     if (IR::IR_sensors.get_data_for_sensor_id(i) > max_IR) {
-        //         max_IR_idx = i;
-        //         max_IR     = IR::IR_sensors.get_data_for_sensor_id(i);
-        //     }
-        // }
-        //
-        // float angle = max_IR_idx * (15.0f / 180.0f * M_PI) - M_PI * 3 / 2;
-        // if (angle < 0) {
-        //     angle += M_PI * 2;
-        // }
-        // angle = M_PI * 2 - angle;
+        // * IR processing {works}
+        int max_IR_idx = 0, max_IR = 0;
+        for (int i = 0; i < IR::SENSOR_COUNT; i++) {
+            if (IR::IR_sensors.get_data_for_sensor_id(i) > max_IR) {
+                max_IR_idx = i;
+                max_IR     = IR::IR_sensors.get_data_for_sensor_id(i);
+            }
+        }
+
+        float angle = max_IR_idx * (15.0f / 180.0f * M_PI) - M_PI * 3 / 2;
+        if (angle < 0) {
+            angle += M_PI * 2;
+        }
+        angle = M_PI * 2 - angle;
+
+        //Update the ball heading detected on the camera processor so that detectIRPoint can be used
+        processor.ball_heading = angle;
 
         // * Attack strategy
         // types::Vec2f32 ball_pos(0, 0);
         // strategy::attack(ball_pos, M_PI - processor.goalpost_info.first.angle,
         //                  max_IR > 6000,
         //                  types::Vec2f32(0, 0));
+        float angle_to_goalpost = 0; // Default value
 
-        // auto commands  = motion_controller.velocity_pid(0, angle, angle, 0.0f);
-        // auto commands2 = motion_controller.move_heading(angle, M_PI / 2, 0.0f);
+        // Check if our assigned goalpost is detected
+        bool goalpost_detected = false;
+        if (ASSIGNED_GOALPOST == 0) {
+            if (processor.goalpost_info.first.detected) {
+                angle_to_goalpost = processor.goalpost_info.first.angle;
+                goalpost_detected = true;
+            }
+        } else {
+            if (processor.goalpost_info.second.detected) {
+                angle_to_goalpost = processor.goalpost_info.second.angle;
+                goalpost_detected = true;
+            }
+        }
 
-        // motors::command_motor_motion_controller(1,
-        //                                         std::get<0>(commands) * 5000);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        // motors::command_motor_motion_controller(2,
-        //                                         std::get<1>(commands) * 5000);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        // motors::command_motor_motion_controller(3,
-        //                                         std::get<2>(commands) * 5000);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        // motors::command_motor_motion_controller(4,
-        //                                         std::get<3>(commands) * 5000);
-        for (int i = 0; i <= 5000; i++) {
-            motors::command_motor_motion_controller(1, i);
-            motors::command_motor_motion_controller(2, i);
-            motors::command_motor_motion_controller(3, i);
-            motors::command_motor_motion_controller(4, i);
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // Only move toward goalpost if:
+        // 1. The ball is controlled AND
+        // 2. The goalpost is detected AND
+        // 3. Distance to goalpost is below 60
+        float goalpost_distance = 0;
+        if (ASSIGNED_GOALPOST == 0) {
+            goalpost_distance = processor.goalpost_info.first.distance;
+        } else {
+            goalpost_distance = processor.goalpost_info.second.distance;
         }
-        for (int i = 5000; i >= -5000; i--) {
-            motors::command_motor_motion_controller(1, i);
-            motors::command_motor_motion_controller(2, i);
-            motors::command_motor_motion_controller(3, i);
-            motors::command_motor_motion_controller(4, i);
+
+        if (processor.ball_distance < BALL_IN_CONTROL_THRESHOLD &&
+            goalpost_detected && goalpost_distance < 60) {
+            auto commands = motion_controller.velocity_pid(
+                0, angle_to_goalpost, angle_to_goalpost, 0.0f);
+            auto commands2 = motion_controller.move_heading(
+                angle_to_goalpost, angle_to_goalpost, 0.0f);
+
+            motors::command_motor_motion_controller(
+                1, (std::get<0>(commands) + std::get<0>(commands2)) * 5000);
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        for (int i = -5000; i <= 0; i++) {
-            motors::command_motor_motion_controller(1, i);
-            motors::command_motor_motion_controller(2, i);
-            motors::command_motor_motion_controller(3, i);
-            motors::command_motor_motion_controller(4, i);
+            motors::command_motor_motion_controller(
+                2, (std::get<1>(commands) + std::get<1>(commands2)) * 5000);
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            motors::command_motor_motion_controller(
+                3, (std::get<2>(commands) + std::get<2>(commands2)) * 5000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            motors::command_motor_motion_controller(
+                4, (std::get<3>(commands) + std::get<3>(commands2)) * 5000);
+        } else { //The ball is not with us, or goalpost too far, so rotate and follow ball
+            auto commands =
+                motion_controller.velocity_pid(0, angle, angle, 0.0f);
+            auto commands2 = motion_controller.move_heading(angle, angle, 0.0f);
+
+            motors::command_motor_motion_controller(
+                1, (std::get<0>(commands) + std::get<0>(commands2)) * 5000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            motors::command_motor_motion_controller(
+                2, (std::get<1>(commands) + std::get<1>(commands2)) * 5000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            motors::command_motor_motion_controller(
+                3, (std::get<2>(commands) + std::get<2>(commands2)) * 5000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            motors::command_motor_motion_controller(
+                4, (std::get<3>(commands) + std::get<3>(commands2)) * 5000);
         }
+
+        // ####Step 1: Rotate and move to ball####
+
+        //####Step 2: Get the goalpost information, and detect
+
+        //MOTOR DEBUG STUFFFFFF
+
+        // for (int i = 0; i <= 5000; i++) {
+        //     motors::command_motor_motion_controller(1, i);
+        //     motors::command_motor_motion_controller(2, i);
+        //     motors::command_motor_motion_controller(3, i);
+        //     motors::command_motor_motion_controller(4, i);
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // }
+        // for (int i = 5000; i >= -5000; i--) {
+        //     motors::command_motor_motion_controller(1, i);
+        //     motors::command_motor_motion_controller(2, i);
+        //     motors::command_motor_motion_controller(3, i);
+        //     motors::command_motor_motion_controller(4, i);
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // }
+        // for (int i = -5000; i <= 0; i++) {
+        //     motors::command_motor_motion_controller(1, i);
+        //     motors::command_motor_motion_controller(2, i);
+        //     motors::command_motor_motion_controller(3, i);
+        //     motors::command_motor_motion_controller(4, i);
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // }
     }
 
     stop();
     debug::info("EMERGENCY STOP DONE.");
     return 0;
 }
+

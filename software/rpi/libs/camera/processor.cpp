@@ -5,6 +5,8 @@
 #include "field.hpp"
 #include "field_chunked.hpp"
 #include "goalpost.hpp"
+#include "include/ball.hpp"
+#include "include/processor.hpp"
 #include "position.hpp"
 #include "types.hpp"
 #include <cstdio>
@@ -429,9 +431,12 @@ Pos CamProcessor::current_pos(-field::FIELD_X_SIZE / 2, 0, M_PI);
 
 std::pair<GoalpostInfo, GoalpostInfo> CamProcessor::goalpost_info;
 GoalpostDetector CamProcessor::goalpost_detector = GoalpostDetector();
+BallDetector CamProcessor::ball_detector = BallDetector();
 
 void CamProcessor::process_frame(const cv::Mat &frame) {
     goalpost_info = goalpost_detector.detectGoalposts(frame);
+    ball_info = ball_detector.getBallInfo(frame, ball_heading);
+    ball_distance = ball_detector.getDistanceToBall(ball_info);
 
     // types::Vec3f32 cur_pos_imu         = IMU::position();
     // types::Vec3f32 cur_orientation_imu = IMU::orientation();
