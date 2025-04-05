@@ -25,7 +25,7 @@ extern "C" {
 
 #define CONFIG1_REG_RESET 0x10
 // #define CONFIG1_REG_RESET 0b00010000 // default?
-// #define CONFIG1_REG_RESET 0b00010000 // set all to retry
+// #define CONFIG1_REG_RESET 0b00011111 // set all to retry
 #define CONFIG1_REG 0x0A
 
 #define CONFIG2_REG_RESET 0b00010000
@@ -419,9 +419,9 @@ bool MotorDriver::command(types::i16 duty_cycle) {
   if (!nfault_value) {
     // faulted
     debug::error("Driver %u faulted\r\n", _id);
-    if (!init_registers()) {
-      debug::error("Could not unfault driver %u\r\n", _id);
-    }
+    // if (!init_registers()) {
+    //   debug::error("Could not unfault driver %u\r\n", _id);
+    // }
     // types::u8 faultSummary = read8(FAULT_SUMMARY_REG);
     // if (faultSummary != 0) {
     //   debug::error("Error: FAULT_SUMMARY: %s\r\n",
