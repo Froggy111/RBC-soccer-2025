@@ -2,9 +2,9 @@
 #include "comms.hpp"
 #include "config.hpp"
 #include "debug.hpp"
+#include "motion.hpp"
 #include "motors.hpp"
 #include <unistd.h>
-#include "motion.hpp"
 
 using namespace types;
 

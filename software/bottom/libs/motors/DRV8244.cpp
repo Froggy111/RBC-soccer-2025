@@ -409,7 +409,7 @@ bool MotorDriver::command(types::i16 duty_cycle) {
   //       "Motor command aborted due to configuration error.\r\n");
   //   return false;
   // }
-  if (abs(duty_cycle) > 8000) {
+  if (abs(duty_cycle) > 4000) {
     debug::error("Invalid duty cycle. Must be between -12500 and 12500.\r\n");
     return false;
   }
