@@ -4,6 +4,7 @@
 #include "debug.hpp"
 #include "field.hpp"
 #include "field_chunked.hpp"
+#include "goalpost.hpp"
 #include "position.hpp"
 #include "types.hpp"
 #include <cstdio>
@@ -425,11 +426,13 @@ std::pair<Pos, float> CamProcessor::find_minima_local_grid_search(
 
 int CamProcessor::_frame_count = 0;
 Pos CamProcessor::current_pos(-field::FIELD_X_SIZE / 2, 0, M_PI);
-types::Vec3f32 CamProcessor::last_pos_imu    = {-field::FIELD_X_SIZE / 4,
-                                                -field::FIELD_Y_SIZE / 4, 0};
-types::Vec3f32 CamProcessor::last_orient_imu = {0, 0, 0};
+
+std::pair<GoalpostInfo, GoalpostInfo> CamProcessor::goalpost_info;
+GoalpostDetector CamProcessor::goalpost_detector = GoalpostDetector();
 
 void CamProcessor::process_frame(const cv::Mat &frame) {
+    goalpost_info = goalpost_detector.detectGoalposts(frame);
+
     // types::Vec3f32 cur_pos_imu         = IMU::position();
     // types::Vec3f32 cur_orientation_imu = IMU::orientation();
 
@@ -457,12 +460,12 @@ void CamProcessor::process_frame(const cv::Mat &frame) {
     // last_pos_imu    = cur_pos_imu;
     // last_orient_imu = cur_orientation_imu;
 
-    auto res = find_minima_local_grid_search(
-        frame, current_pos, 12, 12, 14 * M_PI / 180, 3, 3, 2 * M_PI / 180);
+    // auto res = find_minima_local_grid_search(
+    //     frame, current_pos, 12, 12, 14 * M_PI / 180, 3, 3, 2 * M_PI / 180);
 
-    current_pos.x       = res.first.x;
-    current_pos.y       = res.first.y;
-    current_pos.heading = res.first.heading;
+    // current_pos.x       = res.first.x;
+    // current_pos.y       = res.first.y;
+    // current_pos.heading = res.first.heading;
     // debug::warn("POSITION: %d, %d, %f (Loss: %f)", current_pos.x, current_pos.y,
     //             current_pos.heading / M_PI * 180, res.second);
 

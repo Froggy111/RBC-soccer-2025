@@ -13,6 +13,7 @@ find_package(Threads REQUIRED)
 
 target_link_libraries(main
   bbw_camera
+  attack
   ${CMAKE_THREAD_LIBS_INIT}
 )
 

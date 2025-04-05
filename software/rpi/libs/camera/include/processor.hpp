@@ -1,8 +1,8 @@
 #pragma once
 
 #include "config.hpp"
+#include "goalpost.hpp"
 #include "position.hpp"
-#include "types.hpp"
 #include <opencv2/opencv.hpp>
 
 namespace camera {
@@ -17,8 +17,9 @@ class CamProcessor {
     CamProcessor()  = default;
     ~CamProcessor() = default;
     static Pos current_pos;
-    static types::Vec3f32 last_pos_imu;
-    static types::Vec3f32 last_orient_imu;
+
+    static std::pair<GoalpostInfo, GoalpostInfo> goalpost_info;
+    static GoalpostDetector goalpost_detector;
 
     static std::tuple<std::pair<Pos, float>, std::pair<Pos, float>,
                       std::pair<Pos, float>, std::pair<Pos, float>>

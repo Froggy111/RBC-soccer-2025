@@ -1,6 +1,6 @@
 #include "IMU.hpp"
-#include "actions/LEDs.hpp"
 #include "actions/kicker.hpp"
+#include "attack.hpp"
 #include "camera.hpp"
 #include "comms.hpp"
 #include "debug.hpp"
@@ -9,12 +9,12 @@
 #include "motors.hpp"
 #include "processor.hpp"
 #include "sensors/IR.hpp"
+#include "types.hpp"
 #include "wiringPi.h"
 #include <cmath>
 #include <cstdio>
 #include <opencv2/opencv.hpp>
 #include <thread>
-#include <tuple>
 #include <unistd.h>
 
 camera::Camera cam;
@@ -22,20 +22,20 @@ camera::CamProcessor processor;
 MotionController motion_controller;
 
 bool start() {
-    // // ^ Camera
-    // if (!cam.initialize(camera::RES_480P)) {
-    //     debug::error("INITIALIZED CAMERA - FAILED");
-    //     return false;
-    // } else {
-    //     debug::info("INITIALIZED CAMERA - SUCCESS");
-    // }
-    //
-    // if (!cam.startCapture(processor.process_frame)) {
-    //     debug::error("INITIALIZED CAMERA CAPTURE - FAILED");
-    //     return false;
-    // } else {
-    //     debug::info("INITIALIZED CAMERA CAPTURE - SUCCESS");
-    // }
+    // ^ Camera
+    if (!cam.initialize(camera::RES_480P)) {
+        debug::error("INITIALIZED CAMERA - FAILED");
+        return false;
+    } else {
+        debug::info("INITIALIZED CAMERA - SUCCESS");
+    }
+
+    if (!cam.startCapture(processor.process_frame)) {
+        debug::error("INITIALIZED CAMERA CAPTURE - FAILED");
+        return false;
+    } else {
+        debug::info("INITIALIZED CAMERA CAPTURE - SUCCESS");
+    }
 
     // ^ Motion
 
@@ -47,7 +47,6 @@ bool start() {
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
     motors::command_motor(4, 0);
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
-    // motion_controller.startControlThread();
 
     debug::info("INITIALIZED MOTION CONTROL - SUCCESS");
 
@@ -83,7 +82,7 @@ void stop() {
 
     // ^ Stop Camera
     debug::warn("STOPPING CAMERA...");
-    // cam.stopCapture();
+    cam.stopCapture();
 }
 
 int main() {
@@ -104,6 +103,7 @@ int main() {
 
     // Main loop with emergency stop check
     while (mode_controller::mode != mode_controller::Mode::EMERGENCY_STOP) {
+        // * IR processing
         int max_IR_idx = 0, max_IR = 0;
         for (int i = 0; i < IR::SENSOR_COUNT; i++) {
             if (IR::IR_sensors.get_data_for_sensor_id(i) > max_IR) {
@@ -112,47 +112,16 @@ int main() {
             }
         }
 
-        // debug::info("IR Sensor %d: %d", max_IR_idx, max_IR);
-
         float angle = max_IR_idx * (15.0f / 180.0f * M_PI) - M_PI * 3 / 2;
         if (angle < 0) {
             angle += M_PI * 2;
         }
         angle = M_PI * 2 - angle;
 
-        auto commands  = motion_controller.velocity_pid(0, angle, angle, 0.0f);
-        auto commands2 = motion_controller.move_heading(angle, angle, 0.1f);
-
-        // motors::command_motor_motion_controller(
-        //     1, (std::get<0>(commands) + std::get<0>(commands2)) * 4000);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        // motors::command_motor_motion_controller(
-        //     2, (std::get<1>(commands) + std::get<1>(commands2)) * 4000);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        // motors::command_motor_motion_controller(
-        //     3, (std::get<2>(commands) + std::get<2>(commands2)) * 4000);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        // motors::command_motor_motion_controller(
-        //     4, (std::get<3>(commands) + std::get<3>(commands2)) * 4000);
-
-        // debug::info("Motor commands: %d %d %d %d", (std::get<0>(commands) +
-        //                                                 std::get<0>(commands2)) *
-        //                                                4000,
-        //             (std::get<1>(commands) + std::get<1>(commands2)) * 4000,
-        //             (std::get<2>(commands) + std::get<2>(commands2)) * 4000,
-        //             (std::get<3>(commands) + std::get<3>(commands2)) * 4000);
-
-        motors::command_motor(1, 2000);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor(2, 2000);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor(3, 2000);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        motors::command_motor(4, 2000);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
-        // kicker::send_kick();
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        // * Attack strategy
+        types::Vec2f32 ball_pos(0, 0);
+        strategy::attack(ball_pos, M_PI - processor.goalpost_info.first.angle,
+                         max_IR > 6000, types::Vec2f32(0, 0));
     }
 
     stop();

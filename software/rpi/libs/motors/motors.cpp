@@ -42,7 +42,6 @@ void translate(types::Vec2f32 vec) {
     auto commands = motion_controller.move_heading(0.0f, 0.0f, 0.2f);
     motors::command_motor_motion_controller(1, std::get<0>(commands) *
                                                    MOTOR_MAX_DUTY_CYCLE);
-    usleep(100);
     motors::command_motor_motion_controller(2, std::get<1>(commands) *
                                                    MOTOR_MAX_DUTY_CYCLE);
     motors::command_motor_motion_controller(3, std::get<2>(commands) *
