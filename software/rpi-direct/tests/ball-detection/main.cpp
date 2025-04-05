@@ -36,6 +36,10 @@ int main(int argc, char** argv) {
     int allFramesTotalPoints = 0;
     int frameCount = 0;
     
+    // Fixed heading angle (40 degrees)
+    const double fixedHeading = 40.0;
+    const double angleTolerance = 15.0; // Accept points within ±15 degrees
+    
     // Main loop
     while (true) {
         cv::Mat frame;
@@ -53,19 +57,47 @@ int main(int argc, char** argv) {
         // Update statistics
         allFramesTotalPoints += currentFramePoints.size();
         
-        // Find ball position and heading
-        cv::Point ballPosition;
-        double ballHeading;
-        bool ballDetected = detector.detectBall(frame, ballPosition, ballHeading);
-        
-        // Create output visualization
+        // Create output visualization (initially without drawings)
         cv::Mat output = frame.clone();
-        detector.drawDebugInfo(output, currentFramePoints, ballDetected ? &ballPosition : nullptr);
+        
+        // Try to detect IR point by heading using fixed heading
+        IRPoint headingBasedBall;
+        bool headingBasedDetection = false;
+        
+        if (!currentFramePoints.empty()) {
+            headingBasedBall = detector.detectIRPointByHeading(
+                currentFramePoints, fixedHeading, angleTolerance);
+                
+            // If found a valid point by heading
+            if (headingBasedBall.position.x >= 0) {
+                headingBasedDetection = true;
+                
+                // Create a single-element vector with just the heading-based ball
+                std::vector<IRPoint> singleBall = {headingBasedBall};
+                
+                // Use the existing drawDebugInfo method to draw just this one point
+                detector.drawDebugInfo(output, singleBall, &headingBasedBall.position);
+                
+                std::cout << "Heading-based detection: Position (" 
+                          << headingBasedBall.position.x << "," << headingBasedBall.position.y 
+                          << "), Angle: " << headingBasedBall.angle << "°"
+                          << ", Distance: " << headingBasedBall.distance
+                          << ", Fixed heading: " << fixedHeading << "±" << angleTolerance << "°" << std::endl;
+            }
+        }
         
         // Debug visualization
         if (DEBUG) {
-            cv::Mat debugView = detector.createDebugView(
-                frame, irMask, currentFramePoints, ballDetected ? &ballPosition : nullptr);
+            cv::Mat debugView;
+            if (headingBasedDetection) {
+                // Create custom debug view only showing the heading-based ball
+                std::vector<IRPoint> singleBall = {headingBasedBall};
+                debugView = detector.createDebugView(frame, irMask, singleBall, &headingBasedBall.position);
+            } else {
+                // If no heading-based detection, show empty points
+                std::vector<IRPoint> emptyPoints;
+                debugView = detector.createDebugView(frame, irMask, emptyPoints, nullptr);
+            }
             cv::imshow("IR Detection Debug", debugView);
         }
         
@@ -76,23 +108,6 @@ int main(int argc, char** argv) {
         
         std::cout << "Frame " << frameCount << ": Found " << currentFramePoints.size() 
                   << " points in " << duration.count() << "ms" << std::endl;
-        
-        // Print points in current frame
-        if (!currentFramePoints.empty()) {
-            std::cout << "Points in frame " << frameCount << ":" << std::endl;
-            for (size_t i = 0; i < currentFramePoints.size(); i++) {
-                const auto& point = currentFramePoints[i];
-                std::cout << "  Point " << (i+1) << ": Position (" 
-                          << point.position.x << "," << point.position.y 
-                          << "), Angle: " << point.angle << "°"
-                          << ", Distance: " << point.distance << std::endl;
-            }
-        }
-        
-        if (ballDetected) {
-            std::cout << "Ball detected at (" << ballPosition.x << "," << ballPosition.y 
-                      << ") with heading " << ballHeading << "°" << std::endl;
-        }
         
         if (cv::waitKey(25) == 'q') {
             break;

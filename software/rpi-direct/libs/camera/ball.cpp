@@ -209,3 +209,41 @@ cv::Mat BallDetector::createDebugView(const cv::Mat& frame, const cv::Mat& irMas
     
     return debugView;
 }
+
+IRPoint BallDetector::detectIRPointByHeading(const std::vector<IRPoint>& irPoints, double heading, double angleTolerance)
+{
+    // Default return value (invalid point)
+    IRPoint result;
+    result.position = cv::Point(-1, -1);
+    result.intensity = 0;
+    result.angle = 0;
+    result.distance = 0;
+    
+    // If no points, return invalid point
+    if (irPoints.empty()) {
+        return result;
+    }
+    
+    double maxIntensity = 0;
+    bool foundPoint = false;
+    
+    // Filter points by heading and find max intensity
+    for (const auto& point : irPoints) {
+        // Calculate angle difference, handling wraparound
+        double angleDiff = std::abs(point.angle - heading);
+        if (angleDiff > 180) {
+            angleDiff = 360 - angleDiff;
+        }
+        
+        // Check if within tolerance
+        if (angleDiff <= angleTolerance) {
+            if (!foundPoint || point.intensity > maxIntensity) {
+                maxIntensity = point.intensity;
+                result = point;
+                foundPoint = true;
+            }
+        }
+    }
+    
+    return result;
+}
