@@ -102,11 +102,11 @@ void translate_with_target_heading(f32 speed, f32 translate_heading,
                             std::get<3>(summed_command) / max_duty_cycle);
     }
 
-    debug::info("MOTOR SUMMED_COMMAND: %f %f %f %f",
-                std::get<0>(summed_command) * MOTOR_MAX_DUTY_CYCLE,
-                std::get<1>(summed_command) * MOTOR_MAX_DUTY_CYCLE,
-                std::get<2>(summed_command) * MOTOR_MAX_DUTY_CYCLE,
-                std::get<3>(summed_command) *
-                    MOTOR_MAX_DUTY_CYCLE); // 4.... (big number) 0 1 0
+    // debug::info("MOTOR SUMMED_COMMAND: %f %f %f %f",
+    //             std::get<0>(summed_command) * MOTOR_MAX_DUTY_CYCLE,
+    //             std::get<1>(summed_command) * MOTOR_MAX_DUTY_CYCLE,
+    //             std::get<2>(summed_command) * MOTOR_MAX_DUTY_CYCLE,
+    //             std::get<3>(summed_command) *
+    //                 MOTOR_MAX_DUTY_CYCLE); // 4.... (big number) 0 1 0
 }
 } // namespace motors

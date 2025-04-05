@@ -433,18 +433,23 @@ GoalpostDetector CamProcessor::goalpost_detector = GoalpostDetector();
 // * ball detection
 BallDetector CamProcessor::ball_detector = BallDetector();
 IRPoint CamProcessor::ball_position      = IRPoint();
+float CamProcessor::ball_heading         = 0.0f;
 
 void CamProcessor::process_frame(const cv::Mat &frame) {
-    auto start_time = std::chrono::high_resolution_clock::now();
-
     goalpost_info = goalpost_detector.detectGoalposts(frame);
 
     // Detect IR points
     cv::Mat irMask;
     std::vector<IRPoint> currentFramePoints =
         ball_detector.detectIRPoints(frame, irMask);
-    ball_position = ball_detector.detectIRPointByHeading(
-        currentFramePoints, ball_heading, BALL_DETECTION_HEADING_TOL);
+
+    if (currentFramePoints.size() > 0) {
+        ball_position = ball_detector.detectIRPointByHeading(
+            currentFramePoints, ball_heading, BALL_DETECTION_HEADING_TOL);
+        debug::info("Position: %d, %d", ball_position.position.x,
+                    ball_position.position.y);
+        debug::info("Heading: %f", ball_heading);
+    }
 
     // types::Vec3f32 cur_pos_imu         = IMU::position();
     // types::Vec3f32 cur_orientation_imu = IMU::orientation();
@@ -482,11 +487,7 @@ void CamProcessor::process_frame(const cv::Mat &frame) {
     // debug::warn("POSITION: %d, %d, %f (Loss: %f)", current_pos.x, current_pos.y,
     //             current_pos.heading / M_PI * 180, res.second);
 
-    auto end_time = std::chrono::high_resolution_clock::now();
     _frame_count += 1;
-    debug::info("Frame %d processed in %f ms", _frame_count,
-                std::chrono::duration<float, std::milli>(end_time - start_time)
-                    .count());
 }
 
 } // namespace camera

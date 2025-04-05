@@ -37,8 +37,7 @@ bool start() {
         debug::info("INITIALIZED CAMERA CAPTURE - SUCCESS");
     }
 
-    // ^ Motion
-
+    // ^ Motion Control
     motors::command_motor(1, 0);
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
     motors::command_motor(2, 0);
