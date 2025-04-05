@@ -74,14 +74,6 @@ void translate_with_target_heading(f32 speed, f32 translate_heading,
 
     auto summed_command = translate_command + orient_command;
     summed_command      = summed_command + line_evade_command;
-    // motors::command_motor_motion_controller(1, std::get<0>(summed_command) *
-    //                                                MOTOR_MAX_DUTY_CYCLE);
-    // motors::command_motor_motion_controller(2, std::get<1>(summed_command) *
-    //                                                MOTOR_MAX_DUTY_CYCLE);
-    // motors::command_motor_motion_controller(3, std::get<2>(summed_command) *
-    //                                                MOTOR_MAX_DUTY_CYCLE);
-    // motors::command_motor_motion_controller(4, std::get<3>(summed_command) *
-    //                                                MOTOR_MAX_DUTY_CYCLE);
 
     // * normalize to motor_max_duty_cycle if its more than that
     float max_duty_cycle = 0;
@@ -101,6 +93,15 @@ void translate_with_target_heading(f32 speed, f32 translate_heading,
                             std::get<2>(summed_command) / max_duty_cycle,
                             std::get<3>(summed_command) / max_duty_cycle);
     }
+
+    motors::command_motor_motion_controller(1, std::get<0>(summed_command) *
+                                                   MOTOR_MAX_DUTY_CYCLE);
+    motors::command_motor_motion_controller(2, std::get<1>(summed_command) *
+                                                   MOTOR_MAX_DUTY_CYCLE);
+    motors::command_motor_motion_controller(3, std::get<2>(summed_command) *
+                                                   MOTOR_MAX_DUTY_CYCLE);
+    motors::command_motor_motion_controller(4, std::get<3>(summed_command) *
+                                                   MOTOR_MAX_DUTY_CYCLE);
 
     // debug::info("MOTOR SUMMED_COMMAND: %f %f %f %f",
     //             std::get<0>(summed_command) * MOTOR_MAX_DUTY_CYCLE,

@@ -118,11 +118,25 @@ int main() {
         angle                  = M_PI * 2 - angle;
         processor.ball_heading = angle;
 
+        types::f32 ball_distance = 0;
+        if (max_IR < 3000) {
+            ball_distance = 2000;
+        } else if (max_IR < 4500) {
+            ball_distance = 1500;
+        } else if (max_IR < 6000) {
+            ball_distance = 1000;
+        } else if (max_IR < 7500) {
+            ball_distance = 500;
+        } else if (max_IR < 9000) {
+            ball_distance = 50;
+        } else {
+            ball_distance = 0;
+        }
         // * Attack strategy
-        types::Vec2f32 ball_pos(processor.ball_position.position.x,
-                                processor.ball_position.position.y);
+        types::Vec2f32 ball_pos = types::Vec2f32(ball_distance * cos(angle),
+                                                 ball_distance * sin(angle));
         strategy::attack(ball_pos, M_PI - processor.goalpost_info.first.angle,
-                         true, types::Vec2f32(0, 0));
+                         false, types::Vec2f32(0, 0));
     }
 
     stop();
