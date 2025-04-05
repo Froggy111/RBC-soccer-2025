@@ -34,6 +34,7 @@ public:
     void setMinContourArea(int area) { m_minContourArea = area; }
     void setMinBrightness(int brightness) { m_minBrightness = brightness; }
     void setDebugMode(bool debug) { m_debug = debug; }
+    IRPoint detectIRPointByHeading(const std::vector<IRPoint>& irPoints, double heading, double angleTolerance);
 
 private:
     // Configuration parameters

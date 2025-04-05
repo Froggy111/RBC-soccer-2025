@@ -555,24 +555,3 @@ GoalpostDetector::findNearestFieldPoint(const std::vector<cv::Point> &quad,
 
     return closestPoint;
 }
-
-float GoalpostDetector::calculateQuadrilateralArea(
-    const std::vector<cv::Point> &quad) {
-    // Check if we have a valid polygon
-    if (quad.size() < 3) {
-        return 0.0f; // Not enough points to form a polygon
-    }
-
-    // Calculate the area using the Shoelace formula (Gauss's area formula)
-    float area = 0.0f;
-    int n      = quad.size();
-
-    for (int i = 0; i < n; i++) {
-        int j =
-            (i + 1) % n; // Next vertex, wrapping around to 0 for the last point
-        area += (quad[i].x * quad[j].y) - (quad[j].x * quad[i].y);
-    }
-
-    // Take absolute value and divide by 2
-    return std::abs(area) / 2.0f;
-}
