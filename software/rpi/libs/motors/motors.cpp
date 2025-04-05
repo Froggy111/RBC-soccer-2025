@@ -71,17 +71,38 @@ void translate_with_target_heading(f32 speed, f32 translate_heading,
     auto line_evade_command = motion_controller.translate(line_evading);
     auto orient_command     = motion_controller.velocity_pid(
         0, -orientation_heading, -orientation_heading, 0);
+
     auto summed_command = translate_command + orient_command;
     summed_command      = summed_command + line_evade_command;
-    motors::command_motor_motion_controller(1, std::get<0>(summed_command) *
-                                                   MOTOR_MAX_DUTY_CYCLE);
-    motors::command_motor_motion_controller(2, std::get<1>(summed_command) *
-                                                   MOTOR_MAX_DUTY_CYCLE);
-    motors::command_motor_motion_controller(3, std::get<2>(summed_command) *
-                                                   MOTOR_MAX_DUTY_CYCLE);
-    motors::command_motor_motion_controller(4, std::get<3>(summed_command) *
-                                                   MOTOR_MAX_DUTY_CYCLE);
-    debug::info("Motor summed_command: %d %d %d %d",
+    // motors::command_motor_motion_controller(1, std::get<0>(summed_command) *
+    //                                                MOTOR_MAX_DUTY_CYCLE);
+    // motors::command_motor_motion_controller(2, std::get<1>(summed_command) *
+    //                                                MOTOR_MAX_DUTY_CYCLE);
+    // motors::command_motor_motion_controller(3, std::get<2>(summed_command) *
+    //                                                MOTOR_MAX_DUTY_CYCLE);
+    // motors::command_motor_motion_controller(4, std::get<3>(summed_command) *
+    //                                                MOTOR_MAX_DUTY_CYCLE);
+
+    // * normalize to motor_max_duty_cycle if its more than that
+    float max_duty_cycle = 0;
+    max_duty_cycle =
+        std::max(max_duty_cycle, std::abs(std::get<0>(summed_command)));
+    max_duty_cycle =
+        std::max(max_duty_cycle, std::abs(std::get<1>(summed_command)));
+    max_duty_cycle =
+        std::max(max_duty_cycle, std::abs(std::get<2>(summed_command)));
+    max_duty_cycle =
+        std::max(max_duty_cycle, std::abs(std::get<3>(summed_command)));
+
+    if (max_duty_cycle > 1) {
+        summed_command =
+            std::make_tuple(std::get<0>(summed_command) / max_duty_cycle,
+                            std::get<1>(summed_command) / max_duty_cycle,
+                            std::get<2>(summed_command) / max_duty_cycle,
+                            std::get<3>(summed_command) / max_duty_cycle);
+    }
+
+    debug::info("MOTOR SUMMED_COMMAND: %f %f %f %f",
                 std::get<0>(summed_command) * MOTOR_MAX_DUTY_CYCLE,
                 std::get<1>(summed_command) * MOTOR_MAX_DUTY_CYCLE,
                 std::get<2>(summed_command) * MOTOR_MAX_DUTY_CYCLE,
