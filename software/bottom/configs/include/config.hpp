@@ -1,5 +1,5 @@
 #define LINE_SENSOR_COUNT 48
-#define POLL_RATE 1
+#define POLL_RATE 10
 #define KICK_MINIMUM_INTERVAL 5000
 #define TUSB_VID 0x2E8A
 #define TUSB_PID 0x000A

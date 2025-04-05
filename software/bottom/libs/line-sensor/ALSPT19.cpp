@@ -35,10 +35,14 @@ void LineSensor::init(spi_inst_t *spi_obj) {
 }
 
 void LineSensor::select_channel(uint8_t channel) {
+  if (channel == current_channel) {
+    return;
+  }
   dmux.write_gpio((int)pinmap::Mux1A::AMUX_S0, true, channel & 0x01);
   dmux.write_gpio((int)pinmap::Mux1A::AMUX_S1, true, channel & 0x02);
   dmux.write_gpio((int)pinmap::Mux1A::AMUX_S2, true, channel & 0x04);
   dmux.write_gpio((int)pinmap::Mux1A::AMUX_S3, true, channel & 0x08);
+  current_channel = channel;
 }
 
 // id starts from 0 to 47
