@@ -39,7 +39,8 @@ bool command_motor_motion_controller(uint8_t id, types::i16 duty_cycle) {
 }
 
 void translate(types::Vec2f32 vec) {
-    auto commands = motion_controller.move_heading(0.0f, 0.0f, 0.2f);
+    auto commands =
+        motion_controller.translate(std::tuple<f32, f32>(vec.x, vec.y));
     motors::command_motor_motion_controller(1, std::get<0>(commands) *
                                                    MOTOR_MAX_DUTY_CYCLE);
     motors::command_motor_motion_controller(2, std::get<1>(commands) *
@@ -49,11 +50,11 @@ void translate(types::Vec2f32 vec) {
     motors::command_motor_motion_controller(4, std::get<3>(commands) *
                                                    MOTOR_MAX_DUTY_CYCLE);
     debug::info("Motor commands: %d %d %d %d",
-                std::get<0>(commands) * MOTOR_MAX_DUTY_CYCLE,
-                std::get<1>(commands) * MOTOR_MAX_DUTY_CYCLE,
-                std::get<2>(commands) * MOTOR_MAX_DUTY_CYCLE,
-                std::get<3>(commands) *
-                    MOTOR_MAX_DUTY_CYCLE); // 4.... (big number) 0 1 0
+                (int)(std::get<0>(commands) * MOTOR_MAX_DUTY_CYCLE),
+                (int)(std::get<1>(commands) * MOTOR_MAX_DUTY_CYCLE),
+                (int)(std::get<2>(commands) * MOTOR_MAX_DUTY_CYCLE),
+                (int)(std::get<3>(commands) *
+                      MOTOR_MAX_DUTY_CYCLE)); // 4.... (big number) 0 1 0
 }
 
 std::tuple<f32, f32, f32, f32> operator+(std::tuple<f32, f32, f32, f32> &a,
