@@ -249,7 +249,6 @@ void CDC::rxThreadFunc(PicoDevice &device) {
                     types::u16 msg_len = temp_buffer[processed_pos] |
                                          (temp_buffer[processed_pos + 1] << 8);
 
-                    debug::info("COMMS: recieved %u bytes", msg_len);
                     // Check if we have a complete message
                     if (processed_pos + 2 + msg_len <= temp_buffer_pos) {
                         // Extract identifier

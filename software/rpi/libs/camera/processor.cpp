@@ -435,13 +435,18 @@ BallDetector CamProcessor::ball_detector = BallDetector();
 IRPoint CamProcessor::ball_position      = IRPoint();
 float CamProcessor::ball_heading         = 0.0f;
 
-void CamProcessor::process_frame(const cv::Mat &frame) {
+void CamProcessor ::process_frame(const cv::Mat &frame) {
     goalpost_info = goalpost_detector.detectGoalposts(frame);
+    goalpost_info.first.angle += M_PI / 2;
+    goalpost_info.second.angle += M_PI / 2;
 
     // Detect IR points
     cv::Mat irMask;
     std::vector<IRPoint> currentFramePoints =
         ball_detector.detectIRPoints(frame, irMask);
+
+    debug::info("Points Count: %d, Heading (IR): %f", currentFramePoints.size(),
+                ball_heading);
 
     if (currentFramePoints.size() > 0) {
         ball_position = ball_detector.detectIRPointByHeading(

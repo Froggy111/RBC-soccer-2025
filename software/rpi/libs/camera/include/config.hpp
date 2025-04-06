@@ -1,5 +1,6 @@
 #pragma once
 
+#include <opencv2/core/types.hpp>
 namespace camera {
 enum Resolutions { RES_1232P = 0, RES_1080P = 1, RES_480P = 2 };
 
@@ -8,6 +9,8 @@ enum Resolutions { RES_1232P = 0, RES_1080P = 1, RES_480P = 2 };
 const int BALL_DETECTION_MIN_CONTOUR = 10;
 const int BALL_DETECTION_MIN_BRIGHTNESS = 130;
 const int BALL_DETECTION_HEADING_TOL = 15;
+const cv::Scalar BALL_DETECTION_PURPLE_MASK_LOWER(130, 50, 100);
+const cv::Scalar BALL_DETECTION_PURPLE_MASK_UPPER(175, 255, 255);
  
 // thresholds for white
 const int COLOR_R_THRES = 160;
