@@ -9,6 +9,7 @@
 #include "motors.hpp"
 #include "processor.hpp"
 #include "sensors/IR.hpp"
+#include "sensors/line_sensors.hpp"
 #include "types.hpp"
 #include "wiringPi.h"
 #include <cmath>
@@ -20,22 +21,23 @@
 camera::Camera cam;
 camera::CamProcessor processor;
 MotionController motion_controller;
+line_sensors::LineSensors line_sensor;
 
 bool start() {
-    // ^ Camera
-    if (!cam.initialize(camera::RES_480P)) {
-        debug::error("INITIALIZED CAMERA - FAILED");
-        return false;
-    } else {
-        debug::info("INITIALIZED CAMERA - SUCCESS");
-    }
-
-    if (!cam.startCapture(processor.process_frame)) {
-        debug::error("INITIALIZED CAMERA CAPTURE - FAILED");
-        return false;
-    } else {
-        debug::info("INITIALIZED CAMERA CAPTURE - SUCCESS");
-    }
+    // // ^ Camera
+    // if (!cam.initialize(camera::RES_480P)) {
+    //     debug::error("INITIALIZED CAMERA - FAILED");
+    //     return false;
+    // } else {
+    //     debug::info("INITIALIZED CAMERA - SUCCESS");
+    // }
+    //
+    // if (!cam.startCapture(processor.process_frame)) {
+    //     debug::error("INITIALIZED CAMERA CAPTURE - FAILED");
+    //     return false;
+    // } else {
+    //     debug::info("INITIALIZED CAMERA CAPTURE - SUCCESS");
+    // }
 
     // ^ Motion Control
     motors::command_motor(1, 0);
@@ -53,9 +55,11 @@ bool start() {
     IR::IR_sensors.init();
     debug::info("INITIALIZED IR SENSORS - SUCCESS");
 
-    // ^ IMU
-    IMU::init();
+    line_sensor.init();
 
+    // // ^ IMU
+    // IMU::init();
+    //
     return true;
 }
 
@@ -81,12 +85,12 @@ void stop() {
 
     // ^ Stop Camera
     debug::warn("STOPPING CAMERA...");
-    cam.stopCapture();
+    // cam.stopCapture();
 }
 
 int main() {
-    // * wiring PI setup
-    wiringPiSetupGpio();
+    // // * wiring PI setup
+    // wiringPiSetupGpio();
 
     // * Mode controller setup
     mode_controller::init_mode_controller();
@@ -116,13 +120,38 @@ int main() {
             angle += M_PI * 2;
         }
         angle = M_PI * 2 - angle;
-        processor.ball_heading = angle;
+        if (angle > M_PI * 2) {
+            angle = angle - M_PI * 2;
+        }
+        debug::info("IR angle: %f", angle);
+        // processor.ball_heading = angle;
 
-        // * Attack strategy
-        types::Vec2f32 ball_pos(processor.ball_position.position.x,
-                                processor.ball_position.position.y);
-        strategy::attack(ball_pos, M_PI - processor.goalpost_info.first.angle,
-                         true, types::Vec2f32(0, 0));
+        // // * Attack strategy
+        // types::Vec2f32 ball_pos(processor.ball_position.position.x,
+        //                         processor.ball_position.position.y);
+        // strategy::attack(ball_pos, M_PI - processor.goalpost_info.first.angle,
+        //                  true, types::Vec2f32(0, 0));
+
+        // // DEFEND STRAT
+        // types::f32 angle_around_0 =
+        //     (angle < M_PI) ? angle : -(M_PI * 2 - angle);
+        // types::f32 defend_move_intensity =
+        //     std::remainder(std::fabs(angle_around_0), M_PI) / M_PI;
+        // defend_move_intensity *= 4;
+        // if (defend_move_intensity > 1) {
+        //     defend_move_intensity = 1;
+        // }
+        // types::f32 defend_move_direction =
+        //     (angle_around_0 >= 0) ? M_PI_2 : -M_PI_2;
+        // if (defend_move_intensity < 0.1) {
+        //     defend_move_intensity = 0.1;
+        // }
+        // debug::info("defend move intensity: %f", defend_move_intensity);
+        // motors::translate(
+        //     types::Vec2f32(defend_move_direction, defend_move_intensity));
+        debug::info("line sensor evade vector: %f, %f",
+                    line_sensor.evade_vector().x, line_sensor.evade_vector().y);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
     stop();
