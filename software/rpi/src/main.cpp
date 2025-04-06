@@ -132,23 +132,41 @@ int main() {
         // strategy::attack(ball_pos, M_PI - processor.goalpost_info.first.angle,
         //                  true, types::Vec2f32(0, 0));
 
-        // // DEFEND STRAT
-        // types::f32 angle_around_0 =
-        //     (angle < M_PI) ? angle : -(M_PI * 2 - angle);
-        // types::f32 defend_move_intensity =
-        //     std::remainder(std::fabs(angle_around_0), M_PI) / M_PI;
-        // defend_move_intensity *= 4;
-        // if (defend_move_intensity > 1) {
-        //     defend_move_intensity = 1;
-        // }
-        // types::f32 defend_move_direction =
-        //     (angle_around_0 >= 0) ? M_PI_2 : -M_PI_2;
-        // if (defend_move_intensity < 0.1) {
-        //     defend_move_intensity = 0.1;
-        // }
-        // debug::info("defend move intensity: %f", defend_move_intensity);
-        // motors::translate(
-        //     types::Vec2f32(defend_move_direction, defend_move_intensity));
+        // DEFEND STRAT
+        types::f32 angle_around_0 =
+            (angle < M_PI) ? angle : -(M_PI * 2 - angle);
+        types::f32 defend_move_intensity =
+            std::remainder(std::fabs(angle_around_0), M_PI) / M_PI;
+        defend_move_intensity *= 4;
+        if (defend_move_intensity > 1) {
+            defend_move_intensity = 1;
+        }
+        types::f32 defend_move_direction =
+            (angle_around_0 >= 0) ? M_PI_2 : -M_PI_2;
+        if (defend_move_intensity < 0.1) {
+            defend_move_intensity = 0.1;
+        }
+        debug::info("defend move intensity: %f", defend_move_intensity);
+        // Combine movement command with line avoidance
+        types::Vec2f32 moveCommand =
+            types::Vec2f32(defend_move_direction, defend_move_intensity);
+
+        // Add the vectors in Cartesian space
+        float moveX  = std::cos(defend_move_direction) * defend_move_intensity;
+        float moveY  = std::sin(defend_move_direction) * defend_move_intensity;
+        float finalX = moveX + line_sensor.evade_vector().x;
+        float finalY = moveY + line_sensor.evade_vector().y;
+
+        // Convert back to (angle, magnitude)
+        float finalDirection = std::atan2(finalY, finalX);
+        float finalIntensity = std::sqrt(finalX * finalX + finalY * finalY);
+        // Clamp intensity if needed
+        if (finalIntensity > 1.0)
+            finalIntensity = 1.0;
+
+        // Pass to motors::translate
+        motors::translate(types::Vec2f32(finalDirection, finalIntensity));
+
         debug::info("line sensor evade vector: %f, %f",
                     line_sensor.evade_vector().x, line_sensor.evade_vector().y);
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
