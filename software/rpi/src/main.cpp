@@ -154,8 +154,8 @@ int main() {
         // Add the vectors in Cartesian space
         float moveX  = std::cos(defend_move_direction) * defend_move_intensity;
         float moveY  = std::sin(defend_move_direction) * defend_move_intensity;
-        float finalX = moveX + line_sensor.evade_vector().x;
-        float finalY = moveY + line_sensor.evade_vector().y;
+        float finalX = moveX + line_sensor.evade_vector().x * defend_move_intensity;
+        float finalY = moveY + line_sensor.evade_vector().y * defend_move_intensity;
 
         // Convert back to (angle, magnitude)
         float finalDirection = std::atan2(finalY, finalX);
